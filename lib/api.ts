@@ -160,6 +160,14 @@ export const ValamAPI = {
     return user;
   },
 
+  async deleteAccount(userId: number | string): Promise<void> {
+    await apiRequest(`/users/${userId}`, {
+      method: "DELETE",
+      auth: true,
+    });
+    clearSession();
+  },
+
   // Crop Management
   async getCrops(): Promise<{ items: Crop[]; total: number }> {
     return apiRequest<{ items: Crop[]; total: number }>("/crops", { auth: true });
