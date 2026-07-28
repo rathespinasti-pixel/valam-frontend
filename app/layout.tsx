@@ -32,27 +32,23 @@ export const metadata: Metadata = {
   icons: { icon: "/images/logo.png" },
 };
 
+import { LanguageProvider } from "@/context/LanguageContext";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${poppins.variable} ${inter.variable} ${notoSansTamil.variable}`}>
       <head>
-        {/* Font Awesome kept as a CDN stylesheet: the ported CSS in globals.css
-            targets dozens of icon glyphs (.fa-solid/.fa-brands) directly through
-            layout-critical selectors (e.g. `.problem-card i`, `.step .circle`).
-            Swapping every one of those to inline SVG icons would mean re-tuning
-            each selector's sizing by hand with real regression risk, so Font
-            Awesome stays for content icons; lucide-react is used for the new,
-            purely-interactive controls (menu toggle, back-to-top, password
-            show/hide) added during this migration. */}
         <link
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
         />
       </head>
       <body>
-        {children}
-        <BackToTop />
-        <ScrollRevealProvider />
+        <LanguageProvider>
+          {children}
+          <BackToTop />
+          <ScrollRevealProvider />
+        </LanguageProvider>
       </body>
     </html>
   );
