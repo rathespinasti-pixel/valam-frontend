@@ -18,6 +18,7 @@ type NavKey =
   | "tools"
   | "marketplace"
   | "chatbot"
+  | "features"
   | "about"
   | "contact";
 
