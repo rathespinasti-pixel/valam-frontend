@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import { Menu, Bell } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { SidebarDrawer } from "./SidebarDrawer";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { useLanguage } from "@/context/LanguageContext";
 import logo from "@/public/images/logo.png";
 
 type NavKey =
@@ -38,6 +40,7 @@ export function Navbar({ active, pageTitle }: NavbarProps) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, isLoggedIn, loading, logout } = useAuth();
+  const { t } = useLanguage();
 
   async function handleLogout() {
     await logout();
@@ -53,8 +56,8 @@ export function Navbar({ active, pageTitle }: NavbarProps) {
           <Link href="/" className="brand">
             <Image src={logo} alt="Valam logo" priority />
             <span className="brand-text">
-              <b>வளம் · Valam</b>
-              <span>{pageTitle || "Smart Farming Assistant"}</span>
+              <b>{t("appName")}</b>
+              <span>{pageTitle || t("smartFarming")}</span>
             </span>
           </Link>
 
@@ -63,6 +66,9 @@ export function Navbar({ active, pageTitle }: NavbarProps) {
             {!loading && isLoggedIn && user ? (
               // Authenticated User Top Bar: Minimal & Clean (No crowded links)
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                {/* Language Switcher */}
+                <LanguageSwitcher />
+
                 {/* Notifications Bell Icon */}
                 <button
                   type="button"
@@ -149,11 +155,12 @@ export function Navbar({ active, pageTitle }: NavbarProps) {
             ) : (
               // Public User Navigation Bar: Login & Get Started only
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <LanguageSwitcher />
                 <Link href="/login" className="btn btn-outline" style={{ padding: "8px 16px" }}>
-                  Login
+                  {t("login")}
                 </Link>
                 <Link href="/register" className="btn btn-sun" style={{ padding: "8px 18px" }}>
-                  Get Started
+                  {t("getStarted")}
                 </Link>
               </div>
             )}

@@ -12,7 +12,6 @@ import {
   Sun,
   ShoppingBag,
   Users,
-  User,
   Settings,
   LogOut,
   X,
@@ -20,25 +19,26 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import type { ValamUser } from "@/lib/types";
+import { useLanguage } from "@/context/LanguageContext";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 
 export interface NavMenuItem {
   key: string;
-  label: string;
+  transKey: string;
   href: string;
   icon: React.ElementType;
 }
 
 export const MENU_ITEMS: NavMenuItem[] = [
-  { key: "dashboard", label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { key: "weather", label: "Weather Forecast", href: "/weather", icon: CloudSun },
-  { key: "guides", label: "Crop Guide", href: "/guides", icon: BookOpen },
-  { key: "chatbot", label: "AI Chatbot", href: "/chatbot", icon: Bot },
-  { key: "diagnosis", label: "Plant Disease Detection", href: "/diagnosis", icon: Stethoscope },
-  { key: "irrigation-solar", label: "Irrigation & Solar Farming", href: "/irrigation-solar", icon: Sun },
-  { key: "marketplace", label: "Marketplace", href: "/marketplace", icon: ShoppingBag },
-  { key: "community", label: "Community", href: "/community", icon: Users },
-  { key: "profile", label: "Profile", href: "/onboarding", icon: User },
-  { key: "settings", label: "Settings", href: "/onboarding", icon: Settings },
+  { key: "dashboard", transKey: "dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { key: "weather", transKey: "weatherForecast", href: "/weather", icon: CloudSun },
+  { key: "guides", transKey: "cropGuide", href: "/guides", icon: BookOpen },
+  { key: "chatbot", transKey: "aiChatbot", href: "/chatbot", icon: Bot },
+  { key: "diagnosis", transKey: "plantDiagnosis", href: "/diagnosis", icon: Stethoscope },
+  { key: "irrigation-solar", transKey: "irrigationSolar", href: "/irrigation-solar", icon: Sun },
+  { key: "marketplace", transKey: "marketplace", href: "/marketplace", icon: ShoppingBag },
+  { key: "community", transKey: "community", href: "/community", icon: Users },
+  { key: "settings", transKey: "settings", href: "/settings", icon: Settings },
 ];
 
 interface SidebarDrawerProps {
@@ -51,8 +51,8 @@ interface SidebarDrawerProps {
 
 export function SidebarDrawer({ isOpen, onClose, user, onLogout, activeKey }: SidebarDrawerProps) {
   const pathname = usePathname();
+  const { t } = useLanguage();
 
-  // Prevent background scrolling when sidebar drawer is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -104,7 +104,7 @@ export function SidebarDrawer({ isOpen, onClose, user, onLogout, activeKey }: Si
         {/* Header Section */}
         <div
           style={{
-            padding: "20px 24px",
+            padding: "20px 20px",
             borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
             display: "flex",
             justifyContent: "space-between",
@@ -175,20 +175,30 @@ export function SidebarDrawer({ isOpen, onClose, user, onLogout, activeKey }: Si
         >
           <div
             style={{
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.08em",
-              color: "#6EE7B7",
-              textTransform: "uppercase",
-              padding: "8px 12px 6px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "4px 12px 10px",
             }}
           >
-            Farming Hub Navigation
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: "0.08em",
+                color: "#6EE7B7",
+                textTransform: "uppercase",
+              }}
+            >
+              Navigation
+            </span>
+            <LanguageSwitcher />
           </div>
 
           {MENU_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = activeKey === item.key || pathname === item.href;
+            const labelText = t(item.transKey as any);
 
             return (
               <Link
@@ -212,7 +222,7 @@ export function SidebarDrawer({ isOpen, onClose, user, onLogout, activeKey }: Si
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <Icon size={19} color={isActive ? "#FFFFFF" : "#A7F3D0"} />
-                  <span>{item.label}</span>
+                  <span>{labelText}</span>
                 </div>
                 <ChevronRight size={16} color={isActive ? "#FFFFFF" : "#6EE7B7"} style={{ opacity: isActive ? 1 : 0.4 }} />
               </Link>
@@ -249,7 +259,7 @@ export function SidebarDrawer({ isOpen, onClose, user, onLogout, activeKey }: Si
             }}
           >
             <LogOut size={18} />
-            <span>Log out</span>
+            <span>{t("logout")}</span>
           </button>
         </div>
       </aside>
