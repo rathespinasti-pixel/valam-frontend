@@ -73,7 +73,7 @@ export default function WeatherPage() {
               <div style={{ background: "linear-gradient(135deg, #103B2B 0%, #1B4D3E 100%)", borderRadius: 16, padding: 28, color: "#FFF" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
                   <div>
-                    <div style={{ fontSize: 14, textTransform: "uppercase", tracking: "1px", opacity: 0.8 }}>Current Weather</div>
+                    <div style={{ fontSize: 14, textTransform: "uppercase", letterSpacing: "1px", opacity: 0.8 }}>Current Weather</div>
                     <h2 style={{ fontSize: 32, fontWeight: 800, margin: "4px 0", color: "#FFF" }}>{data.location}</h2>
                     <div style={{ fontSize: 18, color: "#E8F5E9" }}>{data.current?.condition || "Partly Cloudy"}</div>
                   </div>
