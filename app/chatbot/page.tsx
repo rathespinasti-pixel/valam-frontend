@@ -1,19 +1,15 @@
-import type { Metadata } from "next";
+"use client";
+
 import { Suspense } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ChatbotPageClient } from "@/components/chatbot/ChatbotPageClient";
-
-export const metadata: Metadata = {
-  title: "AI Assistant — Valam",
-  description:
-    "Chat with the Valam AI assistant about weather, crop guides, pests and disease, irrigation & solar, or the seeds & fertilizer marketplace.",
-};
+import { AuthGuard } from "@/components/auth/AuthGuard";
 
 export default function ChatbotPage() {
   return (
-    <>
-      <Navbar />
+    <AuthGuard>
+      <Navbar active="chatbot" />
 
       <section className="page-hero">
         <div className="container">
@@ -31,6 +27,6 @@ export default function ChatbotPage() {
       </Suspense>
 
       <Footer platformLinksVariant="chat" />
-    </>
+    </AuthGuard>
   );
 }

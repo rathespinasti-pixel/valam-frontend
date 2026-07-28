@@ -1,15 +1,11 @@
-import type { Metadata } from "next";
+"use client";
+
 import Link from "next/link";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Reveal } from "@/components/ui/Reveal";
 import { SeedMarketplace } from "@/components/marketplace/SeedMarketplace";
-
-export const metadata: Metadata = {
-  title: "Seeds & Fertilizer Marketplace — Valam",
-  description:
-    "Buy quality vegetable seeds and fertilizer, track your order and get a step-by-step AI crop-growing guide from planting to harvest — all in one smart farming marketplace.",
-};
+import { AuthGuard } from "@/components/auth/AuthGuard";
 
 const ORDER_STEPS = [
   { n: 1, title: "Select crop seed", text: "Choose the seed that fits your soil and season." },
@@ -39,7 +35,7 @@ const FERTILIZERS = [
 
 export default function MarketplacePage() {
   return (
-    <>
+    <AuthGuard>
       <Navbar active="marketplace" />
 
       <section className="page-hero">
@@ -199,6 +195,6 @@ export default function MarketplacePage() {
       </section>
 
       <Footer />
-    </>
+    </AuthGuard>
   );
 }

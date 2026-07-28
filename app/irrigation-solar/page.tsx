@@ -1,16 +1,12 @@
-import type { Metadata } from "next";
+"use client";
+
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Reveal } from "@/components/ui/Reveal";
 import { PRICE_TABLE } from "@/lib/solarData";
 import { RecommendationForm } from "@/components/irrigation-solar/RecommendationForm";
 import { SubsidyForm } from "@/components/irrigation-solar/SubsidyForm";
-
-export const metadata: Metadata = {
-  title: "AI Solar Farming Assistant — Irrigation & Solar Guidance — Valam",
-  description:
-    "An AI-based solar farming assistant that recommends suitable solar pumps, tracks equipment prices, checks subsidy eligibility, guides installation day-by-day, and sends maintenance reminders.",
-};
+import { AuthGuard } from "@/components/auth/AuthGuard";
 
 const DAY_GUIDE = [
   { day: 1, icon: "fa-sun", title: "Solar Site Check", tasks: ["Select proper sunlight area", "Check installation location"] },
@@ -29,7 +25,7 @@ const MAINTENANCE = [
 
 export default function IrrigationSolarPage() {
   return (
-    <>
+    <AuthGuard>
       <Navbar />
 
       <section className="page-hero">
@@ -182,6 +178,6 @@ export default function IrrigationSolarPage() {
       </section>
 
       <Footer />
-    </>
+    </AuthGuard>
   );
 }

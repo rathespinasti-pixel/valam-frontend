@@ -1,15 +1,11 @@
-import type { Metadata } from "next";
+"use client";
+
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Reveal } from "@/components/ui/Reveal";
 import { RadarHeroIllustration } from "@/components/pest-radar/RadarHeroIllustration";
 import { PestRadarClient } from "@/components/pest-radar/PestRadarClient";
-
-export const metadata: Metadata = {
-  title: "Acoustic Radar — AI Pest Detection — Valam",
-  description:
-    "Record or upload insect sounds from your field. Valam's Acoustic Radar analyzes the audio, identifies the pest, rates the infestation level and recommends control methods — then lets you ask the AI chatbot follow-up questions.",
-};
+import { AuthGuard } from "@/components/auth/AuthGuard";
 
 const BENEFITS = [
   { icon: "fa-magnifying-glass-chart", title: "Early detection", text: "Spot infestations from sound alone, often before any visible symptoms appear on the crop." },
@@ -20,8 +16,8 @@ const BENEFITS = [
 
 export default function PestRadarPage() {
   return (
-    <>
-      <Navbar />
+    <AuthGuard>
+      <Navbar active="diagnosis" />
 
       <section className="page-hero radar-hero radar-hero-full">
         <div className="radar-hero-bg" aria-hidden="true">
@@ -90,6 +86,6 @@ export default function PestRadarPage() {
       </section>
 
       <Footer platformLinksVariant="chat" />
-    </>
+    </AuthGuard>
   );
 }

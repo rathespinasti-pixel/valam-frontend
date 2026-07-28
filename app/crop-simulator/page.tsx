@@ -1,14 +1,10 @@
-import type { Metadata } from "next";
+"use client";
+
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Reveal } from "@/components/ui/Reveal";
 import { CropSimulatorClient } from "@/components/crop-simulator/CropSimulatorClient";
-
-export const metadata: Metadata = {
-  title: "AI Digital Twin & Crop DNA Simulator — Valam",
-  description:
-    "Run a risk-free 30-second AI simulation of your crop cycle before you spend on seeds, fertilizer or labor — forecast yield, pest risk, cost and profit for your farm.",
-};
+import { AuthGuard } from "@/components/auth/AuthGuard";
 
 const WHY_SIMULATE = [
   { icon: "fa-shield-halved", title: "Risk-free planning", text: "See likely yield, pest pressure and profit before spending on seeds, fertilizer or labor." },
@@ -18,7 +14,7 @@ const WHY_SIMULATE = [
 
 export default function CropSimulatorPage() {
   return (
-    <>
+    <AuthGuard>
       <Navbar active="features" />
 
       <section className="page-hero">
@@ -66,6 +62,6 @@ export default function CropSimulatorPage() {
       </section>
 
       <Footer />
-    </>
+    </AuthGuard>
   );
 }

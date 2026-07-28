@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
-import { NavAuth } from "./NavAuth";
+import { useAuth } from "@/hooks/useAuth";
 import logo from "@/public/images/logo.png";
 
 type NavKey =
@@ -22,7 +22,7 @@ type NavKey =
   | "about"
   | "contact";
 
-const LINKS: { key: NavKey; href: string; label: string }[] = [
+const AUTHENTICATED_LINKS: { key: NavKey; href: string; label: string }[] = [
   { key: "home", href: "/", label: "Home" },
   { key: "dashboard", href: "/dashboard", label: "Dashboard" },
   { key: "crops", href: "/crops", label: "Crops" },
@@ -41,8 +41,9 @@ interface NavbarProps {
   ctaLabel?: string;
 }
 
-export function Navbar({ active, ctaHref = "/dashboard", ctaLabel = "Farmer Hub" }: NavbarProps) {
+export function Navbar({ active }: NavbarProps) {
   const [open, setOpen] = useState(false);
+  const { user, isLoggedIn, loading, logout } = useAuth();
 
   return (
     <header className="site-header">
@@ -55,24 +56,50 @@ export function Navbar({ active, ctaHref = "/dashboard", ctaLabel = "Farmer Hub"
           </span>
         </Link>
 
+        {/* Public vs Authenticated Navigation */}
         <nav className={`nav-links${open ? " open" : ""}`}>
-          {LINKS.map((link) => (
-            <Link
-              key={link.key}
-              href={link.href}
-              className={link.key === active ? "active" : undefined}
-              onClick={() => setOpen(false)}
-            >
-              {link.label}
-            </Link>
-          ))}
+          {!loading && isLoggedIn ? (
+            AUTHENTICATED_LINKS.map((link) => (
+              <Link
+                key={link.key}
+                href={link.href}
+                className={link.key === active ? "active" : undefined}
+                onClick={() => setOpen(false)}
+              >
+                {link.label}
+              </Link>
+            ))
+          ) : (
+            // Public Navigation: Display only Login and Get Started
+            <>
+              <Link href="/login" onClick={() => setOpen(false)}>
+                Login
+              </Link>
+              <Link href="/register" onClick={() => setOpen(false)}>
+                Get Started
+              </Link>
+            </>
+          )}
         </nav>
 
         <div className="nav-cta">
-          <NavAuth />
-          <Link href={ctaHref} className="btn btn-sun">
-            {ctaLabel}
-          </Link>
+          {!loading && isLoggedIn && user ? (
+            <span className="nav-auth">
+              <span className="nav-user">Hi, {user.full_name.split(" ")[0]}</span>
+              <button type="button" className="nav-logout" onClick={() => logout()}>
+                Log out
+              </button>
+            </span>
+          ) : (
+            <div style={{ display: "flex", gap: 10 }}>
+              <Link href="/login" className="btn btn-outline" style={{ padding: "8px 16px" }}>
+                Login
+              </Link>
+              <Link href="/register" className="btn btn-sun" style={{ padding: "8px 18px" }}>
+                Get Started
+              </Link>
+            </div>
+          )}
           <button
             type="button"
             className="nav-toggle"

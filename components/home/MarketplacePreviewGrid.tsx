@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 import { ValamAPI } from "@/lib/api";
 import type { Product } from "@/lib/types";
 
@@ -18,10 +20,9 @@ const CATEGORY_ICONS: Record<string, string> = {
   solar: "fa-solar-panel",
 };
 
-// Ports the live marketplace preview from js/script.js: tries GET /api/products
-// and swaps in real listings; on any error (or an empty result) it silently
-// keeps the static fallback cards defined above/in the original markup.
 export function MarketplacePreviewGrid() {
+  const router = useRouter();
+  const { isLoggedIn } = useAuth();
   const [liveProducts, setLiveProducts] = useState<Product[] | null>(null);
 
   useEffect(() => {
@@ -31,15 +32,29 @@ export function MarketplacePreviewGrid() {
         if (items.length) setLiveProducts(items);
       })
       .catch(() => {
-        /* API unreachable — keep the static preview cards in place */
+        /* API unreachable — keep the static preview cards */
       });
   }, []);
+
+  function handleViewMore(e: React.MouseEvent) {
+    e.preventDefault();
+    if (!isLoggedIn) {
+      router.push("/login");
+    } else {
+      router.push("/marketplace");
+    }
+  }
 
   if (!liveProducts) {
     return (
       <div className="market-grid" data-live="pending">
         {STATIC_FALLBACK.map((p) => (
-          <div className="market-card reveal in" key={p.name}>
+          <div
+            className="market-card reveal in"
+            key={p.name}
+            onClick={handleViewMore}
+            style={{ cursor: "pointer" }}
+          >
             <div className="market-thumb">
               <i className={`fa-solid ${p.icon}`} aria-hidden="true" />
             </div>
@@ -48,7 +63,9 @@ export function MarketplacePreviewGrid() {
               <h4>{p.name}</h4>
               <div className="price-row">
                 <span className="price">{p.price}</span>
-                <span className="badge">{p.badge}</span>
+                <button type="button" className="btn btn-outline" style={{ fontSize: 12, padding: "4px 10px" }} onClick={handleViewMore}>
+                  View More
+                </button>
               </div>
             </div>
           </div>
@@ -63,7 +80,12 @@ export function MarketplacePreviewGrid() {
         const icon = CATEGORY_ICONS[(p.category || "").toLowerCase()] || "fa-store";
         const price = Number(p.price).toLocaleString("en-LK", { minimumFractionDigits: 0 });
         return (
-          <div className="market-card reveal in" key={p.id}>
+          <div
+            className="market-card reveal in"
+            key={p.id}
+            onClick={handleViewMore}
+            style={{ cursor: "pointer" }}
+          >
             <div className="market-thumb">
               <i className={`fa-solid ${icon}`} aria-hidden="true" />
             </div>
@@ -72,7 +94,9 @@ export function MarketplacePreviewGrid() {
               <h4>{p.name}</h4>
               <div className="price-row">
                 <span className="price">Rs. {price}</span>
-                <span className="badge">{p.quantity_available > 0 ? "In stock" : "Out of stock"}</span>
+                <button type="button" className="btn btn-outline" style={{ fontSize: 12, padding: "4px 10px" }} onClick={handleViewMore}>
+                  View More
+                </button>
               </div>
             </div>
           </div>

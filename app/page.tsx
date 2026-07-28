@@ -7,6 +7,8 @@ import { Reveal } from "@/components/ui/Reveal";
 import { StatCounter } from "@/components/ui/StatCounter";
 import { TestimonialSlider } from "@/components/ui/TestimonialSlider";
 import { MarketplacePreviewGrid } from "@/components/home/MarketplacePreviewGrid";
+import { FeatureGrid } from "@/components/home/FeatureGrid";
+import { MarketplaceCtaButton } from "@/components/home/MarketplaceCtaButton";
 import { ChatPreview } from "@/components/home/ChatPreview";
 
 export const metadata: Metadata = {
@@ -31,6 +33,7 @@ const PROBLEMS = [
   { icon: "fa-bolt", title: "High irrigation cost", text: "Rising electricity and fuel costs make traditional irrigation expensive and wasteful." },
   { icon: "fa-comments", title: "No expert network", text: "Farmers have few ways to reach agricultural experts or learn from each other." },
 ];
+
 
 const FEATURES = [
   { num: "01", href: "/chatbot?topic=weather", img: "/images/weather-alerts.jpg", alt: "Farmer checking AI weather forecast in the field", icon: "fa-cloud-sun-rain", title: "Weather Forecast & Farming Alerts", text: "District and village-level forecasts with irrigation and rainfall warnings sent straight to your phone.", cta: "Chat about this" },
@@ -139,52 +142,14 @@ export default function HomePage() {
         </svg>
       </div>
 
-      <section className="section section-dark">
-        <div className="container">
-          <Reveal className="section-head">
-            <span className="eyebrow" style={{ background: "rgba(255,255,255,.1)", color: "var(--sunrise-2)" }}>
-              The Problem
-            </span>
-            <h2 style={{ marginTop: 14, color: "#fff" }}>Farming decisions are still made in the dark</h2>
-            <p>Traditional methods leave farmers exposed to weather shocks, late disease detection and unreliable markets.</p>
-          </Reveal>
-          <div className="problem-grid">
-            {PROBLEMS.map((p) => (
-              <Reveal className="problem-card" key={p.title}>
-                <i className={`fa-solid ${p.icon}`} aria-hidden="true" />
-                <h3>{p.title}</h3>
-                <p>{p.text}</p>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
 
       <section className="section section-light" id="features">
         <div className="container">
           <Reveal className="section-head">
-            <span className="eyebrow">Our Solution</span>
             <h2 style={{ marginTop: 14 }}>Six tools. One green app.</h2>
             <p>Everything a farmer needs — from the first forecast to the final sale — in a single, easy-to-use platform.</p>
           </Reveal>
-          <div className="feature-grid">
-            {FEATURES.map((f) => (
-              <Link href={f.href} className="feature-card reveal" key={f.num}>
-                <span className="num">{f.num}</span>
-                <div className="feature-pic">
-                  <Image src={f.img} alt={f.alt} fill sizes="(max-width: 980px) 100vw, 33vw" />
-                </div>
-                <div className="feature-icon">
-                  <i className={`fa-solid ${f.icon}`} aria-hidden="true" />
-                </div>
-                <h3>{f.title}</h3>
-                <p>{f.text}</p>
-                <span className="more">
-                  {f.cta} <i className="fa-solid fa-arrow-right" aria-hidden="true" />
-                </span>
-              </Link>
-            ))}
-          </div>
+          <FeatureGrid />
         </div>
       </section>
 
@@ -215,11 +180,7 @@ export default function HomePage() {
             <p>A curated marketplace connecting verified sellers directly with farmers.</p>
           </Reveal>
           <MarketplacePreviewGrid />
-          <div style={{ textAlign: "center", marginTop: 36 }}>
-            <Link href="/services" className="btn btn-primary">
-              Visit Full Marketplace
-            </Link>
-          </div>
+          <MarketplaceCtaButton />
         </div>
       </section>
 
