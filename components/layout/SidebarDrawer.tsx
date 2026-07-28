@@ -1,0 +1,258 @@
+"use client";
+
+import { useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  LayoutDashboard,
+  CloudSun,
+  BookOpen,
+  Bot,
+  Stethoscope,
+  Sun,
+  ShoppingBag,
+  Users,
+  User,
+  Settings,
+  LogOut,
+  X,
+  ChevronRight,
+  ShieldCheck,
+} from "lucide-react";
+import type { ValamUser } from "@/lib/types";
+
+export interface NavMenuItem {
+  key: string;
+  label: string;
+  href: string;
+  icon: React.ElementType;
+}
+
+export const MENU_ITEMS: NavMenuItem[] = [
+  { key: "dashboard", label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { key: "weather", label: "Weather Forecast", href: "/weather", icon: CloudSun },
+  { key: "guides", label: "Crop Guide", href: "/guides", icon: BookOpen },
+  { key: "chatbot", label: "AI Chatbot", href: "/chatbot", icon: Bot },
+  { key: "diagnosis", label: "Plant Disease Detection", href: "/diagnosis", icon: Stethoscope },
+  { key: "irrigation-solar", label: "Irrigation & Solar Farming", href: "/irrigation-solar", icon: Sun },
+  { key: "marketplace", label: "Marketplace", href: "/marketplace", icon: ShoppingBag },
+  { key: "community", label: "Community", href: "/community", icon: Users },
+  { key: "profile", label: "Profile", href: "/onboarding", icon: User },
+  { key: "settings", label: "Settings", href: "/onboarding", icon: Settings },
+];
+
+interface SidebarDrawerProps {
+  isOpen: boolean;
+  onClose: () => void;
+  user: ValamUser | null;
+  onLogout: () => void;
+  activeKey?: string;
+}
+
+export function SidebarDrawer({ isOpen, onClose, user, onLogout, activeKey }: SidebarDrawerProps) {
+  const pathname = usePathname();
+
+  // Prevent background scrolling when sidebar drawer is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  return (
+    <>
+      {/* Backdrop Overlay */}
+      <div
+        onClick={onClose}
+        style={{
+          position: "fixed",
+          inset: 0,
+          backgroundColor: "rgba(15, 23, 42, 0.6)",
+          backdropFilter: "blur(4px)",
+          zIndex: 99998,
+          transition: "opacity 0.3s ease",
+        }}
+        aria-hidden="true"
+      />
+
+      {/* Slide-over Sidebar Drawer */}
+      <aside
+        style={{
+          position: "fixed",
+          top: 0,
+          right: 0,
+          bottom: 0,
+          width: "min(340px, 88vw)",
+          backgroundColor: "#11382B",
+          color: "#FFFFFF",
+          zIndex: 99999,
+          display: "flex",
+          flexDirection: "column",
+          boxShadow: "-10px 0 30px rgba(0, 0, 0, 0.35)",
+          borderLeft: "1px solid rgba(255, 255, 255, 0.1)",
+          transition: "transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+        }}
+        aria-label="Application Sidebar Menu"
+      >
+        {/* Header Section */}
+        <div
+          style={{
+            padding: "20px 24px",
+            borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            background: "rgba(0, 0, 0, 0.15)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div
+              style={{
+                width: 42,
+                height: 42,
+                borderRadius: "50%",
+                background: "linear-gradient(135deg, #10B981, #047857)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontWeight: 700,
+                fontSize: 18,
+                color: "#FFFFFF",
+                boxShadow: "0 2px 8px rgba(16, 185, 129, 0.3)",
+              }}
+            >
+              {user?.full_name ? user.full_name.charAt(0).toUpperCase() : "V"}
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 15, color: "#FFFFFF", lineHeight: 1.2 }}>
+                {user?.full_name || "Valam Farmer"}
+              </div>
+              <div style={{ fontSize: 12, color: "#A7F3D0", marginTop: 2, display: "flex", alignItems: "center", gap: 4 }}>
+                <ShieldCheck size={12} /> {user?.farm_location || "Vavuniya, LK"}
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              background: "rgba(255, 255, 255, 0.1)",
+              border: "none",
+              color: "#FFFFFF",
+              width: 34,
+              height: 34,
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              transition: "background 0.2s ease",
+            }}
+            aria-label="Close sidebar menu"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Scrollable Navigation Items */}
+        <div
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            padding: "16px 14px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 4,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              color: "#6EE7B7",
+              textTransform: "uppercase",
+              padding: "8px 12px 6px",
+            }}
+          >
+            Farming Hub Navigation
+          </div>
+
+          {MENU_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeKey === item.key || pathname === item.href;
+
+            return (
+              <Link
+                key={item.key}
+                href={item.href}
+                onClick={onClose}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "12px 14px",
+                  borderRadius: 10,
+                  textDecoration: "none",
+                  fontWeight: isActive ? 700 : 500,
+                  fontSize: 14,
+                  color: isActive ? "#FFFFFF" : "#E2E8F0",
+                  backgroundColor: isActive ? "#059669" : "transparent",
+                  boxShadow: isActive ? "0 4px 12px rgba(5, 150, 105, 0.4)" : "none",
+                  transition: "all 0.18s ease",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <Icon size={19} color={isActive ? "#FFFFFF" : "#A7F3D0"} />
+                  <span>{item.label}</span>
+                </div>
+                <ChevronRight size={16} color={isActive ? "#FFFFFF" : "#6EE7B7"} style={{ opacity: isActive ? 1 : 0.4 }} />
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Fixed Footer with Logout Button */}
+        <div
+          style={{
+            padding: "16px 14px 20px",
+            borderTop: "1px solid rgba(255, 255, 255, 0.1)",
+            background: "rgba(0, 0, 0, 0.2)",
+          }}
+        >
+          <button
+            type="button"
+            onClick={onLogout}
+            style={{
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 10,
+              padding: "12px 16px",
+              borderRadius: 10,
+              border: "1px solid rgba(239, 68, 68, 0.4)",
+              background: "rgba(239, 68, 68, 0.12)",
+              color: "#FCA5A5",
+              fontWeight: 700,
+              fontSize: 14,
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+            }}
+          >
+            <LogOut size={18} />
+            <span>Log out</span>
+          </button>
+        </div>
+      </aside>
+    </>
+  );
+}
