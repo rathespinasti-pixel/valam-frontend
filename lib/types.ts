@@ -5,6 +5,13 @@ export interface ValamUser {
   phone?: string;
   farm_location?: string;
   farm_size_acres?: number;
+  role?: string;
+  district_asc?: string;
+  farmer_type?: string;
+  farming_experience?: string;
+  main_crops_grown?: string;
+  preferred_language?: string;
+  onboarding_completed?: boolean;
 }
 
 export interface AuthSession {
@@ -15,10 +22,16 @@ export interface AuthSession {
 
 export interface Product {
   id: number | string;
+  owner_id?: number | string;
   name: string;
+  description?: string;
   category?: string;
   price: number;
+  unit?: string;
   quantity_available: number;
+  image_url?: string;
+  location?: string;
+  is_active?: boolean;
 }
 
 export interface ProductListResponse {
@@ -29,9 +42,11 @@ export interface ProductListResponse {
 }
 
 export interface ChatbotEntry {
+  id?: number;
   question: string;
   answer: string;
   category?: string;
+  created_at?: string;
 }
 
 export interface RegisterInput {
@@ -46,4 +61,119 @@ export interface RegisterInput {
 export interface LoginInput {
   email: string;
   password: string;
+}
+
+export interface OnboardingInput {
+  full_name?: string;
+  farm_location?: string;
+  district_asc?: string;
+  farmer_type?: string;
+  farming_experience?: string;
+  farm_size_acres?: number;
+  main_crops_grown?: string;
+  preferred_language?: string;
+}
+
+export interface Crop {
+  id: number;
+  user_id: number;
+  crop_name: string;
+  variety?: string;
+  planting_date: string;
+  area_size?: string;
+  current_stage: string;
+  notes?: string;
+  is_active: boolean;
+  created_at?: string;
+}
+
+export interface CropStageAdvice {
+  week: string;
+  stage: string;
+  advice: string;
+}
+
+export interface CropGuide {
+  id: number;
+  crop_name: string;
+  variety?: string;
+  recommended_season?: string;
+  growth_stages: CropStageAdvice[];
+  water_requirements?: string;
+  fertilizer_guidance?: string;
+  common_problems?: string;
+  basic_solutions?: string;
+  image_url?: string;
+}
+
+export interface AgroAdvisoryItem {
+  category: string;
+  title: string;
+  severity: "info" | "warning" | "alert";
+  advice: string;
+}
+
+export interface WeatherAdvisoryResponse {
+  location: string;
+  current: {
+    temperature_c?: number;
+    humidity_percent?: number;
+    condition?: string;
+    wind_kmh?: number;
+    note?: string;
+  };
+  forecast?: {
+    days?: Array<{ day: number; temperature_c: number; condition: string }>;
+  };
+  advisories: AgroAdvisoryItem[];
+}
+
+export interface DiseaseDiagnosis {
+  id: number;
+  user_id: number;
+  crop_name?: string;
+  image_url?: string;
+  symptoms: string;
+  diagnosis_result: string;
+  recommendations: string;
+  disclaimer: string;
+  created_at?: string;
+}
+
+export interface Comment {
+  id: number;
+  post_id: number;
+  user_id: number;
+  author_name: string;
+  content: string;
+  created_at?: string;
+}
+
+export interface CommunityPost {
+  id: number;
+  user_id: number;
+  author_name: string;
+  author_location?: string;
+  title: string;
+  content: string;
+  category: string;
+  image_url?: string;
+  comment_count: number;
+  created_at?: string;
+  comments?: Comment[];
+}
+
+export interface ToolListing {
+  id: number;
+  owner_id: number;
+  owner_name: string;
+  tool_name: string;
+  description?: string;
+  category: string;
+  rental_price_per_day: number;
+  location: string;
+  contact_phone: string;
+  is_available: boolean;
+  image_url?: string;
+  created_at?: string;
 }

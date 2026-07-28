@@ -7,25 +7,40 @@ import { Menu, X } from "lucide-react";
 import { NavAuth } from "./NavAuth";
 import logo from "@/public/images/logo.png";
 
-type NavKey = "home" | "about" | "features" | "marketplace" | "contact";
+type NavKey =
+  | "home"
+  | "dashboard"
+  | "crops"
+  | "guides"
+  | "weather"
+  | "diagnosis"
+  | "community"
+  | "tools"
+  | "marketplace"
+  | "chatbot"
+  | "about"
+  | "contact";
 
 const LINKS: { key: NavKey; href: string; label: string }[] = [
   { key: "home", href: "/", label: "Home" },
-  { key: "about", href: "/about", label: "About" },
-  { key: "features", href: "/services", label: "Features" },
-  { key: "marketplace", href: "/marketplace", label: "Marketplace" },
-  { key: "contact", href: "/contact", label: "Contact" },
+  { key: "dashboard", href: "/dashboard", label: "Dashboard" },
+  { key: "crops", href: "/crops", label: "Crops" },
+  { key: "guides", href: "/guides", label: "Guides" },
+  { key: "weather", href: "/weather", label: "Weather" },
+  { key: "diagnosis", href: "/diagnosis", label: "Diagnosis" },
+  { key: "community", href: "/community", label: "Community" },
+  { key: "tools", href: "/tools", label: "Tools" },
+  { key: "marketplace", href: "/marketplace", label: "Market" },
+  { key: "chatbot", href: "/chatbot", label: "AI Chat" },
 ];
 
 interface NavbarProps {
-  /** Which top-level link renders with the active underline on this page (matches the original per-page markup 1:1). */
   active?: NavKey;
-  /** The secondary (orange) CTA — every page uses "Try the App" -> /services, except /services itself which uses "See Plans" -> #plans. */
   ctaHref?: string;
   ctaLabel?: string;
 }
 
-export function Navbar({ active, ctaHref = "/services", ctaLabel = "Try the App" }: NavbarProps) {
+export function Navbar({ active, ctaHref = "/dashboard", ctaLabel = "Farmer Hub" }: NavbarProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -54,9 +69,6 @@ export function Navbar({ active, ctaHref = "/services", ctaLabel = "Try the App"
 
         <div className="nav-cta">
           <NavAuth />
-          <Link href="/contact" className="btn btn-outline">
-            Get in touch
-          </Link>
           <Link href={ctaHref} className="btn btn-sun">
             {ctaLabel}
           </Link>

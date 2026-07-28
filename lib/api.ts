@@ -1,15 +1,21 @@
 // =========================================================
 // VALAM — typed API client (talks to the Flask backend)
-// Ported 1:1 from js/api.js, keeping the same storage keys and
-// endpoints so an existing browser session survives the migration.
 // =========================================================
 import type {
   AuthSession,
   ChatbotEntry,
+  Comment,
+  CommunityPost,
+  Crop,
+  CropGuide,
+  DiseaseDiagnosis,
   LoginInput,
+  OnboardingInput,
   ProductListResponse,
   RegisterInput,
+  ToolListing,
   ValamUser,
+  WeatherAdvisoryResponse,
 } from "./types";
 
 const API_BASE_URL =
@@ -39,6 +45,10 @@ function isLoggedIn(): boolean {
 function setSession({ access_token, refresh_token, user }: AuthSession) {
   localStorage.setItem(STORAGE_KEYS.access, access_token);
   localStorage.setItem(STORAGE_KEYS.refresh, refresh_token);
+  localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(user));
+}
+
+function updateStoredUser(user: ValamUser) {
   localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(user));
 }
 
@@ -96,6 +106,7 @@ export const ValamAPI = {
   getStoredUser,
   clearSession,
 
+  // Auth & Profile
   async register(input: RegisterInput): Promise<AuthSession> {
     const data = await apiRequest<AuthSession>("/auth/register", {
       method: "POST",
@@ -118,15 +129,199 @@ export const ValamAPI = {
     try {
       await apiRequest("/auth/logout", { method: "POST", auth: true });
     } catch {
-      /* token may already be invalid/expired — clear local session regardless */
+      /* token expired or invalid */
     }
     clearSession();
   },
 
   async me(): Promise<ValamUser> {
-    return apiRequest<ValamUser>("/auth/me", { auth: true });
+    const user = await apiRequest<ValamUser>("/auth/me", { auth: true });
+    updateStoredUser(user);
+    return user;
   },
 
+  async saveOnboarding(input: OnboardingInput): Promise<ValamUser> {
+    const user = await apiRequest<ValamUser>("/users/onboarding", {
+      method: "POST",
+      auth: true,
+      body: input,
+    });
+    updateStoredUser(user);
+    return user;
+  },
+
+  async updateProfile(input: Partial<ValamUser>): Promise<ValamUser> {
+    const user = await apiRequest<ValamUser>("/users/profile", {
+      method: "PUT",
+      auth: true,
+      body: input,
+    });
+    updateStoredUser(user);
+    return user;
+  },
+
+  // Crop Management
+  async getCrops(): Promise<{ items: Crop[]; total: number }> {
+    return apiRequest<{ items: Crop[]; total: number }>("/crops", { auth: true });
+  },
+
+  async addCrop(data: {
+    crop_name: string;
+    variety?: string;
+    planting_date: string;
+    area_size?: string;
+    current_stage?: string;
+    notes?: string;
+  }): Promise<Crop> {
+    return apiRequest<Crop>("/crops", {
+      method: "POST",
+      auth: true,
+      body: data,
+    });
+  },
+
+  async updateCrop(id: number, data: Partial<Crop>): Promise<Crop> {
+    return apiRequest<Crop>(`/crops/${id}`, {
+      method: "PUT",
+      auth: true,
+      body: data,
+    });
+  },
+
+  async deleteCrop(id: number): Promise<void> {
+    await apiRequest(`/crops/${id}`, { method: "DELETE", auth: true });
+  },
+
+  // Crop Guides & Calendar
+  async getCropGuides(
+    { crop_name, season, page = 1 }: { crop_name?: string; season?: string; page?: number } = {}
+  ): Promise<{ items: CropGuide[]; total: number }> {
+    const params = new URLSearchParams({ page: String(page) });
+    if (crop_name) params.set("crop_name", crop_name);
+    if (season) params.set("season", season);
+    return apiRequest<{ items: CropGuide[]; total: number }>(`/crop-guides?${params.toString()}`);
+  },
+
+  async getCropGuideDetail(id: number): Promise<CropGuide> {
+    return apiRequest<CropGuide>(`/crop-guides/${id}`);
+  },
+
+  async createCropGuide(data: Partial<CropGuide>): Promise<CropGuide> {
+    return apiRequest<CropGuide>("/crop-guides", {
+      method: "POST",
+      auth: true,
+      body: data,
+    });
+  },
+
+  // Weather Advisory
+  async getWeatherAdvisory(location: string = "Vavuniya,LK"): Promise<WeatherAdvisoryResponse> {
+    const params = new URLSearchParams({ location });
+    return apiRequest<WeatherAdvisoryResponse>(`/weather/advisory?${params.toString()}`);
+  },
+
+  // AI Assistant & Disease Diagnosis
+  async askChatbot(question: string, category?: string): Promise<ChatbotEntry> {
+    return apiRequest<ChatbotEntry>("/chatbot/ask", {
+      method: "POST",
+      auth: true,
+      body: { question, category },
+    });
+  },
+
+  async getChatHistory(): Promise<{ items: ChatbotEntry[]; total: number }> {
+    return apiRequest<{ items: ChatbotEntry[]; total: number }>("/chatbot/history", { auth: true });
+  },
+
+  async analyzeDisease(data: { symptoms: string; crop_name?: string; image_url?: string }): Promise<DiseaseDiagnosis> {
+    return apiRequest<DiseaseDiagnosis>("/diagnosis/analyze", {
+      method: "POST",
+      auth: true,
+      body: data,
+    });
+  },
+
+  async getDiagnosisHistory(): Promise<DiseaseDiagnosis[]> {
+    return apiRequest<DiseaseDiagnosis[]>("/diagnosis/history", { auth: true });
+  },
+
+  // Community Forum
+  async getCommunityPosts(
+    { category, search, page = 1 }: { category?: string; search?: string; page?: number } = {}
+  ): Promise<{ items: CommunityPost[]; total: number }> {
+    const params = new URLSearchParams({ page: String(page) });
+    if (category) params.set("category", category);
+    if (search) params.set("search", search);
+    return apiRequest<{ items: CommunityPost[]; total: number }>(`/community/posts?${params.toString()}`);
+  },
+
+  async getCommunityPostDetail(id: number): Promise<CommunityPost> {
+    return apiRequest<CommunityPost>(`/community/posts/${id}`);
+  },
+
+  async createCommunityPost(data: { title: string; content: string; category?: string; image_url?: string }): Promise<CommunityPost> {
+    return apiRequest<CommunityPost>("/community/posts", {
+      method: "POST",
+      auth: true,
+      body: data,
+    });
+  },
+
+  async addCommunityComment(postId: number, content: string): Promise<Comment> {
+    return apiRequest<Comment>(`/community/posts/${postId}/comments`, {
+      method: "POST",
+      auth: true,
+      body: { content },
+    });
+  },
+
+  async deleteCommunityPost(id: number): Promise<void> {
+    await apiRequest(`/community/posts/${id}`, { method: "DELETE", auth: true });
+  },
+
+  // Farming Tools Lending
+  async getTools(
+    { category, search, page = 1 }: { category?: string; search?: string; page?: number } = {}
+  ): Promise<{ items: ToolListing[]; total: number }> {
+    const params = new URLSearchParams({ page: String(page) });
+    if (category) params.set("category", category);
+    if (search) params.set("search", search);
+    return apiRequest<{ items: ToolListing[]; total: number }>(`/tools?${params.toString()}`);
+  },
+
+  async getToolDetail(id: number): Promise<ToolListing> {
+    return apiRequest<ToolListing>(`/tools/${id}`);
+  },
+
+  async createToolListing(data: {
+    tool_name: string;
+    description?: string;
+    category?: string;
+    rental_price_per_day: number;
+    location?: string;
+    contact_phone?: string;
+    image_url?: string;
+  }): Promise<ToolListing> {
+    return apiRequest<ToolListing>("/tools", {
+      method: "POST",
+      auth: true,
+      body: data,
+    });
+  },
+
+  async updateToolListing(id: number, data: Partial<ToolListing>): Promise<ToolListing> {
+    return apiRequest<ToolListing>(`/tools/${id}`, {
+      method: "PUT",
+      auth: true,
+      body: data,
+    });
+  },
+
+  async deleteToolListing(id: number): Promise<void> {
+    await apiRequest(`/tools/${id}`, { method: "DELETE", auth: true });
+  },
+
+  // Products Marketplace
   async getProducts(
     { search, page = 1, per_page = 20 }: { search?: string; page?: number; per_page?: number } = {}
   ): Promise<ProductListResponse> {
@@ -136,13 +331,5 @@ export const ValamAPI = {
     });
     if (search) params.set("search", search);
     return apiRequest<ProductListResponse>(`/products?${params.toString()}`);
-  },
-
-  async askChatbot(question: string, category?: string): Promise<ChatbotEntry> {
-    return apiRequest<ChatbotEntry>("/chatbot/ask", {
-      method: "POST",
-      auth: true,
-      body: { question, category },
-    });
   },
 };
