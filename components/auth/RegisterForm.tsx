@@ -19,17 +19,29 @@ export function RegisterForm() {
     const form = e.currentTarget;
     const field = (name: string) => (form.elements.namedItem(name) as HTMLInputElement)?.value ?? "";
 
+    const fullName = field("full_name").trim();
+    const email = field("email").trim();
+    const password = field("password");
+    const phone = field("phone").trim();
+    const farmLocation = field("farm_location").trim();
+
+    if (!fullName || !email || !password || !phone || !farmLocation) {
+      setStatus({ type: "error", text: "Please fill in all mandatory fields (including Phone Number and Farm Place)." });
+      setSubmitting(false);
+      return;
+    }
+
     try {
       await ValamAPI.register({
-        full_name: field("full_name").trim(),
-        email: field("email").trim(),
-        password: field("password"),
-        phone: field("phone").trim() || undefined,
-        farm_location: field("farm_location").trim() || undefined,
+        full_name: fullName,
+        email: email,
+        password: password,
+        phone: phone,
+        farm_location: farmLocation,
         farm_size_acres: field("farm_size_acres") ? Number(field("farm_size_acres")) : undefined,
       });
       setStatus({ type: "ok", text: "Account created — redirecting…" });
-      setTimeout(() => router.push("/"), 600);
+      setTimeout(() => router.push("/onboarding"), 600);
     } catch (err) {
       setStatus({ type: "error", text: err instanceof Error ? err.message : "Registration failed." });
       setSubmitting(false);
@@ -39,14 +51,14 @@ export function RegisterForm() {
   return (
     <form onSubmit={handleSubmit} noValidate>
       <div className="field" style={{ marginBottom: 16 }}>
-        <label htmlFor="full_name">Full Name</label>
+        <label htmlFor="full_name">Full Name *</label>
         <div className="input-wrap">
           <i className="fa-solid fa-user" aria-hidden="true" />
           <input type="text" id="full_name" name="full_name" placeholder="Your name" autoComplete="name" required />
         </div>
       </div>
       <div className="field" style={{ marginBottom: 16 }}>
-        <label htmlFor="email">Email Address</label>
+        <label htmlFor="email">Email Address *</label>
         <div className="input-wrap">
           <i className="fa-solid fa-envelope" aria-hidden="true" />
           <input type="email" id="email" name="email" placeholder="you@example.com" autoComplete="email" required />
@@ -54,21 +66,17 @@ export function RegisterForm() {
       </div>
       <div className="form-row">
         <div className="field">
-          <label htmlFor="phone">
-            Phone Number <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>(optional)</span>
-          </label>
+          <label htmlFor="phone">Phone Number *</label>
           <div className="input-wrap">
             <i className="fa-solid fa-phone" aria-hidden="true" />
-            <input type="tel" id="phone" name="phone" placeholder="+94 7X XXX XXXX" autoComplete="tel" />
+            <input type="tel" id="phone" name="phone" placeholder="+94 7X XXX XXXX" autoComplete="tel" required />
           </div>
         </div>
         <div className="field">
-          <label htmlFor="farm_location">
-            Farm Location <span style={{ fontWeight: 400, color: "var(--ink-soft)" }}>(optional)</span>
-          </label>
+          <label htmlFor="farm_location">Farm Place / Location *</label>
           <div className="input-wrap">
             <i className="fa-solid fa-location-dot" aria-hidden="true" />
-            <input type="text" id="farm_location" name="farm_location" placeholder="District / Village" />
+            <input type="text" id="farm_location" name="farm_location" placeholder="District / Village" required />
           </div>
         </div>
       </div>
@@ -82,7 +90,7 @@ export function RegisterForm() {
         </div>
       </div>
       <div className="field" style={{ marginBottom: 8 }}>
-        <label htmlFor="password">Password</label>
+        <label htmlFor="password">Password *</label>
         <div className="input-wrap">
           <i className="fa-solid fa-lock" aria-hidden="true" />
           <input
