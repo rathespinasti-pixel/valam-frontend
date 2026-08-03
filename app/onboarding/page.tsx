@@ -6,21 +6,25 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ValamAPI } from "@/lib/api";
 import type { ValamUser } from "@/lib/types";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { t, setLanguage } = useLanguage();
   const [user, setUser] = useState<ValamUser | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const [fullName, setFullName] = useState("");
-  const [farmLocation, setFarmLocation] = useState("Vavuniya South");
-  const [districtAsc, setDistrictAsc] = useState("Vavuniya ASC Division");
-  const [farmerType, setFarmerType] = useState("Small-scale farmer");
-  const [farmingExperience, setFarmingExperience] = useState("1-3 years");
-  const [farmSizeAcres, setFarmSizeAcres] = useState<number | "">(1.5);
-  const [mainCropsGrown, setMainCropsGrown] = useState("Tomato, Chili, Onion");
-  const [preferredLanguage, setPreferredLanguage] = useState("en");
+  const [prefLang, setPrefLang] = useState("en");
+  const [farmingCategory, setFarmingCategory] = useState("Farmer");
+  const [district, setDistrict] = useState("Vavuniya");
+  const [dsDivision, setDsDivision] = useState("Vavuniya Town");
+  const [gnDivision, setGnDivision] = useState("");
+  const [landSize, setLandSize] = useState<number | "">(1.0);
+  const [landUnit, setLandUnit] = useState("Acres");
+  const [irrigationPref, setIrrigationPref] = useState("Drip Irrigation");
+  const [fertilizerPref, setFertilizerPref] = useState("Organic");
 
   useEffect(() => {
     if (!ValamAPI.isLoggedIn()) {
@@ -31,13 +35,15 @@ export default function OnboardingPage() {
     if (stored) {
       setUser(stored);
       setFullName(stored.full_name || "");
-      if (stored.farm_location) setFarmLocation(stored.farm_location);
-      if (stored.district_asc) setDistrictAsc(stored.district_asc);
-      if (stored.farmer_type) setFarmerType(stored.farmer_type);
-      if (stored.farming_experience) setFarmingExperience(stored.farming_experience);
-      if (stored.farm_size_acres) setFarmSizeAcres(stored.farm_size_acres);
-      if (stored.main_crops_grown) setMainCropsGrown(stored.main_crops_grown);
-      if (stored.preferred_language) setPreferredLanguage(stored.preferred_language);
+      if (stored.preferred_language) setPrefLang(stored.preferred_language);
+      if (stored.farming_category) setFarmingCategory(stored.farming_category);
+      if (stored.district) setDistrict(stored.district);
+      if (stored.ds_division) setDsDivision(stored.ds_division);
+      if (stored.gn_division) setGnDivision(stored.gn_division);
+      if (stored.land_size) setLandSize(stored.land_size);
+      if (stored.land_size_unit) setLandUnit(stored.land_size_unit);
+      if (stored.irrigation_preference) setIrrigationPref(stored.irrigation_preference);
+      if (stored.fertilizer_preference) setFertilizerPref(stored.fertilizer_preference);
     }
   }, [router]);
 
@@ -47,15 +53,20 @@ export default function OnboardingPage() {
     setError("");
 
     try {
+      setLanguage(prefLang as any);
       await ValamAPI.saveOnboarding({
         full_name: fullName,
-        farm_location: farmLocation,
-        district_asc: districtAsc,
-        farmer_type: farmerType,
-        farming_experience: farmingExperience,
-        farm_size_acres: typeof farmSizeAcres === "number" ? farmSizeAcres : 0,
-        main_crops_grown: mainCropsGrown,
-        preferred_language: preferredLanguage,
+        preferred_language: prefLang,
+        farming_category: farmingCategory,
+        district: district,
+        ds_division: dsDivision,
+        gn_division: gnDivision,
+        land_size: typeof landSize === "number" ? landSize : 1.0,
+        land_size_unit: landUnit,
+        irrigation_preference: irrigationPref,
+        fertilizer_preference: fertilizerPref,
+        farm_location: `${dsDivision}, ${district}`,
+        farm_size_acres: typeof landSize === "number" && landUnit === "Acres" ? landSize : 1.0,
       });
       router.push("/dashboard");
     } catch (err: any) {
@@ -72,8 +83,8 @@ export default function OnboardingPage() {
         <div className="container">
           <div className="crumb">Home / Farmer Onboarding</div>
           <h1>Welcome to Valam! Let's personalize your farm</h1>
-          <p style={{ marginTop: 14, color: "#CFE3D5", maxWidth: 600 }}>
-            Tell us about your cultivation background so we can tailor localized weather alerts, crop guides, and AI advice for your farm in Vavuniya.
+          <p style={{ marginTop: 14, color: "#CFE3D5", maxWidth: 640 }}>
+            Configure your Northern Province cultivation preferences to receive tailored 3-stage crop guidance and weather alerts.
           </p>
         </div>
       </section>
@@ -96,7 +107,7 @@ export default function OnboardingPage() {
 
             <form onSubmit={handleSubmit}>
               <div style={{ marginBottom: 20 }}>
-                <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>Full Name</label>
+                <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>{t("fullName")}</label>
                 <input
                   type="text"
                   required
@@ -109,101 +120,125 @@ export default function OnboardingPage() {
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
                 <div>
-                  <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>Location / Village</label>
+                  <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>{t("preferredLanguage")}</label>
+                  <select
+                    className="input"
+                    style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #CCC" }}
+                    value={prefLang}
+                    onChange={(e) => {
+                      setPrefLang(e.target.value);
+                      setLanguage(e.target.value as any);
+                    }}
+                  >
+                    <option value="en">English</option>
+                    <option value="ta">Tamil (தமிழ்)</option>
+                    <option value="si">Sinhala (සිංහල)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>{t("farmingCategory")}</label>
+                  <select
+                    className="input"
+                    style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #CCC" }}
+                    value={farmingCategory}
+                    onChange={(e) => setFarmingCategory(e.target.value)}
+                  >
+                    <option value="Farmer">{t("farmerRole")}</option>
+                    <option value="Home Gardener">{t("homeGardenerRole")}</option>
+                    <option value="Terrace Gardener">{t("terraceGardenerRole")}</option>
+                    <option value="Beginner">{t("beginnerRole")}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
+                <div>
+                  <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>{t("district")}</label>
+                  <select
+                    className="input"
+                    style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #CCC" }}
+                    value={district}
+                    onChange={(e) => setDistrict(e.target.value)}
+                  >
+                    <option value="Vavuniya">Vavuniya</option>
+                    <option value="Jaffna">Jaffna</option>
+                    <option value="Kilinochchi">Kilinochchi</option>
+                    <option value="Mannar">Mannar</option>
+                    <option value="Mullaitivu">Mullaitivu</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>{t("dsDivision")}</label>
                   <input
                     type="text"
                     required
                     className="input"
-                    placeholder="e.g. Vavuniya South, Omanthai"
+                    placeholder="e.g. Vavuniya Town, Nallur"
                     style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #CCC" }}
-                    value={farmLocation}
-                    onChange={(e) => setFarmLocation(e.target.value)}
+                    value={dsDivision}
+                    onChange={(e) => setDsDivision(e.target.value)}
                   />
                 </div>
-                <div>
-                  <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>District / ASC Division</label>
-                  <select
-                    className="input"
-                    style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #CCC" }}
-                    value={districtAsc}
-                    onChange={(e) => setDistrictAsc(e.target.value)}
-                  >
-                    <option value="Vavuniya Town ASC">Vavuniya Town ASC</option>
-                    <option value="Vavuniya South ASC">Vavuniya South ASC</option>
-                    <option value="Vavuniya North ASC">Vavuniya North ASC (Nedunkeni)</option>
-                    <option value="Cheddikulam ASC">Cheddikulam ASC</option>
-                  </select>
-                </div>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
                 <div>
-                  <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>Farmer Type</label>
-                  <select
-                    className="input"
-                    style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #CCC" }}
-                    value={farmerType}
-                    onChange={(e) => setFarmerType(e.target.value)}
-                  >
-                    <option value="Commercial farmer">Commercial farmer</option>
-                    <option value="Small-scale farmer">Small-scale farmer</option>
-                    <option value="Home gardener">Home gardener</option>
-                    <option value="Beginner grower">Beginner grower</option>
-                  </select>
-                </div>
-                <div>
-                  <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>Farming Experience</label>
-                  <select
-                    className="input"
-                    style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #CCC" }}
-                    value={farmingExperience}
-                    onChange={(e) => setFarmingExperience(e.target.value)}
-                  >
-                    <option value="Beginner (< 1 year)">Beginner (&lt; 1 year)</option>
-                    <option value="1-3 years">1-3 years</option>
-                    <option value="3-5 years">3-5 years</option>
-                    <option value="5+ years">5+ years</option>
-                  </select>
-                </div>
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
-                <div>
-                  <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>Farm Size (Acres, Optional)</label>
+                  <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>{t("landSize")}</label>
                   <input
                     type="number"
                     step="0.1"
                     className="input"
                     style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #CCC" }}
-                    value={farmSizeAcres}
-                    onChange={(e) => setFarmSizeAcres(e.target.value ? parseFloat(e.target.value) : "")}
+                    value={landSize}
+                    onChange={(e) => setLandSize(e.target.value ? parseFloat(e.target.value) : "")}
                   />
                 </div>
+
                 <div>
-                  <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>Preferred Language</label>
+                  <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>{t("landUnit")}</label>
                   <select
                     className="input"
                     style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #CCC" }}
-                    value={preferredLanguage}
-                    onChange={(e) => setPreferredLanguage(e.target.value)}
+                    value={landUnit}
+                    onChange={(e) => setLandUnit(e.target.value)}
                   >
-                    <option value="en">English</option>
-                    <option value="ta">Tamil (தமிழ்)</option>
-                    <option value="si">Sinhala (சிங்களம்)</option>
+                    <option value="Acres">{t("acres")}</option>
+                    <option value="Perches">{t("perches")}</option>
+                    <option value="Hectares">{t("hectares")}</option>
+                    <option value="Square Feet">{t("squareFeet")}</option>
                   </select>
                 </div>
               </div>
 
-              <div style={{ marginBottom: 24 }}>
-                <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>Main Crops Grown</label>
-                <input
-                  type="text"
-                  className="input"
-                  placeholder="e.g. Tomato, Chili, Red Onion, Paddy, Brinjal"
-                  style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #CCC" }}
-                  value={mainCropsGrown}
-                  onChange={(e) => setMainCropsGrown(e.target.value)}
-                />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
+                <div>
+                  <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>{t("irrigationPreference")}</label>
+                  <select
+                    className="input"
+                    style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #CCC" }}
+                    value={irrigationPref}
+                    onChange={(e) => setIrrigationPref(e.target.value)}
+                  >
+                    <option value="Drip Irrigation">{t("dripIrrigation")}</option>
+                    <option value="Sprinkler Irrigation">{t("sprinklerIrrigation")}</option>
+                    <option value="Manual Watering">{t("manualWatering")}</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>{t("fertilizerPreference")}</label>
+                  <select
+                    className="input"
+                    style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #CCC" }}
+                    value={fertilizerPref}
+                    onChange={(e) => setFertilizerPref(e.target.value)}
+                  >
+                    <option value="Organic">{t("organicFertilizer")}</option>
+                    <option value="Chemical">{t("chemicalFertilizer")}</option>
+                  </select>
+                </div>
               </div>
 
               <button

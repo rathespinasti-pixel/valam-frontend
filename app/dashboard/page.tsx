@@ -16,17 +16,17 @@ import {
   CloudRain,
   Droplets,
   Wind,
-  ShoppingBag,
   Bot,
-  TrendingUp,
-  MessageSquareText,
   ChevronRight,
   AlertTriangle,
   ShieldCheck,
   Calendar,
   Thermometer,
   Eye,
-  Wrench,
+  CheckCircle2,
+  BellRing,
+  Clock,
+  Zap,
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -35,8 +35,10 @@ export default function DashboardPage() {
 
   const [user, setUser] = useState<ValamUser | null>(null);
   const [crops, setCrops] = useState<Crop[]>([]);
+  const [selectedCropId, setSelectedCropId] = useState<number | null>(null);
   const [weatherAdvisory, setWeatherAdvisory] = useState<WeatherAdvisoryResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [taskState, setTaskState] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!ValamAPI.isLoggedIn()) {
@@ -48,18 +50,22 @@ export default function DashboardPage() {
       try {
         const u = await ValamAPI.me();
         setUser(u);
-        if (!u.onboarding_completed) {
-          router.push("/settings");
-          return;
-        }
 
         const [cropsRes, weatherRes] = await Promise.allSettled([
           ValamAPI.getCrops(),
-          ValamAPI.getWeatherAdvisory(u.farm_location || "Vavuniya,LK"),
+          ValamAPI.getWeatherAdvisory(`${u.ds_division || u.district || 'Vavuniya'},LK`),
         ]);
 
-        if (cropsRes.status === "fulfilled") setCrops(cropsRes.value.items);
-        if (weatherRes.status === "fulfilled") setWeatherAdvisory(weatherRes.value);
+        if (cropsRes.status === "fulfilled") {
+          const items = cropsRes.value.items;
+          setCrops(items);
+          if (items.length > 0) {
+            setSelectedCropId(items[0].id);
+          }
+        }
+        if (weatherRes.status === "fulfilled") {
+          setWeatherAdvisory(weatherRes.value);
+        }
       } catch (err) {
         console.error("Dashboard load error", err);
       } finally {
@@ -75,60 +81,149 @@ export default function DashboardPage() {
       <AuthGuard>
         <Navbar active="dashboard" />
         <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ fontSize: 18, color: "#1B4D3E", fontWeight: 600 }}>Loading farmer dashboard...</div>
+          <div style={{ fontSize: 18, color: "#1B4D3E", fontWeight: 600 }}>Loading farmer daily assistant...</div>
         </div>
         <Footer />
       </AuthGuard>
     );
   }
 
-  const currentTemp = weatherAdvisory?.current?.temperature_c ?? 29.5;
-  const humidity = weatherAdvisory?.current?.humidity_percent ?? 68;
-  const condition = weatherAdvisory?.current?.condition ?? "Partly Cloudy";
-  const windSpeed = weatherAdvisory?.current?.wind_kmh ?? 12;
+  const activeCrop = crops.find((c) => c.id === selectedCropId) || crops[0] || null;
 
-  // 7-Day Forecast mock data / derived forecast
-  const sevenDayForecast = [
-    { day: "Mon", temp: 30, rainProb: "10%", condition: "Sunny", icon: Sun },
-    { day: "Tue", temp: 31, rainProb: "15%", condition: "Partly Cloudy", icon: CloudSun },
-    { day: "Wed", temp: 29, rainProb: "45%", condition: "Light Rain", icon: CloudRain },
-    { day: "Thu", temp: 28, rainProb: "60%", condition: "Showers", icon: CloudRain },
-    { day: "Fri", temp: 30, rainProb: "20%", condition: "Partly Cloudy", icon: CloudSun },
-    { day: "Sat", temp: 31, rainProb: "10%", condition: "Sunny", icon: Sun },
-    { day: "Sun", temp: 32, rainProb: "05%", condition: "Clear Sky", icon: Sun },
+  // Days since planting math
+  let daysSincePlanting = 0;
+  if (activeCrop && activeCrop.planting_date) {
+    const start = new Date(activeCrop.planting_date).getTime();
+    const now = new Date().getTime();
+    daysSincePlanting = Math.max(1, Math.floor((now - start) / (1000 * 3600 * 24)));
+  }
+
+  // Estimated duration for progress percentage (average 90 days for short duration crops)
+  const totalExpectedDays = 90;
+  const progressPercent = Math.min(100, Math.round((daysSincePlanting / totalExpectedDays) * 100));
+
+  // Determine stage normalized to 3 stages
+  let stageLabel = t("stage1Title");
+  if (activeCrop) {
+    if (activeCrop.current_stage.includes("2") || activeCrop.current_stage.toLowerCase().includes("flower")) {
+      stageLabel = t("stage2Title");
+    } else if (activeCrop.current_stage.includes("3") || activeCrop.current_stage.toLowerCase().includes("fruit") || activeCrop.current_stage.toLowerCase().includes("harvest")) {
+      stageLabel = t("stage3Title");
+    } else {
+      stageLabel = t("stage1Title");
+    }
+  }
+
+  // Weather rules
+  const currentTemp = weatherAdvisory?.current?.temperature_c ?? 31.0;
+  const condition = weatherAdvisory?.current?.condition ?? "Sunny";
+  const isRaining = condition.toLowerCase().includes("rain") || condition.toLowerCase().includes("shower");
+  const isHighTemp = currentTemp >= 32.0;
+
+  let wateringRule = t("waterCropSunny");
+  if (isRaining) {
+    wateringRule = t("skipWateringRain");
+  } else if (isHighTemp) {
+    wateringRule = t("waterCoolerHours");
+  }
+
+  // Fertilizer guidance based on preference & stage
+  const prefFert = user?.fertilizer_preference || activeCrop?.fertilizer_preference || "Organic";
+  let fertAdvice = "";
+  if (prefFert === "Organic") {
+    fertAdvice = "Apply 2kg Compost / Vermicompost & top-dress with cow dung slurry at root base.";
+  } else {
+    fertAdvice = "Apply Urea (15g/m²) & MOP (10g/m²) top dressing. Irrigate immediately after application.";
+  }
+
+  // Today's tasks
+  const dailyTasks = [
+    `Inspect ${activeCrop ? activeCrop.crop_name : "crop"} leaves for whiteflies, thrips, or early leaf spots.`,
+    wateringRule,
+    `Fertilizer Reminder: ${fertAdvice}`,
+    `Check ${activeCrop?.irrigation_type || user?.irrigation_preference || "drip"} emitters for uniform water flow.`,
   ];
+
+  const toggleTask = (index: number) => {
+    setTaskState((prev) => ({ ...prev, [index]: !prev[index] }));
+  };
 
   return (
     <AuthGuard>
       <Navbar active="dashboard" pageTitle={t("dashboard")} />
 
       {/* Hero Section */}
-      <section className="page-hero" style={{ padding: "36px 0" }}>
+      <section className="page-hero" style={{ padding: "32px 0" }}>
         <div
           className="container"
           style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 20 }}
         >
           <div>
-            <div className="crumb">Farmer Portal / {t("dashboard")}</div>
+            <div className="crumb">Northern Province Farmer Portal / Daily Assistant</div>
             <h1 style={{ fontSize: 32 }}>Ayubowan / Vanakkam, {user?.full_name || "Farmer"}!</h1>
             <p style={{ marginTop: 8, color: "#CFE3D5", fontSize: 16 }}>
-              📍 {user?.farm_location || "Vavuniya"} · {user?.district_asc || "Vavuniya ASC"} · {user?.farmer_type || "Small-scale farmer"}
+              📍 {user?.district || "Vavuniya"} · {user?.ds_division || "Vavuniya Town"} · {user?.farming_category || "Farmer"} ({user?.land_size || 1} {user?.land_size_unit || "Acres"})
             </p>
           </div>
-          <Link
-            href="/settings"
-            className="btn btn-outline"
-            style={{ background: "rgba(255,255,255,0.1)", color: "#FFF", borderColor: "#FFF" }}
-          >
-            {t("settings")}
-          </Link>
+          <div style={{ display: "flex", gap: 12 }}>
+            <Link href="/crops" className="btn btn-sun">
+              + {t("addCrop")}
+            </Link>
+            <Link
+              href="/settings"
+              className="btn btn-outline"
+              style={{ background: "rgba(255,255,255,0.1)", color: "#FFF", borderColor: "#FFF" }}
+            >
+              {t("settings")}
+            </Link>
+          </div>
         </div>
       </section>
 
       <section className="section" style={{ background: "#F7F9F7" }}>
         <div className="container">
 
-          {/* 1. Dashboard Overview Summary Cards (7 Cards) */}
+          {/* Active Crop Selector Bar if multiple crops exist */}
+          {crops.length > 1 && (
+            <div
+              style={{
+                background: "#FFFFFF",
+                borderRadius: 14,
+                padding: "14px 20px",
+                marginBottom: 24,
+                border: "1px solid #E2E8F0",
+                display: "flex",
+                alignItems: "center",
+                gap: 16,
+                overflowX: "auto",
+              }}
+            >
+              <span style={{ fontWeight: 700, fontSize: 14, color: "#1B4D3E", whiteSpace: "nowrap" }}>
+                Select Active Crop:
+              </span>
+              {crops.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => setSelectedCropId(c.id)}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: 20,
+                    border: selectedCropId === c.id ? "2px solid #10B981" : "1px solid #CBD5E1",
+                    background: selectedCropId === c.id ? "#DCFCE7" : "#F8FAFC",
+                    color: selectedCropId === c.id ? "#166534" : "#475569",
+                    fontWeight: 700,
+                    fontSize: 13,
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  🌱 {c.crop_name} ({c.variety || "Local"})
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* 1. Daily Assistant Main Tracker Cards (7 Summary Cards) */}
           <div
             style={{
               display: "grid",
@@ -137,29 +232,57 @@ export default function DashboardPage() {
               marginBottom: 32,
             }}
           >
-            {/* Card 1: Total Crops */}
+            {/* Card 1: Current Crop */}
             <div className="dash-card">
               <div style={{ width: 44, height: 44, borderRadius: 10, background: "#E6F4EA", display: "flex", alignItems: "center", justifyContent: "center", color: "#1E8E3E" }}>
                 <Sprout size={24} />
               </div>
               <div>
-                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{t("totalCrops")}</div>
-                <div style={{ fontSize: 20, fontWeight: 700, color: "#1E293B" }}>{crops.length} Types</div>
+                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{t("currentCrop")}</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: "#1E293B" }}>
+                  {activeCrop ? activeCrop.crop_name : "No Crop"}
+                </div>
               </div>
             </div>
 
-            {/* Card 2: Active Cultivations */}
+            {/* Card 2: Days Since Planting */}
             <div className="dash-card">
-              <div style={{ width: 44, height: 44, borderRadius: 10, background: "#DCFCE7", display: "flex", alignItems: "center", justifyContent: "center", color: "#15803D" }}>
-                <Sprout size={24} />
+              <div style={{ width: 44, height: 44, borderRadius: 10, background: "#FEF3C7", display: "flex", alignItems: "center", justifyContent: "center", color: "#D97706" }}>
+                <Calendar size={24} />
               </div>
               <div>
-                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{t("activeCultivations")}</div>
-                <div style={{ fontSize: 20, fontWeight: 700, color: "#1E293B" }}>{crops.length} Active Fields</div>
+                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{t("daysSincePlanting")}</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: "#1E293B" }}>
+                  {daysSincePlanting} Days
+                </div>
               </div>
             </div>
 
-            {/* Card 3: Today's Weather */}
+            {/* Card 3: Current Growth Stage */}
+            <div className="dash-card">
+              <div style={{ width: 44, height: 44, borderRadius: 10, background: "#DCFCE7", display: "flex", alignItems: "center", justifyContent: "center", color: "#15803D" }}>
+                <Zap size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{t("currentGrowthStage")}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#166534", lineHeight: 1.2 }}>
+                  {stageLabel}
+                </div>
+              </div>
+            </div>
+
+            {/* Card 4: Progress Percentage */}
+            <div className="dash-card">
+              <div style={{ width: 44, height: 44, borderRadius: 10, background: "#F3E8FF", display: "flex", alignItems: "center", justifyContent: "center", color: "#9333EA" }}>
+                <Clock size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{t("progressPercentage")}</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: "#9333EA" }}>{progressPercent}%</div>
+              </div>
+            </div>
+
+            {/* Card 5: Today's Weather */}
             <div className="dash-card">
               <div style={{ width: 44, height: 44, borderRadius: 10, background: "#E0F2FE", display: "flex", alignItems: "center", justifyContent: "center", color: "#0284C7" }}>
                 <CloudSun size={24} />
@@ -170,278 +293,203 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Card 4: Irrigation Status */}
+            {/* Card 6: Irrigation Recommendation */}
             <div className="dash-card">
               <div style={{ width: 44, height: 44, borderRadius: 10, background: "#E0F2FE", display: "flex", alignItems: "center", justifyContent: "center", color: "#0369A1" }}>
                 <Droplets size={24} />
               </div>
               <div>
                 <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{t("irrigationStatus")}</div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "#1E293B" }}>Evening Slot (6PM)</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: isRaining ? "#D97706" : "#0369A1" }}>
+                  {isRaining ? "Skip Rain Today" : "Water Early Morning"}
+                </div>
               </div>
             </div>
 
-            {/* Card 5: Marketplace Orders */}
-            <div className="dash-card">
-              <div style={{ width: 44, height: 44, borderRadius: 10, background: "#FEF3C7", display: "flex", alignItems: "center", justifyContent: "center", color: "#D97706" }}>
-                <ShoppingBag size={24} />
-              </div>
-              <div>
-                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{t("marketplaceOrders")}</div>
-                <div style={{ fontSize: 20, fontWeight: 700, color: "#1E293B" }}>2 Active</div>
-              </div>
-            </div>
-
-            {/* Card 6: AI Recommendations */}
-            <div className="dash-card">
-              <div style={{ width: 44, height: 44, borderRadius: 10, background: "#F3E8FF", display: "flex", alignItems: "center", justifyContent: "center", color: "#9333EA" }}>
-                <Bot size={24} />
-              </div>
-              <div>
-                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{t("aiRecommendations")}</div>
-                <div style={{ fontSize: 20, fontWeight: 700, color: "#1E293B" }}>3 New Alerts</div>
-              </div>
-            </div>
-
-            {/* Card 7: Farm Health Score */}
+            {/* Card 7: Fertilizer Reminder */}
             <div className="dash-card">
               <div style={{ width: 44, height: 44, borderRadius: 10, background: "#DCFCE7", display: "flex", alignItems: "center", justifyContent: "center", color: "#166534" }}>
-                <TrendingUp size={24} />
+                <Sprout size={24} />
               </div>
               <div>
-                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{t("farmHealthScore")}</div>
-                <div style={{ fontSize: 20, fontWeight: 700, color: "#166534" }}>94% Excellent</div>
+                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{t("fertilizerPreference")}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#166534" }}>
+                  {prefFert} Dosing Ready
+                </div>
               </div>
             </div>
           </div>
 
-          {/* 2. Comprehensive Weather Forecast Widget Section */}
-          <div
-            style={{
-              background: "#FFFFFF",
-              borderRadius: 20,
-              padding: 28,
-              marginBottom: 32,
-              border: "1px solid #E2E8F0",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.04)",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <CloudSun size={26} color="#0284C7" />
-                <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0, color: "#1E293B" }}>
-                  {t("weatherAdvisory")} — {user?.farm_location || "Vavuniya, LK"}
-                </h2>
-              </div>
-              <Link href="/weather" style={{ fontSize: 14, fontWeight: 600, color: "#1B4D3E", textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
-                View Detailed Map <ChevronRight size={16} />
-              </Link>
-            </div>
-
-            {/* Live Weather Metrics Grid */}
+          {/* Today's Assistant Banner & Progress Bar */}
+          {activeCrop && (
             <div
               style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-                gap: 16,
-                padding: 20,
-                borderRadius: 14,
-                background: "linear-gradient(135deg, #0284C7 0%, #0369A1 100%)",
+                background: "linear-gradient(135deg, #1B4D3E 0%, #064E3B 100%)",
+                borderRadius: 20,
+                padding: 28,
                 color: "#FFFFFF",
-                marginBottom: 24,
+                marginBottom: 32,
+                boxShadow: "0 6px 24px rgba(27, 77, 62, 0.2)",
               }}
             >
-              <div>
-                <div style={{ fontSize: 12, opacity: 0.8, display: "flex", alignItems: "center", gap: 4 }}>
-                  <Thermometer size={14} /> {t("currentTemp")}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16, marginBottom: 16 }}>
+                <div>
+                  <span style={{ background: "rgba(255,255,255,0.2)", padding: "4px 12px", borderRadius: 20, fontSize: 12, fontWeight: 700, letterSpacing: "0.05em" }}>
+                    DAILY CROP ASSISTANT
+                  </span>
+                  <h2 style={{ fontSize: 24, fontWeight: 800, marginTop: 8, color: "#FFF" }}>
+                    {activeCrop.crop_name} — Day {daysSincePlanting} ({stageLabel})
+                  </h2>
+                  <p style={{ fontSize: 14, color: "#D1FAE5", marginTop: 4 }}>
+                    Method: {activeCrop.planting_method || "Transplanting"} · System: {activeCrop.irrigation_type || user?.irrigation_preference || "Drip Irrigation"} · Preference: {prefFert}
+                  </p>
                 </div>
-                <div style={{ fontSize: 28, fontWeight: 800, marginTop: 4 }}>{currentTemp}°C</div>
-                <div style={{ fontSize: 12, opacity: 0.9 }}>{condition}</div>
+                <Link href="/crops" className="btn btn-sun" style={{ padding: "10px 20px" }}>
+                  Inspect Full Lifecycle <ChevronRight size={16} />
+                </Link>
               </div>
 
+              {/* Progress Bar */}
               <div>
-                <div style={{ fontSize: 12, opacity: 0.8, display: "flex", alignItems: "center", gap: 4 }}>
-                  <CloudRain size={14} /> {t("rainProbability")}
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#A7F3D0", marginBottom: 6, fontWeight: 600 }}>
+                  <span>Planting Date: {activeCrop.planting_date}</span>
+                  <span>{progressPercent}% Stage Completion</span>
+                  <span>Est. Harvest: ~Day 90</span>
                 </div>
-                <div style={{ fontSize: 24, fontWeight: 700, marginTop: 6 }}>15%</div>
-                <div style={{ fontSize: 12, opacity: 0.9 }}>Low risk today</div>
-              </div>
-
-              <div>
-                <div style={{ fontSize: 12, opacity: 0.8, display: "flex", alignItems: "center", gap: 4 }}>
-                  <Droplets size={14} /> {t("humidity")}
+                <div style={{ width: "100%", height: 12, borderRadius: 6, background: "rgba(255,255,255,0.2)", overflow: "hidden" }}>
+                  <div
+                    style={{
+                      height: "100%",
+                      width: `${progressPercent}%`,
+                      background: "linear-gradient(90deg, #34D399, #10B981)",
+                      borderRadius: 6,
+                      transition: "width 0.5s ease",
+                    }}
+                  />
                 </div>
-                <div style={{ fontSize: 24, fontWeight: 700, marginTop: 6 }}>{humidity}%</div>
-                <div style={{ fontSize: 12, opacity: 0.9 }}>Optimal range</div>
-              </div>
-
-              <div>
-                <div style={{ fontSize: 12, opacity: 0.8, display: "flex", alignItems: "center", gap: 4 }}>
-                  <Wind size={14} /> {t("windSpeed")}
-                </div>
-                <div style={{ fontSize: 24, fontWeight: 700, marginTop: 6 }}>{windSpeed} km/h</div>
-                <div style={{ fontSize: 12, opacity: 0.9 }}>Gentle breeze</div>
-              </div>
-
-              <div>
-                <div style={{ fontSize: 12, opacity: 0.8, display: "flex", alignItems: "center", gap: 4 }}>
-                  <Eye size={14} /> {t("uvIndex")}
-                </div>
-                <div style={{ fontSize: 24, fontWeight: 700, marginTop: 6 }}>6 Moderate</div>
-                <div style={{ fontSize: 12, opacity: 0.9 }}>Sun protection recommended</div>
               </div>
             </div>
+          )}
 
-            {/* 7-Day Weather Forecast */}
-            <div style={{ marginBottom: 20 }}>
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: "#1E293B", marginBottom: 12 }}>
-                📅 {t("sevenDayForecast")}
-              </h3>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))",
-                  gap: 12,
-                }}
-              >
-                {sevenDayForecast.map((f, i) => {
-                  const IconComponent = f.icon;
+          {/* Today's Tasks Checklist & Weather Advisory Grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 24, marginBottom: 32 }}>
+
+            {/* Left: Today's Tasks Checklist */}
+            <div style={{ background: "#FFFFFF", borderRadius: 18, padding: 24, border: "1px solid #E2E8F0", boxShadow: "0 2px 10px rgba(0,0,0,0.03)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "#1E293B", display: "flex", alignItems: "center", gap: 8 }}>
+                  <CheckCircle2 size={22} color="#10B981" /> {t("todaysTasks")}
+                </h2>
+                <span style={{ fontSize: 13, color: "#64748B", fontWeight: 600 }}>
+                  {Object.values(taskState).filter(Boolean).length} / {dailyTasks.length} Done
+                </span>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {dailyTasks.map((taskText, idx) => {
+                  const isDone = !!taskState[idx];
                   return (
                     <div
-                      key={i}
+                      key={idx}
+                      onClick={() => toggleTask(idx)}
                       style={{
-                        padding: "14px 10px",
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: 12,
+                        padding: 14,
                         borderRadius: 12,
-                        background: "#F8FAFC",
-                        border: "1px solid #E2E8F0",
-                        textAlign: "center",
+                        background: isDone ? "#F0FDF4" : "#F8FAFC",
+                        border: isDone ? "1px solid #A7F3D0" : "1px solid #E2E8F0",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
                       }}
                     >
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "#334155" }}>{f.day}</div>
-                      <IconComponent size={24} color="#0284C7" style={{ margin: "8px auto" }} />
-                      <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A" }}>{f.temp}°C</div>
-                      <div style={{ fontSize: 11, color: "#64748B", marginTop: 2 }}>🌧 {f.rainProb}</div>
+                      <input
+                        type="checkbox"
+                        checked={isDone}
+                        onChange={() => {}}
+                        style={{ width: 18, height: 18, marginTop: 2, accentColor: "#10B981" }}
+                      />
+                      <div style={{ fontSize: 14, color: isDone ? "#166534" : "#334155", textDecoration: isDone ? "line-through" : "none", lineHeight: 1.5, fontWeight: isDone ? 500 : 600 }}>
+                        {taskText}
+                      </div>
                     </div>
                   );
                 })}
               </div>
             </div>
 
-            {/* Weather Alerts List */}
-            {weatherAdvisory && weatherAdvisory.advisories && (
-              <div>
-                <h3 style={{ fontSize: 16, fontWeight: 700, color: "#1E293B", marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
-                  <AlertTriangle size={18} color="#D97706" /> {t("weatherAlerts")}
-                </h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {weatherAdvisory.advisories.map((alertItem, idx) => (
-                    <div
-                      key={idx}
-                      style={{
-                        padding: 14,
-                        borderRadius: 10,
-                        background: alertItem.severity === "warning" ? "#FFFBEB" : "#F0FDF4",
-                        borderLeft: alertItem.severity === "warning" ? "4px solid #F59E0B" : "4px solid #16A34A",
-                      }}
-                    >
-                      <div style={{ fontWeight: 700, fontSize: 14, color: "#1E293B" }}>
-                        [{alertItem.category}] {alertItem.title}
-                      </div>
-                      <div style={{ fontSize: 13, color: "#475569", marginTop: 4 }}>
-                        {alertItem.advice}
-                      </div>
-                    </div>
-                  ))}
+            {/* Right: Smart Weather Advisory */}
+            <div style={{ background: "#FFFFFF", borderRadius: 18, padding: 24, border: "1px solid #E2E8F0", boxShadow: "0 2px 10px rgba(0,0,0,0.03)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "#1E293B", display: "flex", alignItems: "center", gap: 8 }}>
+                  <CloudSun size={22} color="#0284C7" /> {t("weatherSummary")}
+                </h2>
+                <span style={{ fontSize: 12, color: "#0284C7", fontWeight: 700, background: "#E0F2FE", padding: "2px 10px", borderRadius: 12 }}>
+                  {user?.district || "Vavuniya"}
+                </span>
+              </div>
+
+              <div style={{ background: "linear-gradient(135deg, #0284C7 0%, #0369A1 100%)", borderRadius: 14, padding: 18, color: "#FFF", marginBottom: 16 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{ fontSize: 32, fontWeight: 800 }}>{currentTemp}°C</div>
+                    <div style={{ fontSize: 14, opacity: 0.9 }}>{condition}</div>
+                  </div>
+                  <CloudSun size={48} style={{ opacity: 0.9 }} />
+                </div>
+                <div style={{ borderTop: "1px solid rgba(255,255,255,0.2)", marginTop: 12, paddingTop: 10, display: "flex", justifyContent: "space-between", fontSize: 12 }}>
+                  <span>💧 Humidity: {weatherAdvisory?.current?.humidity_percent ?? 68}%</span>
+                  <span>💨 Wind: {weatherAdvisory?.current?.wind_kmh ?? 12} km/h</span>
                 </div>
               </div>
-            )}
+
+              <div style={{ background: isRaining ? "#FFFBEB" : "#F0FDF4", borderLeft: isRaining ? "4px solid #F59E0B" : "4px solid #10B981", padding: 14, borderRadius: 10 }}>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#1E293B" }}>
+                  {t("wateringRecommendation")}
+                </div>
+                <div style={{ fontSize: 13, color: "#475569", marginTop: 4, fontWeight: 600 }}>
+                  {wateringRule}
+                </div>
+              </div>
+            </div>
+
           </div>
 
-          {/* Active Cultivations & AI Shortcuts Grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 24 }}>
-            
-            {/* Active Crops Widget */}
-            <div style={{ background: "#FFFFFF", borderRadius: 16, padding: 24, border: "1px solid #E2E8F0", boxShadow: "0 2px 10px rgba(0,0,0,0.03)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "#1E293B" }}>
-                  {t("activeCultivations")} ({crops.length})
-                </h2>
-                <Link href="/crops" style={{ fontSize: 14, fontWeight: 600, color: "#1B4D3E", textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
-                  + Add New Crop <ChevronRight size={16} />
-                </Link>
-              </div>
-
-              {crops.length === 0 ? (
-                <div style={{ textAlign: "center", padding: "32px 16px", color: "#64748B" }}>
-                  <Sprout size={40} color="#94A3B8" style={{ marginBottom: 12 }} />
-                  <p style={{ fontWeight: 600, marginBottom: 8 }}>No crops added yet</p>
-                  <p style={{ fontSize: 14, marginBottom: 16 }}>Start tracking your planting dates, varieties, and stage progress.</p>
-                  <Link href="/crops" className="btn btn-sun" style={{ display: "inline-block" }}>
-                    Add Your First Crop
-                  </Link>
-                </div>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  {crops.map((crop) => (
-                    <div key={crop.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: 14, borderRadius: 10, background: "#F8FAFC", border: "1px solid #F1F5F9" }}>
-                      <div>
-                        <div style={{ fontWeight: 700, fontSize: 16, color: "#1E293B" }}>
-                          {crop.crop_name} <span style={{ fontSize: 13, fontWeight: 400, color: "#64748B" }}>({crop.variety || "Local"})</span>
-                        </div>
-                        <div style={{ fontSize: 13, color: "#64748B", marginTop: 2 }}>
-                          Planted: {crop.planting_date} · Area: {crop.area_size || "N/A"}
-                        </div>
-                      </div>
-                      <div style={{ textAlign: "right" }}>
-                        <span style={{ display: "inline-block", padding: "4px 12px", borderRadius: 20, background: "#DCFCE7", color: "#166534", fontWeight: 700, fontSize: 12 }}>
-                          {crop.current_stage}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+          {/* Notifications & Reminders Panel */}
+          <div style={{ background: "#FFFFFF", borderRadius: 18, padding: 24, border: "1px solid #E2E8F0", marginBottom: 32 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+              <BellRing size={22} color="#D97706" />
+              <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "#1E293B" }}>
+                {t("notificationsTitle")}
+              </h2>
             </div>
 
-            {/* Right Column: AI Assistant & Equipment Shortcuts */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-              
-              {/* AI Assistant Quick Card */}
-              <div style={{ background: "linear-gradient(135deg, #1B4D3E 0%, #2E7D32 100%)", borderRadius: 16, padding: 24, color: "#FFFFFF" }}>
-                <MessageSquareText size={32} style={{ marginBottom: 12, opacity: 0.9 }} />
-                <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, color: "#FFF" }}>Valam AI Assistant</h3>
-                <p style={{ fontSize: 13, color: "#E8F5E9", lineHeight: 1.5, marginBottom: 16 }}>
-                  Ask questions about leaf yellowing, fertilizer dosing, or Vavuniya planting seasons in Tamil, Sinhala, or English.
-                </p>
-                <Link href="/chatbot" className="btn btn-sun" style={{ width: "100%", textAlign: "center" }}>
-                  Start Chat Session
-                </Link>
-              </div>
-
-              {/* Equipment Sharing Card */}
-              <div style={{ background: "#FFFFFF", borderRadius: 16, padding: 20, border: "1px solid #E2E8F0" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-                  <Wrench size={20} color="#15803D" />
-                  <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: "#1E293B" }}>Equipment Lending</h3>
-                </div>
-                <p style={{ fontSize: 13, color: "#64748B", marginBottom: 16 }}>
-                  Rent water pumps, battery sprayers, and tractors from fellow farmers in Vavuniya.
-                </p>
-                <Link href="/tools" className="btn btn-outline" style={{ width: "100%", textAlign: "center", display: "block" }}>
-                  Browse Available Tools
-                </Link>
-              </div>
-
-              {/* Disclaimer */}
-              <div style={{ padding: 14, borderRadius: 12, background: "#F1F5F9", fontSize: 12, color: "#64748B", display: "flex", gap: 10, alignItems: "flex-start" }}>
-                <ShieldCheck size={20} color="#64748B" style={{ flexShrink: 0 }} />
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 }}>
+              <div style={{ padding: 14, borderRadius: 12, background: "#F0FDF4", border: "1px solid #DCFCE7", display: "flex", gap: 12, alignItems: "center" }}>
+                <Droplets size={24} color="#16A34A" />
                 <div>
-                  Valam recommendations are decision support guidance based on regional weather and agricultural knowledge.
+                  <div style={{ fontWeight: 700, fontSize: 14, color: "#166534" }}>{t("wateringReminder")}</div>
+                  <div style={{ fontSize: 12, color: "#475569" }}>{wateringRule}</div>
                 </div>
               </div>
 
-            </div>
+              <div style={{ padding: 14, borderRadius: 12, background: "#FEF3C7", border: "1px solid #FDE68A", display: "flex", gap: 12, alignItems: "center" }}>
+                <Sprout size={24} color="#D97706" />
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: "#92400E" }}>{t("fertilizerAlert")}</div>
+                  <div style={{ fontSize: 12, color: "#475569" }}>{prefFert} dose scheduled for active growth stage.</div>
+                </div>
+              </div>
 
+              <div style={{ padding: 14, borderRadius: 12, background: "#EFF6FF", border: "1px solid #BFDBFE", display: "flex", gap: 12, alignItems: "center" }}>
+                <Zap size={24} color="#2563EB" />
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: "#1E40AF" }}>{t("floweringAlert")}</div>
+                  <div style={{ fontSize: 12, color: "#475569" }}>Maintain steady moisture during flower set.</div>
+                </div>
+              </div>
+            </div>
           </div>
 
         </div>
