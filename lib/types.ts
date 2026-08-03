@@ -12,6 +12,14 @@ export interface ValamUser {
   main_crops_grown?: string;
   preferred_language?: string;
   onboarding_completed?: boolean;
+  farming_category?: "Farmer" | "Home Gardener" | "Terrace Gardener" | "Beginner" | string;
+  district?: string;
+  ds_division?: string;
+  gn_division?: string;
+  land_size?: number;
+  land_size_unit?: "Acres" | "Perches" | "Hectares" | "Square Feet" | string;
+  irrigation_preference?: "Drip Irrigation" | "Sprinkler Irrigation" | "Manual Watering" | string;
+  fertilizer_preference?: "Organic" | "Chemical" | string;
 }
 
 export interface AuthSession {
@@ -53,7 +61,16 @@ export interface RegisterInput {
   full_name: string;
   email: string;
   password: string;
-  phone?: string;
+  phone: string;
+  preferred_language?: string;
+  farming_category?: string;
+  district?: string;
+  ds_division?: string;
+  gn_division?: string;
+  land_size?: number;
+  land_size_unit?: string;
+  irrigation_preference?: string;
+  fertilizer_preference?: string;
   farm_location?: string;
   farm_size_acres?: number;
 }
@@ -72,6 +89,14 @@ export interface OnboardingInput {
   farm_size_acres?: number;
   main_crops_grown?: string;
   preferred_language?: string;
+  farming_category?: string;
+  district?: string;
+  ds_division?: string;
+  gn_division?: string;
+  land_size?: number;
+  land_size_unit?: string;
+  irrigation_preference?: string;
+  fertilizer_preference?: string;
 }
 
 export interface Crop {
@@ -80,6 +105,11 @@ export interface Crop {
   crop_name: string;
   variety?: string;
   planting_date: string;
+  planting_method?: string;
+  land_size?: number;
+  land_size_unit?: string;
+  irrigation_type?: string;
+  fertilizer_preference?: string;
   area_size?: string;
   current_stage: string;
   notes?: string;
@@ -136,6 +166,11 @@ export interface DiseaseDiagnosis {
   symptoms: string;
   diagnosis_result: string;
   recommendations: string;
+  cause?: string;
+  organic_treatment?: string;
+  chemical_treatment?: string;
+  prevention_advice?: string;
+  language?: string;
   disclaimer: string;
   created_at?: string;
 }

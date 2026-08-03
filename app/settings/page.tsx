@@ -36,6 +36,13 @@ export default function SettingsPage() {
   const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [preferredLang, setPreferredLang] = useState<Language>("en");
+  const [farmingCategory, setFarmingCategory] = useState("Farmer");
+  const [district, setDistrict] = useState("Vavuniya");
+  const [dsDivision, setDsDivision] = useState("Vavuniya Town");
+  const [landSize, setLandSize] = useState<number | "">(1.0);
+  const [landUnit, setLandUnit] = useState("Acres");
+  const [irrigationPref, setIrrigationPref] = useState("Drip Irrigation");
+  const [fertilizerPref, setFertilizerPref] = useState("Organic");
 
   const [saving, setSaving] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ type: "ok" | "error"; text: string } | null>(null);
@@ -53,6 +60,13 @@ export default function SettingsPage() {
         setPhone(u.phone || "");
         setFarmLocation(u.farm_location || "");
         setEmail(u.email || "");
+        if (u.farming_category) setFarmingCategory(u.farming_category);
+        if (u.district) setDistrict(u.district);
+        if (u.ds_division) setDsDivision(u.ds_division);
+        if (u.land_size) setLandSize(u.land_size);
+        if (u.land_size_unit) setLandUnit(u.land_size_unit);
+        if (u.irrigation_preference) setIrrigationPref(u.irrigation_preference);
+        if (u.fertilizer_preference) setFertilizerPref(u.fertilizer_preference);
         if (u.preferred_language) {
           const l = u.preferred_language.toLowerCase();
           if (l.includes("ta") || l.includes("tamil")) setPreferredLang("ta");
@@ -80,18 +94,19 @@ export default function SettingsPage() {
       const updated = await ValamAPI.updateProfile({
         full_name: fullName.trim(),
         phone: phone.trim(),
-        farm_location: farmLocation.trim(),
+        farm_location: farmLocation.trim() || `${dsDivision}, ${district}`,
         preferred_language: preferredLang,
+        farming_category: farmingCategory,
+        district: district,
+        ds_division: dsDivision,
+        land_size: typeof landSize === "number" ? landSize : 1.0,
+        land_size_unit: landUnit,
+        irrigation_preference: irrigationPref,
+        fertilizer_preference: fertilizerPref,
       });
 
       setUser(updated);
       setLanguage(preferredLang);
-
-      // If user provided a password update
-      if (newPassword.trim().length >= 6) {
-        // Change password request
-      }
-
       setStatusMsg({ type: "ok", text: "Settings and profile updated successfully!" });
     } catch (err) {
       setStatusMsg({

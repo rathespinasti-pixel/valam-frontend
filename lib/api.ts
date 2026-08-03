@@ -177,6 +177,11 @@ export const ValamAPI = {
     crop_name: string;
     variety?: string;
     planting_date: string;
+    planting_method?: string;
+    land_size?: number;
+    land_size_unit?: string;
+    irrigation_type?: string;
+    fertilizer_preference?: string;
     area_size?: string;
     current_stage?: string;
     notes?: string;
@@ -241,7 +246,7 @@ export const ValamAPI = {
     return apiRequest<{ items: ChatbotEntry[]; total: number }>("/chatbot/history", { auth: true });
   },
 
-  async analyzeDisease(data: { symptoms: string; crop_name?: string; image_url?: string }): Promise<DiseaseDiagnosis> {
+  async analyzeDisease(data: { symptoms: string; crop_name?: string; image_url?: string; language?: string }): Promise<DiseaseDiagnosis> {
     return apiRequest<DiseaseDiagnosis>("/diagnosis/analyze", {
       method: "POST",
       auth: true,
