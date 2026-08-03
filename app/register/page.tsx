@@ -1,15 +1,15 @@
-import type { Metadata } from "next";
+"use client";
+
 import Link from "next/link";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Reveal } from "@/components/ui/Reveal";
 import { RegisterForm } from "@/components/auth/RegisterForm";
-
-export const metadata: Metadata = {
-  title: "Create Account — Valam",
-};
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function RegisterPage() {
+  const { t } = useLanguage();
+
   return (
     <>
       <Navbar />
@@ -18,31 +18,28 @@ export default function RegisterPage() {
         <div className="container">
           <Reveal className="auth-shell">
             <div className="auth-panel">
-              <span className="crumb">Home / Create Account</span>
-              <h2>Join Valam in under two minutes</h2>
-              <p>Create your farm profile to unlock the AI chatbot, weather alerts and the marketplace.</p>
+              <span className="crumb">Valam / {t("register")}</span>
+              <h2>{t("createAccount")}</h2>
+              <p>Set up your profile for Northern Province weather alerts, lifecycle recommendations, and disease diagnosis.</p>
               <ul className="auth-points">
                 <li>
-                  <i className="fa-solid fa-cloud-sun-rain" aria-hidden="true" /> District-level weather &amp;
-                  irrigation alerts
+                  <i className="fa-solid fa-cloud-sun-rain" aria-hidden="true" /> {t("weatherAdvisory")}
                 </li>
                 <li>
-                  <i className="fa-solid fa-camera-retro" aria-hidden="true" /> Ask questions &amp; scan crops with
-                  the AI chatbot
+                  <i className="fa-solid fa-seedling" aria-hidden="true" /> {t("currentGrowthStage")}
                 </li>
                 <li>
-                  <i className="fa-solid fa-store" aria-hidden="true" /> Buy &amp; sell on the seeds/fertilizer
-                  marketplace
+                  <i className="fa-solid fa-droplet" aria-hidden="true" /> {t("irrigationGuidance")}
                 </li>
               </ul>
             </div>
             <div className="auth-form-wrap">
               <div className="auth-card">
-                <h3>Create your account</h3>
-                <p className="auth-sub">Just the essentials — you can fill in the rest later.</p>
+                <h3>{t("register")}</h3>
+                <p className="auth-sub">Smart Crop Assistant for Northern Province</p>
                 <RegisterForm />
-                <p className="auth-switch">
-                  Already have an account? <Link href="/login">Log in</Link>
+                <p className="auth-switch" style={{ marginTop: 16 }}>
+                  Already have an account? <Link href="/login">{t("login")}</Link>
                 </p>
               </div>
             </div>
