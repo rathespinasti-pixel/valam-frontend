@@ -172,17 +172,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="section section-light" id="marketplace">
-        <div className="container">
-          <Reveal className="section-head">
-            <span className="eyebrow">Marketplace</span>
-            <h2 style={{ marginTop: 14 }}>Trusted seeds, fertilizer &amp; tools</h2>
-            <p>A curated marketplace connecting verified sellers directly with farmers.</p>
-          </Reveal>
-          <MarketplacePreviewGrid />
-          <MarketplaceCtaButton />
-        </div>
-      </section>
 
       <section className="section section-dark">
         <div className="container two-col">

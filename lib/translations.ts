@@ -100,7 +100,56 @@ export interface TranslationDictionary {
   waterCropSunny: string;
   waterCoolerHours: string;
 
-  // Calculations & Guidance
+  // Calculations & Guidance & Smart Irrigation
+  smartIrrigationPlanner: string;
+  irrigationHeroSubtitle: string;
+  step1CollectInfo: string;
+  step2GenerateReport: string;
+  cropVarietyOptional: string;
+  growthStage: string;
+  seedlingStage: string;
+  vegetativeStage: string;
+  floweringStage: string;
+  fruitingStage: string;
+  waterSource: string;
+  waterTank: string;
+  well: string;
+  borewell: string;
+  canal: string;
+  river: string;
+  municipalWater: string;
+  otherSource: string;
+  pumpCapacityHp: string;
+  waterFlowRate: string;
+  soilType: string;
+  sandySoil: string;
+  loamySoil: string;
+  claySoil: string;
+  terrain: string;
+  flatTerrain: string;
+  slightSlope: string;
+  steepTerrain: string;
+  generateIrrigationPlan: string;
+  pipeLayoutSummary: string;
+  subMainPipeLength: string;
+  totalPipeRequirement: string;
+  numberOfLaterals: string;
+  lengthOfEachLateral: string;
+  totalLateralLength: string;
+  emitterSpacing: string;
+  recommendedPipeDiameter: string;
+  filterRecommendation: string;
+  pressureRegulator: string;
+  controlValves: string;
+  sprinklerType: string;
+  branchPipeLength: string;
+  materialQuotation: string;
+  itemDescription: string;
+  estimatedQuantity: string;
+  waterRequirementPerPlant: string;
+  dailyWaterRequirement: string;
+  weeklyWaterRequirement: string;
+  waterSavingTips: string;
   plantSpacing: string;
   rowSpacing: string;
   estimatedPlants: string;
@@ -152,7 +201,17 @@ export interface TranslationDictionary {
   harvestAlert: string;
   diseaseAlert: string;
 
-  // Buttons & Shared UI
+  // Shared Buttons & Actions
+  save: string;
+  edit: string;
+  delete: string;
+  update: string;
+  search: string;
+  filter: string;
+  next: string;
+  previous: string;
+  viewDetails: string;
+  backToHome: string;
   saveSettings: string;
   deleteAccount: string;
   deleteAccountConfirmMsg: string;
@@ -164,6 +223,24 @@ export interface TranslationDictionary {
   variety: string;
   plantingDate: string;
   plantingMethod: string;
+
+  // Admin Panel
+  adminPortalTitle: string;
+  adminPortalSub: string;
+  addCropGuide: string;
+  activeCropGuides: string;
+  forumModeration: string;
+  season: string;
+  waterRequirements: string;
+  fertilizerGuidance: string;
+  commonProblems: string;
+  basicSolutions: string;
+  saveGuide: string;
+  deletePostConfirm: string;
+
+  // Error Pages
+  pageNotFoundTitle: string;
+  pageNotFoundDesc: string;
 }
 
 export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
@@ -260,6 +337,56 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
     waterCropSunny: "Sunny condition — Water crop as scheduled.",
     waterCoolerHours: "High temperature — Water during early morning or late evening.",
 
+    // Calculations & Guidance & Smart Irrigation
+    smartIrrigationPlanner: "Smart Irrigation Planner",
+    irrigationHeroSubtitle: "Plan your pipe layout, calculate water requirements, and generate an itemized material quotation tailored to your crop and land size.",
+    step1CollectInfo: "1. Enter Farm & Crop Details",
+    step2GenerateReport: "2. View Smart Irrigation Plan Report",
+    cropVarietyOptional: "Crop Variety (Optional)",
+    growthStage: "Current Growth Stage",
+    seedlingStage: "Seedling / Nursery",
+    vegetativeStage: "Vegetative / Growth",
+    floweringStage: "Flowering Stage",
+    fruitingStage: "Fruiting / Harvest",
+    waterSource: "Water Source",
+    waterTank: "Water Tank",
+    well: "Open Well",
+    borewell: "Borewell / Tube Well",
+    canal: "Irrigation Canal",
+    river: "River / Stream",
+    municipalWater: "Municipal Water Supply",
+    otherSource: "Other Water Source",
+    pumpCapacityHp: "Pump Capacity (HP, Optional)",
+    waterFlowRate: "Water Flow Rate (L/h, Optional)",
+    soilType: "Soil Type",
+    sandySoil: "Sandy Soil (High Drainage)",
+    loamySoil: "Loamy Soil (Ideal Retention)",
+    claySoil: "Clay Soil (Slow Drainage)",
+    terrain: "Terrain",
+    flatTerrain: "Flat Land",
+    slightSlope: "Slight Slope",
+    steepTerrain: "Steep Slope",
+    generateIrrigationPlan: "Generate Smart Irrigation Plan",
+    pipeLayoutSummary: "Pipe Layout Summary",
+    subMainPipeLength: "Sub Main Pipe Length",
+    totalPipeRequirement: "Total Pipe Requirement",
+    numberOfLaterals: "Number of Laterals",
+    lengthOfEachLateral: "Length of Each Lateral",
+    totalLateralLength: "Total Lateral Pipe Length",
+    emitterSpacing: "Emitter Spacing",
+    recommendedPipeDiameter: "Recommended Pipe Diameters",
+    filterRecommendation: "Filter Recommendation",
+    pressureRegulator: "Pressure Regulator",
+    controlValves: "Control Valves",
+    sprinklerType: "Recommended Sprinkler Type",
+    branchPipeLength: "Branch Pipe Length",
+    materialQuotation: "Estimated Material List & Quotation",
+    itemDescription: "Item Description",
+    estimatedQuantity: "Estimated Quantity",
+    waterRequirementPerPlant: "Daily Water / Plant",
+    dailyWaterRequirement: "Total Daily Water Requirement",
+    weeklyWaterRequirement: "Weekly Water Requirement",
+    waterSavingTips: "Water Saving & Conservation Tips",
     plantSpacing: "Plant Spacing",
     rowSpacing: "Row Spacing",
     estimatedPlants: "Estimated Plant Population",
@@ -310,17 +437,43 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
     harvestAlert: "Expected Harvest Readiness",
     diseaseAlert: "Local Pest Threat Warning",
 
+    save: "Save",
+    edit: "Edit",
+    delete: "Delete",
+    update: "Update",
+    search: "Search",
+    filter: "Filter",
+    next: "Next",
+    previous: "Previous",
+    viewDetails: "View Details",
+    backToHome: "Back to Home",
     saveSettings: "Save Profile Settings",
     deleteAccount: "Delete Account",
     deleteAccountConfirmMsg: "Are you sure you want to permanently delete your account?",
     deleteAccountSuccess: "Account deleted successfully.",
     confirmDelete: "Yes, Delete Account",
     cancel: "Cancel",
-    addCrop: "Add New Crop",
+    addCrop: "Add Crop",
     cropName: "Crop Name",
     variety: "Variety",
     plantingDate: "Planting Date",
     plantingMethod: "Planting Method",
+
+    adminPortalTitle: "Valam Platform Administration",
+    adminPortalSub: "Management portal for crop knowledge guides, disease database, and forum moderation.",
+    addCropGuide: "Add Crop Guide Knowledge",
+    activeCropGuides: "Active Crop Guides",
+    forumModeration: "Forum Posts Moderation",
+    season: "Recommended Season",
+    waterRequirements: "Water Requirements",
+    fertilizerGuidance: "Fertilizer Guidance",
+    commonProblems: "Common Problems",
+    basicSolutions: "Basic Solutions",
+    saveGuide: "Save Guide",
+    deletePostConfirm: "Are you sure you want to delete this community post for moderation?",
+
+    pageNotFoundTitle: "404 - Page Not Found",
+    pageNotFoundDesc: "The page you are looking for does not exist or has been moved.",
   },
 
   ta: {
@@ -416,6 +569,56 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
     waterCropSunny: "வெயில் உள்ள காலநிலை — திட்டமிட்டபடி நீர் பாய்ச்சவும்.",
     waterCoolerHours: "அதிக வெப்பநிலை — காலை அல்லது மாலை வேளையில் நீர் பாய்ச்சவும்.",
 
+    // Calculations & Guidance & Smart Irrigation
+    smartIrrigationPlanner: "ஸ்மார்ட் நீர்ப்பாசன திட்டமிடுபவர்",
+    irrigationHeroSubtitle: "உங்கள் பயிர் மற்றும் நில அளவிற்கு ஏற்ப குழாய் அமைப்பை திட்டமிட்டு, நீர் தேவைகளை கணக்கிட்டு, பொருட்களின் மதிப்பீட்டு பட்டியலைப் பெறுங்கள்.",
+    step1CollectInfo: "1. பண்ணை மற்றும் பயிர் விவரங்களை உள்ளிடவும்",
+    step2GenerateReport: "2. ஸ்மார்ட் நீர்ப்பாசன திட்ட அறிக்கையைப் பார்க்கவும்",
+    cropVarietyOptional: "பயிர் ரகம் (விருப்பமானது)",
+    growthStage: "தற்போதைய வளர்ச்சி நிலை",
+    seedlingStage: "நாற்று / நாற்றங்கால் நிலை",
+    vegetativeStage: "வளர்ச்சி / தண்டு நிலை",
+    floweringStage: "பூக்கும் நிலை",
+    fruitingStage: "காய்க்கும் / அறுவடை நிலை",
+    waterSource: "நீர் ஆதாரம்",
+    waterTank: "நீர் தொட்டி (Water Tank)",
+    well: "திறந்த கிணறு (Open Well)",
+    borewell: "ஆழ்துளை கிணறு (Borewell)",
+    canal: "பாசனக் கால்வாய்",
+    river: "ஆறு / ஓடை",
+    municipalWater: "நகராட்சி நீர் வழங்கல்",
+    otherSource: "இதர நீர் ஆதாரம்",
+    pumpCapacityHp: "பம்பின் திறன் (HP, விருப்பமானது)",
+    waterFlowRate: "நீர் பாய்ச்சல் வீதம் (L/h, விருப்பமானது)",
+    soilType: "மண் வகை",
+    sandySoil: "மணல் மண் (அதிக நீர் வடிகால்)",
+    loamySoil: "வண்டல் மண் (சிறந்த நீர் தேக்கம்)",
+    claySoil: "களிமண் (மெதுவான வடிகால்)",
+    terrain: "நில அமைப்பு",
+    flatTerrain: "சமவெளி நிலம்",
+    slightSlope: "சிறிய சாய்வு",
+    steepTerrain: "அதிக சாய்வு",
+    generateIrrigationPlan: "நீர்ப்பாசன திட்டத்தை உருவாக்கவும்",
+    pipeLayoutSummary: "குழாய் அமைப்பு சுருக்கம்",
+    subMainPipeLength: "துணைக் முதன்மை குழாய் நீளம்",
+    totalPipeRequirement: "மொத்த குழாய் தேவை",
+    numberOfLaterals: "கிளை குழாய்களின் எண்ணிக்கை (Laterals)",
+    lengthOfEachLateral: "ஒரு கிளை குழாயின் நீளம்",
+    totalLateralLength: "மொத்த கிளை குழாய் நீளம்",
+    emitterSpacing: "சொட்டுப்பான் இடைவெளி",
+    recommendedPipeDiameter: "பரிந்துரைக்கப்படும் குழாய் விட்டங்கள்",
+    filterRecommendation: "வடிகட்டி பரிந்துரை (Filter)",
+    pressureRegulator: "அழுத்த சீராக்கி (Pressure Regulator)",
+    controlValves: "கட்டுப்பாட்டு வால்வுகள் (Valves)",
+    sprinklerType: "பரிந்துரைக்கப்படும் தெளிப்பான் வகை",
+    branchPipeLength: "கிளை குழாய் நீளம்",
+    materialQuotation: "தேவைப்படும் பொருட்கள் மதிப்பீட்டு பட்டியல்",
+    itemDescription: "பொருள் விவரம்",
+    estimatedQuantity: "மதிப்பிடப்பட்ட அளவு",
+    waterRequirementPerPlant: "செடிக்கான தினசரி நீர்",
+    dailyWaterRequirement: "மொத்த தினசரி நீர் தேவை",
+    weeklyWaterRequirement: "வாராந்திர நீர் தேவை",
+    waterSavingTips: "நீர் சேமிப்பு மற்றும் பாதுகாப்பு ஆலோசனைகள்",
     plantSpacing: "செடி இடைவெளி",
     rowSpacing: "வரிசை இடைவெளி",
     estimatedPlants: "எதிர்பார்க்கப்படும் மொத்த செடிகள்",
@@ -466,17 +669,43 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
     harvestAlert: "அறுவடை தயார் நிலை",
     diseaseAlert: "பூச்சி/நோய் எச்சரிக்கை",
 
-    saveSettings: "அமைப்புகளைச் சேமிக்கவும்",
-    deleteAccount: "கணக்கை நீக்கு",
+    save: "சேமிக்க",
+    edit: "திருத்த",
+    delete: "நீக்க",
+    update: "புதுப்பிக்க",
+    search: "தேட",
+    filter: "வடிகட்ட",
+    next: "அடுத்து",
+    previous: "முந்தைய",
+    viewDetails: "விவரங்களைப் பார்க்க",
+    backToHome: "முகப்புப் பக்கத்திற்குச் செல்ல",
+    saveSettings: "சுயவிவர அமைப்புகளைச் சேமிக்க",
+    deleteAccount: "கணக்கை நீக்க",
     deleteAccountConfirmMsg: "உங்கள் கணக்கை நிரந்தரமாக நீக்க விரும்புகிறீர்களா?",
     deleteAccountSuccess: "கணக்கு வெற்றிகரமாக நீக்கப்பட்டது.",
-    confirmDelete: "ஆம், நீக்கவும்",
+    confirmDelete: "ஆம், கணக்கை நீக்கு",
     cancel: "ரத்து செய்",
-    addCrop: "புதிய பயிர் சேர்க்க",
+    addCrop: "பயிரைச் சேர்க்க",
     cropName: "பயிர் பெயர்",
-    variety: "இனம் / ரகம்",
-    plantingDate: "நட்ட திகதி",
-    plantingMethod: "நடுகை முறை",
+    variety: "வகை",
+    plantingDate: "நட்ட தேதி",
+    plantingMethod: "நடும் முறை",
+
+    adminPortalTitle: "வளம் தள நிர்வாகம்",
+    adminPortalSub: "பயிர் வழிகாட்டிகள், நோய் தரவுத்தளம் மற்றும் மன்ற அமைப்பிற்கான நிர்வாக தளம்.",
+    addCropGuide: "புதிய பயிர் வழிகாட்டியைச் சேர்க்க",
+    activeCropGuides: "செயலில் உள்ள பயிர் வழிகாட்டிகள்",
+    forumModeration: "மன்றப் பதிவுகள் நிர்வாகம்",
+    season: "பரிந்துரைக்கப்பட்ட பருவம்",
+    waterRequirements: "நீர் தேவைகள்",
+    fertilizerGuidance: "உர வழிகாட்டுதல்",
+    commonProblems: "பொதுவான பிரச்சனைகள்",
+    basicSolutions: "அடிப்படை தீர்வுகள்",
+    saveGuide: "வழிகாட்டியைச் சேமிக்க",
+    deletePostConfirm: "இந்த மன்றப் பதிவை நீக்க உறுதியாக இருக்கிறீர்களா?",
+
+    pageNotFoundTitle: "404 - பக்கம் காணப்படவில்லை",
+    pageNotFoundDesc: "நீங்கள் தேடும் பக்கம் இல்லை அல்லது நகர்த்தப்பட்டுவிட்டது.",
   },
 
   si: {
@@ -572,6 +801,56 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
     waterCropSunny: "අව්ව සහිත කාලගුණය — නියමිත පරිදි ජලය දමන්න.",
     waterCoolerHours: "තද උෂ්ණත්වය — උදෑසන හෝ සවස ජලය දමන්න.",
 
+    // Calculations & Guidance & Smart Irrigation
+    smartIrrigationPlanner: "බුද්ධිමත් ජලසම්පාදන සැලසුම්කරු",
+    irrigationHeroSubtitle: "ඔබේ වගාවට සහ ඉඩම් ප්‍රමාණයට ගැලපෙන පරිදි බට පද්ධතිය සැලසුම් කර, ජල අවශ්‍යතා ගණනය කර, උපකරණ ලැයිස්තුව ලබා ගන්න.",
+    step1CollectInfo: "1. ගොවිපළ සහ වගා තොරතුරු ඇතුළත් කරන්න",
+    step2GenerateReport: "2. ජලසම්පාදන සැලසුම් වාර්තාව නරඹන්න",
+    cropVarietyOptional: "වගා ප්‍රභේදය (අත්‍යවශ්‍ය නොවේ)",
+    growthStage: "වත්මන් වර්ධන අවධිය",
+    seedlingStage: "පැළ / තවාන් අවධිය",
+    vegetativeStage: "වර්ධන අවධිය",
+    floweringStage: "මල් හටගැනීමේ අවධිය",
+    fruitingStage: "ඵල හටගැනීමේ / අස්වැන්න අවධිය",
+    waterSource: "ජල මූලාශ්‍රය",
+    waterTank: "ජල ටැංකිය",
+    well: "ලිඳ",
+    borewell: "නළ ළිඳ (Borewell)",
+    canal: "ජලසම්පාදන ඇළ",
+    river: "ගඟ / ඔය",
+    municipalWater: "නගර සභා ජල සැපයුම",
+    otherSource: "වෙනත් ජල මූලාශ්‍රයක්",
+    pumpCapacityHp: "වතුර පම්ප් ධාරිතාව (HP, අත්‍යවශ්‍ය නොවේ)",
+    waterFlowRate: "ජල ගැලීම් වේගය (L/h, අත්‍යවශ්‍ය නොවේ)",
+    soilType: "පස වර්ගය",
+    sandySoil: "වැලි සහිත පස",
+    loamySoil: "ජලාකර්ෂක ලෝම් පස",
+    claySoil: "මැටි පස",
+    terrain: "භූමි ස්වභාවය",
+    flatTerrain: "තැන්නේ පිහිටි ඉඩම",
+    slightSlope: "සුළු බෑවුම",
+    steepTerrain: "තද බෑවුම",
+    generateIrrigationPlan: "ජලසම්පාදන සැලසුම සකසන්න",
+    pipeLayoutSummary: "බට පද්ධති සැකැස්ම",
+    subMainPipeLength: "අනු ප්‍රධාන බටයේ දිග",
+    totalPipeRequirement: "මුළු බට අවශ්‍යතාවය",
+    numberOfLaterals: "අනු බට ගණන (Laterals)",
+    lengthOfEachLateral: "එක් අනු බටයක දිග",
+    totalLateralLength: "මුළු අනු බට දිග",
+    emitterSpacing: "බිංදු නික්මවුම් පරතරය",
+    recommendedPipeDiameter: "නිර්දේශිත බට විෂ්කම්භය",
+    filterRecommendation: "පෙරහන් නිර්දේශය (Filter)",
+    pressureRegulator: "පීඩන පාලකය (Pressure Regulator)",
+    controlValves: "පාලන කපාට (Valves)",
+    sprinklerType: "නිර්දේශිත විසුරුම් යන්ත්‍ර වර්ගය",
+    branchPipeLength: "අතු බට දිග",
+    materialQuotation: "අවශ්‍ය උපකරණ සහ මිල ගණන් ලැයිස්තුව",
+    itemDescription: "උපකරණ විස්තරය",
+    estimatedQuantity: "අනුමාන ප්‍රමාණය",
+    waterRequirementPerPlant: "පැළයකට දිනකට අවශ්‍ය ජලය",
+    dailyWaterRequirement: "දිනකට මුළු ජල අවශ්‍යතාවය",
+    weeklyWaterRequirement: "සතියකට මුළු ජල අවශ්‍යතාවය",
+    waterSavingTips: "ජල සංරක්ෂණ උපදෙස්",
     plantSpacing: "පැළ අතර පරතරය",
     rowSpacing: "පේළි අතර පරතරය",
     estimatedPlants: "අපේක්ෂිත මුළු පැළ ගණන",
@@ -622,16 +901,42 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
     harvestAlert: "අස්වැන්න නෙලීමේ සූදානම",
     diseaseAlert: "පලිබෝධ අනතුරු ඇඟවීම",
 
+    save: "සුරකින්න",
+    edit: "සංස්කරණය",
+    delete: "මකා දමන්න",
+    update: "යාවත්කාලීන කරන්න",
+    search: "සොයන්න",
+    filter: "පෙරන්න",
+    next: "ඊළඟ",
+    previous: "පෙර",
+    viewDetails: "විස්තර බලන්න",
+    backToHome: "මුල් පිටුවට යන්න",
     saveSettings: "සැකසීම් සුරකින්න",
     deleteAccount: "ගිණුම මකා දමන්න",
-    deleteAccountConfirmMsg: "ඔබේ ගිණුම ස්ථිරවම මකා දැමීමට අවශ්‍යද?",
+    deleteAccountConfirmMsg: "ඔබේ ගිණුම මකා දැමීමට ඔබට විශ්වාසද?",
     deleteAccountSuccess: "ගිණුම සාර්ථකව මකා දමන ලදී.",
-    confirmDelete: "ඔව්, මකා දමන්න",
+    confirmDelete: "ඔව්, ගිණුම මකා දමන්න",
     cancel: "අවලංගු කරන්න",
-    addCrop: "අලුත් වගාවක් එක් කරන්න",
+    addCrop: "වගාවක් එක් කරන්න",
     cropName: "වගාවේ නම",
     variety: "ප්‍රභේදය",
-    plantingDate: "සිටුවූ දිනය",
-    plantingMethod: "සිටුවීමේ ක්‍රමය",
+    plantingDate: "වගා කළ දිනය",
+    plantingMethod: "වගා ක්‍රමය",
+
+    adminPortalTitle: "වළම් වේදිකා පරිපාලනය",
+    adminPortalSub: "වගා මාර්ගෝපදේශ, රෝග දත්ත සමුදාය සහ සංසද පරිපාලන ද්වාරය.",
+    addCropGuide: "නව වගා මාර්ගෝපදේශයක් එක් කරන්න",
+    activeCropGuides: "සක්‍රීය වගා මාර්ගෝපදේශ",
+    forumModeration: "සංසද සටහන් පරිපාලනය",
+    season: "නිර්දේශිත කන්නය",
+    waterRequirements: "ජල අවශ්‍යතා",
+    fertilizerGuidance: "පොහොර උපදෙස්",
+    commonProblems: "සාමාන්‍ය ගැටළු",
+    basicSolutions: "මූලික විසඳුම්",
+    saveGuide: "මාර්ගෝපදේශය සුරකින්න",
+    deletePostConfirm: "මෙම සටහන මකා දැමීමට ඔබට විශ්වාසද?",
+
+    pageNotFoundTitle: "404 - පිටුව හමු නොවීය",
+    pageNotFoundDesc: "ඔබ සොයන පිටුව පවතින්නේ නැත නැතහොත් වෙනත් ස්ථානයකට ගෙන ගොස් ඇත.",
   },
 };

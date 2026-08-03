@@ -6,10 +6,12 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ValamAPI } from "@/lib/api";
 import type { ValamUser, CropGuide, CommunityPost } from "@/lib/types";
-import { ShieldCheck, Plus, Trash2, BookOpen, MessageSquare, AlertCircle } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
+import { ShieldCheck, Plus, Trash2, BookOpen, MessageSquare } from "lucide-react";
 
 export default function AdminPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [user, setUser] = useState<ValamUser | null>(null);
   const [guides, setGuides] = useState<CropGuide[]>([]);
   const [posts, setPosts] = useState<CommunityPost[]>([]);
@@ -75,7 +77,7 @@ export default function AdminPage() {
   }
 
   async function handleDeletePost(postId: number) {
-    if (!confirm("Are you sure you want to delete this community post for moderation?")) return;
+    if (!confirm(t("deletePostConfirm"))) return;
     try {
       await ValamAPI.deleteCommunityPost(postId);
       loadAdminData();
@@ -88,7 +90,7 @@ export default function AdminPage() {
     return (
       <>
         <Navbar active="dashboard" />
-        <div style={{ padding: 60, textAlign: "center", color: "#666" }}>Loading admin panel...</div>
+        <div style={{ padding: 60, textAlign: "center", color: "#666" }}>Loading...</div>
         <Footer />
       </>
     );
@@ -96,18 +98,18 @@ export default function AdminPage() {
 
   return (
     <>
-      <Navbar active="dashboard" />
+      <Navbar active="dashboard" pageTitle={t("adminPortalTitle")} />
       <section className="page-hero">
         <div className="container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <div className="crumb">System Administration / Moderation</div>
-            <h1>Valam Platform Administration</h1>
+            <div className="crumb">Valam / {t("adminPortalTitle")}</div>
+            <h1>{t("adminPortalTitle")}</h1>
             <p style={{ marginTop: 8, color: "#CFE3D5", maxWidth: 600 }}>
-              Basic management portal for crop knowledge guides, disease knowledge base, and community forum moderation.
+              {t("adminPortalSub")}
             </p>
           </div>
           <button onClick={() => setShowAddGuide(true)} className="btn btn-sun" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Plus size={18} /> Add Crop Guide
+            <Plus size={18} /> {t("addCropGuide")}
           </button>
         </div>
       </section>
@@ -119,51 +121,51 @@ export default function AdminPage() {
           {showAddGuide && (
             <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
               <div style={{ background: "#FFF", borderRadius: 16, padding: 28, maxWidth: 560, width: "100%", maxHeight: "90vh", overflowY: "auto" }}>
-                <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 16, color: "#1B4D3E" }}>Add New Crop Guide Knowledge</h2>
+                <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 16, color: "#1B4D3E" }}>{t("addCropGuide")}</h2>
                 <form onSubmit={handleCreateGuide}>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 14 }}>
                     <div>
-                      <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>Crop Name *</label>
+                      <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{t("cropName")} *</label>
                       <input type="text" required className="input" placeholder="e.g. Chili, Tomato" style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={cropName} onChange={(e) => setCropName(e.target.value)} />
                     </div>
                     <div>
-                      <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>Variety</label>
+                      <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{t("variety")}</label>
                       <input type="text" className="input" placeholder="e.g. MICO-1" style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={variety} onChange={(e) => setVariety(e.target.value)} />
                     </div>
                   </div>
 
                   <div style={{ marginBottom: 14 }}>
-                    <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>Recommended Season</label>
+                    <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{t("season")}</label>
                     <select className="input" style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={season} onChange={(e) => setSeason(e.target.value)}>
                       <option value="Yala">Yala Season</option>
                       <option value="Maha">Maha Season</option>
-                      <option value="Yala & Maha">Yala & Maha</option>
+                      <option value="Yala & Maha">Yala &amp; Maha</option>
                     </select>
                   </div>
 
                   <div style={{ marginBottom: 14 }}>
-                    <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>Water Requirements</label>
+                    <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{t("waterRequirements")}</label>
                     <textarea rows={2} className="input" style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={waterReq} onChange={(e) => setWaterReq(e.target.value)} />
                   </div>
 
                   <div style={{ marginBottom: 14 }}>
-                    <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>Fertilizer Guidance</label>
+                    <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{t("fertilizerGuidance")}</label>
                     <textarea rows={2} className="input" style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={fertGuidance} onChange={(e) => setFertGuidance(e.target.value)} />
                   </div>
 
                   <div style={{ marginBottom: 14 }}>
-                    <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>Common Problems</label>
+                    <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{t("commonProblems")}</label>
                     <input type="text" className="input" style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={commonProblems} onChange={(e) => setCommonProblems(e.target.value)} />
                   </div>
 
                   <div style={{ marginBottom: 20 }}>
-                    <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>Basic Solutions</label>
+                    <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{t("basicSolutions")}</label>
                     <input type="text" className="input" style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={basicSolutions} onChange={(e) => setBasicSolutions(e.target.value)} />
                   </div>
 
                   <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
-                    <button type="button" onClick={() => setShowAddGuide(false)} className="btn btn-outline" style={{ padding: "10px 18px" }}>Cancel</button>
-                    <button type="submit" className="btn btn-sun" style={{ padding: "10px 24px" }}>Save Guide</button>
+                    <button type="button" onClick={() => setShowAddGuide(false)} className="btn btn-outline" style={{ padding: "10px 18px" }}>{t("cancel")}</button>
+                    <button type="submit" className="btn btn-sun" style={{ padding: "10px 24px" }}>{t("saveGuide")}</button>
                   </div>
                 </form>
               </div>
@@ -175,7 +177,7 @@ export default function AdminPage() {
             {/* Knowledge Base Section */}
             <div style={{ background: "#FFFFFF", borderRadius: 16, padding: 24, border: "1px solid #E2E8F0" }}>
               <h2 style={{ fontSize: 18, fontWeight: 700, color: "#1E293B", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-                <BookOpen size={20} color="#16A34A" /> Active Crop Guides ({guides.length})
+                <BookOpen size={20} color="#16A34A" /> {t("activeCropGuides")} ({guides.length})
               </h2>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -193,7 +195,7 @@ export default function AdminPage() {
             {/* Forum Moderation Section */}
             <div style={{ background: "#FFFFFF", borderRadius: 16, padding: 24, border: "1px solid #E2E8F0" }}>
               <h2 style={{ fontSize: 18, fontWeight: 700, color: "#1E293B", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-                <MessageSquare size={20} color="#0284C7" /> Forum Posts Moderation ({posts.length})
+                <MessageSquare size={20} color="#0284C7" /> {t("forumModeration")} ({posts.length})
               </h2>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>

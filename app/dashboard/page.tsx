@@ -320,57 +320,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Today's Assistant Banner & Progress Bar */}
-          {activeCrop && (
-            <div
-              style={{
-                background: "linear-gradient(135deg, #1B4D3E 0%, #064E3B 100%)",
-                borderRadius: 20,
-                padding: 28,
-                color: "#FFFFFF",
-                marginBottom: 32,
-                boxShadow: "0 6px 24px rgba(27, 77, 62, 0.2)",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16, marginBottom: 16 }}>
-                <div>
-                  <span style={{ background: "rgba(255,255,255,0.2)", padding: "4px 12px", borderRadius: 20, fontSize: 12, fontWeight: 700, letterSpacing: "0.05em" }}>
-                    DAILY CROP ASSISTANT
-                  </span>
-                  <h2 style={{ fontSize: 24, fontWeight: 800, marginTop: 8, color: "#FFF" }}>
-                    {activeCrop.crop_name} — Day {daysSincePlanting} ({stageLabel})
-                  </h2>
-                  <p style={{ fontSize: 14, color: "#D1FAE5", marginTop: 4 }}>
-                    Method: {activeCrop.planting_method || "Transplanting"} · System: {activeCrop.irrigation_type || user?.irrigation_preference || "Drip Irrigation"} · Preference: {prefFert}
-                  </p>
-                </div>
-                <Link href="/crops" className="btn btn-sun" style={{ padding: "10px 20px" }}>
-                  Inspect Full Lifecycle <ChevronRight size={16} />
-                </Link>
-              </div>
-
-              {/* Progress Bar */}
-              <div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#A7F3D0", marginBottom: 6, fontWeight: 600 }}>
-                  <span>Planting Date: {activeCrop.planting_date}</span>
-                  <span>{progressPercent}% Stage Completion</span>
-                  <span>Est. Harvest: ~Day 90</span>
-                </div>
-                <div style={{ width: "100%", height: 12, borderRadius: 6, background: "rgba(255,255,255,0.2)", overflow: "hidden" }}>
-                  <div
-                    style={{
-                      height: "100%",
-                      width: `${progressPercent}%`,
-                      background: "linear-gradient(90deg, #34D399, #10B981)",
-                      borderRadius: 6,
-                      transition: "width 0.5s ease",
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
+    
           {/* Today's Tasks Checklist & Weather Advisory Grid */}
           <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 24, marginBottom: 32 }}>
 
