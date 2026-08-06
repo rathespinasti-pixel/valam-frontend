@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { ValamAPI } from "@/lib/api";
-import type { ValamUser, Crop, WeatherAdvisoryResponse } from "@/lib/types";
+import type { ValamUser, Crop, CropGuide, WeatherAdvisoryResponse } from "@/lib/types";
+import { computeLifecycle, ComputedLifecycle } from "@/lib/lifecycle";
 import { useLanguage } from "@/context/LanguageContext";
 import {
   Sprout,
@@ -27,6 +28,9 @@ import {
   BellRing,
   Clock,
   Zap,
+  Sparkles,
+  Layers,
+  ArrowRight,
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -35,6 +39,7 @@ export default function DashboardPage() {
 
   const [user, setUser] = useState<ValamUser | null>(null);
   const [crops, setCrops] = useState<Crop[]>([]);
+  const [guides, setGuides] = useState<CropGuide[]>([]);
   const [selectedCropId, setSelectedCropId] = useState<number | null>(null);
   const [weatherAdvisory, setWeatherAdvisory] = useState<WeatherAdvisoryResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -51,9 +56,10 @@ export default function DashboardPage() {
         const u = await ValamAPI.me();
         setUser(u);
 
-        const [cropsRes, weatherRes] = await Promise.allSettled([
+        const [cropsRes, guidesRes, weatherRes] = await Promise.allSettled([
           ValamAPI.getCrops(),
-          ValamAPI.getWeatherAdvisory(`${u.ds_division || u.district || 'Vavuniya'},LK`),
+          ValamAPI.getCropGuides(),
+          ValamAPI.getWeatherAdvisory(`${u.ds_division || u.district || "Vavuniya"},LK`),
         ]);
 
         if (cropsRes.status === "fulfilled") {
@@ -62,6 +68,9 @@ export default function DashboardPage() {
           if (items.length > 0) {
             setSelectedCropId(items[0].id);
           }
+        }
+        if (guidesRes.status === "fulfilled") {
+          setGuides(guidesRes.value.items);
         }
         if (weatherRes.status === "fulfilled") {
           setWeatherAdvisory(weatherRes.value);
@@ -76,6 +85,16 @@ export default function DashboardPage() {
     loadDashboardData();
   }, [router]);
 
+  const activeCrop = useMemo(() => {
+    return crops.find((c) => c.id === selectedCropId) || crops[0] || null;
+  }, [crops, selectedCropId]);
+
+  // Compute dynamic lifecycle metrics powered by planting date & DB guides
+  const lifecycleData: ComputedLifecycle | null = useMemo(() => {
+    if (!activeCrop) return null;
+    return computeLifecycle(activeCrop, guides);
+  }, [activeCrop, guides]);
+
   if (loading) {
     return (
       <AuthGuard>
@@ -88,31 +107,13 @@ export default function DashboardPage() {
     );
   }
 
-  const activeCrop = crops.find((c) => c.id === selectedCropId) || crops[0] || null;
-
-  // Days since planting math
-  let daysSincePlanting = 0;
-  if (activeCrop && activeCrop.planting_date) {
-    const start = new Date(activeCrop.planting_date).getTime();
-    const now = new Date().getTime();
-    daysSincePlanting = Math.max(1, Math.floor((now - start) / (1000 * 3600 * 24)));
-  }
-
-  // Estimated duration for progress percentage (average 90 days for short duration crops)
-  const totalExpectedDays = 90;
-  const progressPercent = Math.min(100, Math.round((daysSincePlanting / totalExpectedDays) * 100));
-
-  // Determine stage normalized to 3 stages
-  let stageLabel = t("stage1Title");
-  if (activeCrop) {
-    if (activeCrop.current_stage.includes("2") || activeCrop.current_stage.toLowerCase().includes("flower")) {
-      stageLabel = t("stage2Title");
-    } else if (activeCrop.current_stage.includes("3") || activeCrop.current_stage.toLowerCase().includes("fruit") || activeCrop.current_stage.toLowerCase().includes("harvest")) {
-      stageLabel = t("stage3Title");
-    } else {
-      stageLabel = t("stage1Title");
-    }
-  }
+  // Days since planting & metrics
+  const daysSincePlanting = lifecycleData?.cropAge ?? 1;
+  const currentStageLabel = lifecycleData?.currentStage?.stage_name ?? "Seedling / Nursery";
+  const currentStageIcon = lifecycleData?.currentStage?.icon ?? "🌱";
+  const progressPercent = lifecycleData?.progressPercentage ?? 0;
+  const daysUntilHarvest = lifecycleData?.daysUntilHarvest ?? 90;
+  const currentStageImage = lifecycleData?.currentStageImage ?? "https://images.unsplash.com/photo-1592841200221-a6898f307baa?auto=format&fit=crop&w=600&q=80";
 
   // Weather rules
   const currentTemp = weatherAdvisory?.current?.temperature_c ?? 31.0;
@@ -127,21 +128,18 @@ export default function DashboardPage() {
     wateringRule = t("waterCoolerHours");
   }
 
-  // Fertilizer guidance based on preference & stage
+  // Fertilizer & tasks
   const prefFert = user?.fertilizer_preference || activeCrop?.fertilizer_preference || "Organic";
-  let fertAdvice = "";
-  if (prefFert === "Organic") {
-    fertAdvice = "Apply 2kg Compost / Vermicompost & top-dress with cow dung slurry at root base.";
-  } else {
-    fertAdvice = "Apply Urea (15g/m²) & MOP (10g/m²) top dressing. Irrigate immediately after application.";
-  }
+  const fertAdvice = lifecycleData?.currentStage?.fertilizer_recommendation ||
+    (prefFert === "Organic"
+      ? "Apply 2kg Compost / Vermicompost & top-dress at root base."
+      : "Apply Urea & MOP top dressing. Irrigate immediately after application.");
 
-  // Today's tasks
-  const dailyTasks = [
-    `Inspect ${activeCrop ? activeCrop.crop_name : "crop"} leaves for whiteflies, thrips, or early leaf spots.`,
+  const dailyTasks = lifecycleData?.currentStage?.daily_tasks || [
+    `Inspect ${activeCrop ? activeCrop.crop_name : "crop"} leaves for pests.`,
     wateringRule,
     `Fertilizer Reminder: ${fertAdvice}`,
-    `Check ${activeCrop?.irrigation_type || user?.irrigation_preference || "drip"} emitters for uniform water flow.`,
+    `Check irrigation emitters for uniform water flow.`,
   ];
 
   const toggleTask = (index: number) => {
@@ -166,15 +164,13 @@ export default function DashboardPage() {
             </p>
           </div>
           <div style={{ display: "flex", gap: 12 }}>
-            <Link href="/crops" className="btn btn-sun">
+            {activeCrop && (
+              <Link href={`/crops/lifecycle?crop_id=${activeCrop.id}`} className="btn btn-sun" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <Layers size={18} /> View Full Crop Lifecycle
+              </Link>
+            )}
+            <Link href="/crops" className="btn btn-outline" style={{ background: "rgba(255,255,255,0.1)", color: "#FFF", borderColor: "#FFF" }}>
               + {t("addCrop")}
-            </Link>
-            <Link
-              href="/settings"
-              className="btn btn-outline"
-              style={{ background: "rgba(255,255,255,0.1)", color: "#FFF", borderColor: "#FFF" }}
-            >
-              {t("settings")}
             </Link>
           </div>
         </div>
@@ -227,7 +223,7 @@ export default function DashboardPage() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
               gap: 16,
               marginBottom: 32,
             }}
@@ -245,13 +241,13 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Card 2: Days Since Planting */}
+            {/* Card 2: Current Crop Age */}
             <div className="dash-card">
               <div style={{ width: 44, height: 44, borderRadius: 10, background: "#FEF3C7", display: "flex", alignItems: "center", justifyContent: "center", color: "#D97706" }}>
                 <Calendar size={24} />
               </div>
               <div>
-                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{t("daysSincePlanting")}</div>
+                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>Crop Age</div>
                 <div style={{ fontSize: 20, fontWeight: 700, color: "#1E293B" }}>
                   {daysSincePlanting} Days
                 </div>
@@ -264,9 +260,9 @@ export default function DashboardPage() {
                 <Zap size={24} />
               </div>
               <div>
-                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{t("currentGrowthStage")}</div>
+                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>Current Stage</div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#166534", lineHeight: 1.2 }}>
-                  {stageLabel}
+                  {currentStageIcon} {currentStageLabel}
                 </div>
               </div>
             </div>
@@ -277,12 +273,23 @@ export default function DashboardPage() {
                 <Clock size={24} />
               </div>
               <div>
-                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{t("progressPercentage")}</div>
+                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>Progress</div>
                 <div style={{ fontSize: 20, fontWeight: 700, color: "#9333EA" }}>{progressPercent}%</div>
               </div>
             </div>
 
-            {/* Card 5: Today's Weather */}
+            {/* Card 5: Days Until Harvest */}
+            <div className="dash-card">
+              <div style={{ width: 44, height: 44, borderRadius: 10, background: "#FEF3C7", display: "flex", alignItems: "center", justifyContent: "center", color: "#B45309" }}>
+                <Calendar size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>Until Harvest</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: "#B45309" }}>{daysUntilHarvest} Days</div>
+              </div>
+            </div>
+
+            {/* Card 6: Today's Weather */}
             <div className="dash-card">
               <div style={{ width: 44, height: 44, borderRadius: 10, background: "#E0F2FE", display: "flex", alignItems: "center", justifyContent: "center", color: "#0284C7" }}>
                 <CloudSun size={24} />
@@ -293,7 +300,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Card 6: Irrigation Recommendation */}
+            {/* Card 7: Irrigation Recommendation */}
             <div className="dash-card">
               <div style={{ width: 44, height: 44, borderRadius: 10, background: "#E0F2FE", display: "flex", alignItems: "center", justifyContent: "center", color: "#0369A1" }}>
                 <Droplets size={24} />
@@ -305,22 +312,155 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
-
-            {/* Card 7: Fertilizer Reminder */}
-            <div className="dash-card">
-              <div style={{ width: 44, height: 44, borderRadius: 10, background: "#DCFCE7", display: "flex", alignItems: "center", justifyContent: "center", color: "#166534" }}>
-                <Sprout size={24} />
-              </div>
-              <div>
-                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{t("fertilizerPreference")}</div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#166534" }}>
-                  {prefFert} Dosing Ready
-                </div>
-              </div>
-            </div>
           </div>
 
-    
+          {/* 2. CROP LIFECYCLE CARD & CURRENT STAGE IMAGE GRID */}
+          {activeCrop && lifecycleData && (
+            <div
+              style={{
+                background: "#FFFFFF",
+                borderRadius: 20,
+                padding: 24,
+                border: "1px solid #E2E8F0",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.03)",
+                marginBottom: 32,
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
+                <div>
+                  <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1E293B", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                    <Layers size={22} color="#10B981" /> {activeCrop.crop_name} Lifecycle Growth Tracker
+                  </h2>
+                  <div style={{ fontSize: 13, color: "#64748B", marginTop: 2 }}>
+                    Planted on {activeCrop.planting_date} · Current Day {daysSincePlanting} of {lifecycleData.totalHarvestDays}
+                  </div>
+                </div>
+
+                <Link
+                  href={`/crops/lifecycle?crop_id=${activeCrop.id}`}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    background: "#F0FDF4",
+                    color: "#166534",
+                    border: "1px solid #A7F3D0",
+                    padding: "8px 16px",
+                    borderRadius: 20,
+                    fontWeight: 700,
+                    fontSize: 13,
+                    textDecoration: "none",
+                  }}
+                >
+                  Explore Complete Lifecycle <ArrowRight size={16} />
+                </Link>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 24, alignItems: "center" }}>
+                
+                {/* Visual 5-Stage Timeline */}
+                <div>
+                  <div style={{ display: "grid", gridTemplateColumns: `repeat(${lifecycleData.allStages.length}, 1fr)`, gap: 8, marginBottom: 16 }}>
+                    {lifecycleData.allStages.map((st, idx) => {
+                      const isCurrent = idx === lifecycleData.currentStageIndex;
+                      const isCompleted = (st.end_day || 0) < daysSincePlanting;
+
+                      let bg = "#F8FAFC";
+                      let border = "1px solid #E2E8F0";
+                      let color = "#64748B";
+
+                      if (isCompleted) {
+                        bg = "#DCFCE7";
+                        border = "1px solid #A7F3D0";
+                        color = "#166534";
+                      }
+                      if (isCurrent) {
+                        bg = "#10B981";
+                        border = "2px solid #059669";
+                        color = "#FFFFFF";
+                      }
+
+                      return (
+                        <Link
+                          key={idx}
+                          href={`/crops/lifecycle?crop_id=${activeCrop.id}`}
+                          style={{
+                            padding: "12px 6px",
+                            borderRadius: 12,
+                            background: bg,
+                            border: border,
+                            color: color,
+                            textAlign: "center",
+                            textDecoration: "none",
+                            transition: "all 0.2s ease",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            gap: 4,
+                          }}
+                        >
+                          <span style={{ fontSize: 20 }}>{st.icon}</span>
+                          <span style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.2 }}>
+                            {st.stage_name}
+                          </span>
+                          <span style={{ fontSize: 9, opacity: 0.9 }}>
+                            Day {st.start_day}–{st.end_day}
+                          </span>
+                          {isCompleted && <span style={{ fontSize: 10, fontWeight: 800 }}>✓</span>}
+                          {isCurrent && <span style={{ fontSize: 9, fontWeight: 800, background: "rgba(255,255,255,0.25)", padding: "1px 6px", borderRadius: 8 }}>Active</span>}
+                        </Link>
+                      );
+                    })}
+                  </div>
+
+                  {/* Progress Line */}
+                  <div style={{ background: "#F1F5F9", borderRadius: 10, padding: 14 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 6 }}>
+                      <span>Stage Progress: {lifecycleData.currentStage.stage_name}</span>
+                      <span>{progressPercent}%</span>
+                    </div>
+                    <div style={{ width: "100%", height: 10, background: "#CBD5E1", borderRadius: 6, overflow: "hidden" }}>
+                      <div style={{ width: `${progressPercent}%`, height: "100%", background: "#10B981", borderRadius: 6 }} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Current Stage Representative Image */}
+                <Link
+                  href={`/crops/lifecycle?crop_id=${activeCrop.id}`}
+                  style={{ textDecoration: "none" }}
+                >
+                  <div
+                    style={{
+                      background: "#F8FAFC",
+                      borderRadius: 16,
+                      padding: 12,
+                      border: "1px solid #E2E8F0",
+                      position: "relative",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div style={{ position: "absolute", top: 20, left: 20, background: "rgba(0,0,0,0.7)", color: "#FFF", padding: "4px 12px", borderRadius: 14, fontSize: 12, fontWeight: 700, backdropFilter: "blur(4px)" }}>
+                      {currentStageIcon} Day {daysSincePlanting} Visual
+                    </div>
+
+                    <img
+                      src={currentStageImage}
+                      alt={`${activeCrop.crop_name} ${currentStageLabel}`}
+                      style={{ width: "100%", height: 180, objectFit: "cover", borderRadius: 12 }}
+                    />
+
+                    <div style={{ marginTop: 10, fontSize: 13, fontWeight: 700, color: "#1E293B", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span>Expected Appearance</span>
+                      <span style={{ fontSize: 12, color: "#10B981" }}>Click for details →</span>
+                    </div>
+                  </div>
+                </Link>
+
+              </div>
+            </div>
+          )}
+
           {/* Today's Tasks Checklist & Weather Advisory Grid */}
           <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 24, marginBottom: 32 }}>
 
@@ -328,7 +468,7 @@ export default function DashboardPage() {
             <div style={{ background: "#FFFFFF", borderRadius: 18, padding: 24, border: "1px solid #E2E8F0", boxShadow: "0 2px 10px rgba(0,0,0,0.03)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                 <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "#1E293B", display: "flex", alignItems: "center", gap: 8 }}>
-                  <CheckCircle2 size={22} color="#10B981" /> {t("todaysTasks")}
+                  <CheckCircle2 size={22} color="#10B981" /> {t("todaysTasks")} (Stage {lifecycleData?.currentStageIndex! + 1})
                 </h2>
                 <span style={{ fontSize: 13, color: "#64748B", fontWeight: 600 }}>
                   {Object.values(taskState).filter(Boolean).length} / {dailyTasks.length} Done
@@ -406,37 +546,37 @@ export default function DashboardPage() {
 
           </div>
 
-          {/* Notifications & Reminders Panel */}
+          {/* Notifications & Stage Reminders Panel */}
           <div style={{ background: "#FFFFFF", borderRadius: 18, padding: 24, border: "1px solid #E2E8F0", marginBottom: 32 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
               <BellRing size={22} color="#D97706" />
               <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "#1E293B" }}>
-                {t("notificationsTitle")}
+                Automatic Stage Alerts &amp; Notifications
               </h2>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 }}>
               <div style={{ padding: 14, borderRadius: 12, background: "#F0FDF4", border: "1px solid #DCFCE7", display: "flex", gap: 12, alignItems: "center" }}>
-                <Droplets size={24} color="#16A34A" />
+                <Zap size={24} color="#16A34A" />
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: "#166534" }}>{t("wateringReminder")}</div>
-                  <div style={{ fontSize: 12, color: "#475569" }}>{wateringRule}</div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: "#166534" }}>Current Stage Alert</div>
+                  <div style={{ fontSize: 12, color: "#475569" }}>Active stage: {currentStageLabel} (Day {daysSincePlanting})</div>
                 </div>
               </div>
 
               <div style={{ padding: 14, borderRadius: 12, background: "#FEF3C7", border: "1px solid #FDE68A", display: "flex", gap: 12, alignItems: "center" }}>
                 <Sprout size={24} color="#D97706" />
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: "#92400E" }}>{t("fertilizerAlert")}</div>
-                  <div style={{ fontSize: 12, color: "#475569" }}>{prefFert} dose scheduled for active growth stage.</div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: "#92400E" }}>Fertilizer Schedule</div>
+                  <div style={{ fontSize: 12, color: "#475569" }}>{fertAdvice}</div>
                 </div>
               </div>
 
               <div style={{ padding: 14, borderRadius: 12, background: "#EFF6FF", border: "1px solid #BFDBFE", display: "flex", gap: 12, alignItems: "center" }}>
-                <Zap size={24} color="#2563EB" />
+                <Droplets size={24} color="#2563EB" />
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: "#1E40AF" }}>{t("floweringAlert")}</div>
-                  <div style={{ fontSize: 12, color: "#475569" }}>Maintain steady moisture during flower set.</div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: "#1E40AF" }}>Irrigation Recommendation</div>
+                  <div style={{ fontSize: 12, color: "#475569" }}>{lifecycleData?.currentStage?.water_requirement || wateringRule}</div>
                 </div>
               </div>
             </div>

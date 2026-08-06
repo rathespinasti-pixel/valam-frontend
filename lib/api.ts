@@ -14,6 +14,7 @@ import type {
   ProductListResponse,
   RegisterInput,
   ToolListing,
+  PerenualPlantInfo,
   ValamUser,
   WeatherAdvisoryResponse,
 } from "./types";
@@ -225,6 +226,26 @@ export const ValamAPI = {
       auth: true,
       body: data,
     });
+  },
+
+  async updateCropGuide(id: number, data: Partial<CropGuide>): Promise<CropGuide> {
+    return apiRequest<CropGuide>(`/crop-guides/${id}`, {
+      method: "PUT",
+      auth: true,
+      body: data,
+    });
+  },
+
+  async deleteCropGuide(id: number): Promise<void> {
+    await apiRequest(`/crop-guides/${id}`, {
+      method: "DELETE",
+      auth: true,
+    });
+  },
+
+  async getPerenualPlantInfo(cropName: string): Promise<PerenualPlantInfo> {
+    const params = new URLSearchParams({ crop_name: cropName });
+    return apiRequest<PerenualPlantInfo>(`/crops/plant-info?${params.toString()}`);
   },
 
   // Weather Advisory

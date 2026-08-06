@@ -118,9 +118,21 @@ export interface Crop {
 }
 
 export interface CropStageAdvice {
-  week: string;
-  stage: string;
-  advice: string;
+  stage_id?: number;
+  stage_name?: string;
+  icon?: string;
+  start_day?: number;
+  end_day?: number;
+  description?: string;
+  expected_appearance?: string;
+  daily_tasks?: string[];
+  water_requirement?: string;
+  fertilizer_recommendation?: string;
+  image_url?: string;
+  // Legacy compatibility fields
+  week?: string;
+  stage?: string;
+  advice?: string;
 }
 
 export interface CropGuide {
@@ -134,6 +146,24 @@ export interface CropGuide {
   common_problems?: string;
   basic_solutions?: string;
   image_url?: string;
+}
+
+export interface PerenualPlantInfo {
+  id?: number;
+  crop_name: string;
+  perenual_id?: number;
+  scientific_name?: string;
+  family?: string;
+  plant_type?: string;
+  growth_habit?: string;
+  sunlight_requirement?: string;
+  water_requirement?: string;
+  maintenance_level?: string;
+  soil_preference?: string;
+  hardiness?: string;
+  description?: string;
+  image_url?: string;
+  reference_images?: string[];
 }
 
 export interface AgroAdvisoryItem {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -451,10 +452,28 @@ export default function CropsPage() {
                         </div>
                       </div>
 
-                      <div style={{ textAlign: "right" }}>
+                      <div style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
                         <span style={{ background: "#DCFCE7", color: "#166534", padding: "6px 14px", borderRadius: 20, fontWeight: 700, fontSize: 13 }}>
                           Active Stage: {activeCrop.current_stage}
                         </span>
+                        <Link
+                          href={`/crops/lifecycle?crop_id=${activeCrop.id}`}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 6,
+                            background: "#10B981",
+                            color: "#FFFFFF",
+                            padding: "8px 16px",
+                            borderRadius: 20,
+                            fontWeight: 700,
+                            fontSize: 13,
+                            textDecoration: "none",
+                            boxShadow: "0 2px 8px rgba(16,185,129,0.25)",
+                          }}
+                        >
+                          <Layers size={16} /> Full Lifecycle Visualizer →
+                        </Link>
                       </div>
                     </div>
 
