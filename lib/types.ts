@@ -35,6 +35,84 @@ export interface AdminActivityLog {
   time?: string;
 }
 
+export interface AdminOverviewStats {
+  users: {
+    total: number;
+    active: number;
+    inactive: number;
+    banned: number;
+    farmers: number;
+    home_gardeners: number;
+    terrace_gardeners: number;
+    beginners: number;
+    new_today: number;
+    new_this_month: number;
+  };
+  crops: {
+    total_supported: number;
+    total_active_records: number;
+    most_cultivated: string;
+    recently_added: string[];
+  };
+  diseases: {
+    total: number;
+    pending: number;
+    resolved: number;
+  };
+  system: {
+    total_admins: number;
+    online_users: number;
+    active_sessions: number;
+    total_notifications_sent: number;
+  };
+}
+
+export interface DiseaseCatalogItem {
+  id: number;
+  disease_name: string;
+  crop_name: string;
+  symptoms: string;
+  causes?: string;
+  organic_treatment?: string;
+  chemical_treatment?: string;
+  prevention_tips?: string;
+  image_url?: string;
+  created_at?: string;
+}
+
+export interface SystemNotificationItem {
+  id: number;
+  title: string;
+  message: string;
+  category: string;
+  target_type: string;
+  target_value?: string;
+  status: string;
+  created_at?: string;
+}
+
+export interface UserFeedbackItem {
+  id: number;
+  user_id?: number;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  admin_reply?: string;
+  status: string;
+  created_at?: string;
+}
+
+export interface FAQItem {
+  id: number;
+  question: string;
+  answer: string;
+  category: string;
+  is_published: boolean;
+  order_num: number;
+  created_at?: string;
+}
+
 export interface AuthSession {
   access_token: string;
   refresh_token: string;
@@ -214,6 +292,8 @@ export interface DiseaseDiagnosis {
   chemical_treatment?: string;
   prevention_advice?: string;
   language?: string;
+  status?: string;
+  confidence_score?: number;
   disclaimer: string;
   created_at?: string;
 }

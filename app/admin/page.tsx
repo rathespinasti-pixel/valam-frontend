@@ -6,13 +6,34 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { ValamAPI } from "@/lib/api";
-import type { ValamUser, CropGuide, CropStageAdvice, AdminActivityLog } from "@/lib/types";
+import type {
+  ValamUser,
+  CropGuide,
+  CropStageAdvice,
+  AdminActivityLog,
+  AdminOverviewStats,
+  DiseaseCatalogItem,
+  DiseaseDiagnosis,
+  SystemNotificationItem,
+  UserFeedbackItem,
+  FAQItem,
+} from "@/lib/types";
 import { getDefaultStagesForCrop } from "@/lib/lifecycle";
 import { useLanguage } from "@/context/LanguageContext";
 import {
+  BarChart3,
   Users,
   Sprout,
+  Layers,
+  Bug,
+  Stethoscope,
   ShieldCheck,
+  Bell,
+  CloudSun,
+  FileSpreadsheet,
+  MessageSquare,
+  HelpCircle,
+  Settings,
   History,
   Search,
   Filter,
@@ -21,7 +42,6 @@ import {
   Trash2,
   Plus,
   Edit,
-  Layers,
   Save,
   X,
   LogOut,
@@ -32,18 +52,39 @@ import {
   AlertTriangle,
   RefreshCw,
   UserPlus,
+  Send,
+  Key,
+  Download,
+  Check,
 } from "lucide-react";
 
-type AdminTab = "users" | "crops" | "admins" | "logs";
+type ControlPanelTab =
+  | "overview"
+  | "users"
+  | "crops"
+  | "lifecycles"
+  | "diseases"
+  | "reports"
+  | "admins"
+  | "notifications"
+  | "weather"
+  | "analytics"
+  | "feedback"
+  | "faqs"
+  | "settings"
+  | "logs";
 
 export default function AdminPage() {
   const router = useRouter();
   const { t } = useLanguage();
 
   const [user, setUser] = useState<ValamUser | null>(null);
-  const [activeTab, setActiveTab] = useState<AdminTab>("users");
+  const [activeTab, setActiveTab] = useState<ControlPanelTab>("overview");
   const [loading, setLoading] = useState(true);
   const [statusMsg, setStatusMsg] = useState<{ type: "ok" | "error"; text: string } | null>(null);
+
+  // Stats State
+  const [stats, setStats] = useState<AdminOverviewStats | null>(null);
 
   // 1. User Management State
   const [usersList, setUsersList] = useState<ValamUser[]>([]);
@@ -54,10 +95,22 @@ export default function AdminPage() {
   const [userPage, setUserPage] = useState(1);
   const [userTotalPages, setUserTotalPages] = useState(1);
 
-  // Deletion Modal for User
+  // Modals for User Management
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [editingUserId, setEditingUserId] = useState<number | string | null>(null);
   const [userToDelete, setUserToDelete] = useState<ValamUser | null>(null);
+  const [userToResetPass, setUserToResetPass] = useState<ValamUser | null>(null);
+  const [newResetPassword, setNewResetPassword] = useState("");
 
-  // 2. Crop Management State
+  // User Form fields
+  const [uName, setUName] = useState("");
+  const [uEmail, setUEmail] = useState("");
+  const [uPhone, setUPhone] = useState("");
+  const [uPassword, setUPassword] = useState("");
+  const [uCategory, setUCategory] = useState("Farmer");
+  const [uDistrict, setUDistrict] = useState("Vavuniya");
+
+  // 2. Crop & Lifecycle State
   const [guides, setGuides] = useState<CropGuide[]>([]);
   const [cropSearch, setCropSearch] = useState("");
   const [showAddCropModal, setShowAddCropModal] = useState(false);
@@ -65,29 +118,70 @@ export default function AdminPage() {
   const [cropToDelete, setCropToDelete] = useState<CropGuide | null>(null);
 
   // Crop Form fields
-  const [cropName, setCropName] = useState("");
-  const [variety, setVariety] = useState("");
+  const [cropName, setCropName] = useState("Tomato");
+  const [variety, setVariety] = useState("Thilina");
   const [season, setSeason] = useState("Yala & Maha");
-  const [waterReq, setWaterReq] = useState("");
-  const [fertGuidance, setFertGuidance] = useState("");
-  const [commonProblems, setCommonProblems] = useState("");
-  const [basicSolutions, setBasicSolutions] = useState("");
+  const [waterReq, setWaterReq] = useState("3.5 - 4.5 L/m²");
+  const [fertGuidance, setFertGuidance] = useState("Basal compost + Top dressing");
+  const [commonProblems, setCommonProblems] = useState("Bacterial Wilt, Early Blight");
+  const [basicSolutions, setBasicSolutions] = useState("Resistant varieties, neem oil spray");
   const [stages, setStages] = useState<CropStageAdvice[]>([]);
 
-  // 3. Admin Accounts State (Super Admin Only)
+  // 3. Disease Catalog State
+  const [diseaseCatalog, setDiseaseCatalog] = useState<DiseaseCatalogItem[]>([]);
+  const [showDiseaseModal, setShowDiseaseModal] = useState(false);
+  const [editingDiseaseId, setEditingDiseaseId] = useState<number | null>(null);
+  const [dName, setDName] = useState("");
+  const [dCrop, setDCrop] = useState("Tomato");
+  const [dSymptoms, setDSymptoms] = useState("");
+  const [dCauses, setDCauses] = useState("");
+  const [dOrganic, setDOrganic] = useState("");
+  const [dChemical, setDChemical] = useState("");
+  const [dPrevention, setDPrevention] = useState("");
+
+  // 4. Farmer Disease Reports State
+  const [farmerReports, setFarmerReports] = useState<DiseaseDiagnosis[]>([]);
+  const [editingReport, setEditingReport] = useState<DiseaseDiagnosis | null>(null);
+  const [reportRec, setReportRec] = useState("");
+  const [reportStatus, setReportStatus] = useState("resolved");
+
+  // 5. Admin Accounts State (Super Admin Only)
   const [adminAccounts, setAdminAccounts] = useState<ValamUser[]>([]);
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [editingAdminId, setEditingAdminId] = useState<number | string | null>(null);
   const [adminToDelete, setAdminToDelete] = useState<ValamUser | null>(null);
-
-  // Admin Account Form fields
   const [adminName, setAdminName] = useState("");
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
   const [adminRole, setAdminRole] = useState<"admin" | "super_admin">("admin");
   const [adminStatus, setAdminStatus] = useState<"active" | "banned">("active");
 
-  // 4. Audit Activity Logs State
+  // 6. Notifications State
+  const [notifications, setNotifications] = useState<SystemNotificationItem[]>([]);
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [noteTitle, setNoteTitle] = useState("");
+  const [noteMsg, setNoteMsg] = useState("");
+  const [noteCategory, setNoteCategory] = useState("Alert");
+  const [noteTargetType, setNoteTargetType] = useState("All Users");
+  const [noteTargetVal, setNoteTargetVal] = useState("");
+
+  // 7. Feedback State
+  const [feedbackItems, setFeedbackItems] = useState<UserFeedbackItem[]>([]);
+  const [replyFeedback, setReplyFeedback] = useState<UserFeedbackItem | null>(null);
+  const [replyText, setReplyText] = useState("");
+
+  // 8. FAQ State
+  const [faqItems, setFaqItems] = useState<FAQItem[]>([]);
+  const [showFaqModal, setShowFaqModal] = useState(false);
+  const [editingFaqId, setEditingFaqId] = useState<number | null>(null);
+  const [faqQ, setFaqQ] = useState("");
+  const [faqA, setFaqA] = useState("");
+  const [faqCat, setFaqCat] = useState("General");
+
+  // 9. System Settings State (Super Admin Only)
+  const [sysSettings, setSysSettings] = useState<Record<string, string>>({});
+
+  // 10. Audit Activity Logs State
   const [logs, setLogs] = useState<AdminActivityLog[]>([]);
   const [logPage, setLogPage] = useState(1);
 
@@ -97,28 +191,39 @@ export default function AdminPage() {
       const u = await ValamAPI.me();
       setUser(u);
 
-      const [usersRes, guidesRes, logsRes] = await Promise.allSettled([
-        ValamAPI.getAdminUsers({ search: userSearch, category: userCategoryFilter, district: userDistrictFilter, status: userStatusFilter, page: userPage }),
-        ValamAPI.getCropGuides(),
-        ValamAPI.getAdminLogs(logPage),
-      ]);
+      const [statsRes, usersRes, guidesRes, diseasesRes, reportsRes, notesRes, feedbackRes, faqsRes, logsRes] =
+        await Promise.allSettled([
+          ValamAPI.getAdminStats(),
+          ValamAPI.getAdminUsers({ search: userSearch, category: userCategoryFilter, district: userDistrictFilter, status: userStatusFilter, page: userPage }),
+          ValamAPI.getCropGuides(),
+          ValamAPI.getDiseaseCatalog(),
+          ValamAPI.getFarmerDiseaseReports(),
+          ValamAPI.getSystemNotifications(),
+          ValamAPI.getUserFeedback(),
+          ValamAPI.getAllAdminFAQs(),
+          ValamAPI.getAdminLogs(logPage),
+        ]);
 
+      if (statsRes.status === "fulfilled") setStats(statsRes.value);
       if (usersRes.status === "fulfilled") {
         setUsersList(usersRes.value.items);
         setUserTotalPages(usersRes.value.pages || 1);
       }
-
-      if (guidesRes.status === "fulfilled") {
-        setGuides(guidesRes.value.items);
-      }
-
-      if (logsRes.status === "fulfilled") {
-        setLogs(logsRes.value.items);
-      }
+      if (guidesRes.status === "fulfilled") setGuides(guidesRes.value.items);
+      if (diseasesRes.status === "fulfilled") setDiseaseCatalog(diseasesRes.value);
+      if (reportsRes.status === "fulfilled") setFarmerReports(reportsRes.value);
+      if (notesRes.status === "fulfilled") setNotifications(notesRes.value);
+      if (feedbackRes.status === "fulfilled") setFeedbackItems(feedbackRes.value);
+      if (faqsRes.status === "fulfilled") setFaqItems(faqsRes.value);
+      if (logsRes.status === "fulfilled") setLogs(logsRes.value.items);
 
       if (u.role === "super_admin") {
-        const accountsRes = await ValamAPI.getAdminAccounts().catch(() => []);
-        setAdminAccounts(accountsRes);
+        const [accountsRes, settingsRes] = await Promise.allSettled([
+          ValamAPI.getAdminAccounts(),
+          ValamAPI.getSystemSettings(),
+        ]);
+        if (accountsRes.status === "fulfilled") setAdminAccounts(accountsRes.value);
+        if (settingsRes.status === "fulfilled") setSysSettings(settingsRes.value);
       }
     } catch (err) {
       console.error(err);
@@ -141,10 +246,76 @@ export default function AdminPage() {
   }
 
   // --- USER MANAGEMENT HANDLERS ---
+  function openCreateUserForm() {
+    setEditingUserId(null);
+    setUName("");
+    setUEmail("");
+    setUPhone("+94 77 000 0000");
+    setUPassword("Valam@1234");
+    setUCategory("Farmer");
+    setUDistrict("Vavuniya");
+    setShowUserModal(true);
+  }
+
+  function openEditUserForm(u: ValamUser) {
+    setEditingUserId(u.id);
+    setUName(u.full_name);
+    setUEmail(u.email);
+    setUPhone(u.phone || "");
+    setUPassword("");
+    setUCategory(u.farming_category || "Farmer");
+    setUDistrict(u.district || "Vavuniya");
+    setShowUserModal(true);
+  }
+
+  async function handleSaveUser(e: React.FormEvent) {
+    e.preventDefault();
+    try {
+      if (editingUserId) {
+        await ValamAPI.updateAdminUserProfile(editingUserId, {
+          full_name: uName,
+          phone: uPhone,
+          farming_category: uCategory as any,
+          district: uDistrict,
+        });
+        setStatusMsg({ type: "ok", text: `User ${uEmail} profile updated!` });
+      } else {
+        await ValamAPI.createAdminUser({
+          full_name: uName,
+          email: uEmail,
+          password: uPassword,
+          phone: uPhone,
+          farming_category: uCategory as any,
+          district: uDistrict,
+        });
+        setStatusMsg({ type: "ok", text: `New user ${uEmail} created!` });
+      }
+
+      setShowUserModal(false);
+      const res = await ValamAPI.getAdminUsers({ search: userSearch, page: userPage });
+      setUsersList(res.items);
+    } catch (err) {
+      setStatusMsg({ type: "error", text: err instanceof Error ? err.message : "Failed to save user." });
+    }
+  }
+
+  async function handleResetUserPasswordSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!userToResetPass) return;
+    try {
+      await ValamAPI.resetUserPassword(userToResetPass.id, newResetPassword);
+      setStatusMsg({ type: "ok", text: `Password reset successfully for ${userToResetPass.email}` });
+      setUserToResetPass(null);
+      setNewResetPassword("");
+    } catch (err) {
+      setStatusMsg({ type: "error", text: err instanceof Error ? err.message : "Failed to reset password." });
+    }
+  }
+
   async function handleToggleBanUser(u: ValamUser) {
     try {
       const nextStatus = u.status === "banned" ? "active" : "banned";
-      const updated = await ValamAPI.banUser(u.id, nextStatus);
+      await ValamAPI.banUser(u.id, nextStatus);
       setStatusMsg({ type: "ok", text: `User ${u.email} status updated to ${nextStatus}` });
       setUsersList((prev) => prev.map((item) => (item.id === u.id ? { ...item, status: nextStatus } : item)));
     } catch (err) {
@@ -164,13 +335,13 @@ export default function AdminPage() {
     }
   }
 
-  // --- CROP MANAGEMENT HANDLERS ---
+  // --- CROP & LIFECYCLE HANDLERS ---
   function openCreateCropForm() {
     setEditingGuideId(null);
     setCropName("Tomato");
-    setVariety("Thilina / KC1");
+    setVariety("Thilina");
     setSeason("Yala & Maha");
-    setWaterReq("3.5 - 4.5 L/m² daily");
+    setWaterReq("3.5 - 4.5 L/m²");
     setFertGuidance("Basal compost + Top dress Urea/MOP");
     setCommonProblems("Bacterial Wilt, Early Blight");
     setBasicSolutions("Resistant varieties, neem oil spray");
@@ -187,7 +358,6 @@ export default function AdminPage() {
     setFertGuidance(g.fertilizer_guidance || "");
     setCommonProblems(g.common_problems || "");
     setBasicSolutions(g.basic_solutions || "");
-
     const existingStages = g.growth_stages && g.growth_stages.length > 0 ? g.growth_stages : getDefaultStagesForCrop(g.crop_name);
     setStages(existingStages);
     setShowAddCropModal(true);
@@ -199,11 +369,6 @@ export default function AdminPage() {
       updated[index] = { ...updated[index], [field]: value };
       return updated;
     });
-  }
-
-  function handleTaskTextChange(stageIndex: number, taskText: string) {
-    const taskList = taskText.split("\n").filter((t) => t.trim().length > 0);
-    handleStageChange(stageIndex, "daily_tasks", taskList);
   }
 
   async function handleSaveCrop(e: React.FormEvent) {
@@ -222,17 +387,17 @@ export default function AdminPage() {
 
       if (editingGuideId) {
         await ValamAPI.updateCropGuide(editingGuideId, payload);
-        setStatusMsg({ type: "ok", text: `Crop ${cropName} updated successfully!` });
+        setStatusMsg({ type: "ok", text: `Crop ${cropName} updated!` });
       } else {
         await ValamAPI.createCropGuide(payload);
-        setStatusMsg({ type: "ok", text: `New crop ${cropName} created successfully!` });
+        setStatusMsg({ type: "ok", text: `Crop ${cropName} created!` });
       }
 
       setShowAddCropModal(false);
       const res = await ValamAPI.getCropGuides();
       setGuides(res.items);
     } catch (err) {
-      setStatusMsg({ type: "error", text: err instanceof Error ? err.message : "Failed to save crop guide." });
+      setStatusMsg({ type: "error", text: err instanceof Error ? err.message : "Failed to save crop." });
     }
   }
 
@@ -248,7 +413,115 @@ export default function AdminPage() {
     }
   }
 
-  // --- ADMIN ACCOUNTS HANDLERS (SUPER ADMIN ONLY) ---
+  // --- DISEASE CATALOG HANDLERS ---
+  function openCreateDiseaseForm() {
+    setEditingDiseaseId(null);
+    setDName("");
+    setDCrop("Tomato");
+    setDSymptoms("");
+    setDCauses("");
+    setDOrganic("");
+    setDChemical("");
+    setDPrevention("");
+    setShowDiseaseModal(true);
+  }
+
+  function openEditDiseaseForm(d: DiseaseCatalogItem) {
+    setEditingDiseaseId(d.id);
+    setDName(d.disease_name);
+    setDCrop(d.crop_name);
+    setDSymptoms(d.symptoms);
+    setDCauses(d.causes || "");
+    setDOrganic(d.organic_treatment || "");
+    setDChemical(d.chemical_treatment || "");
+    setDPrevention(d.prevention_tips || "");
+    setShowDiseaseModal(true);
+  }
+
+  async function handleSaveDisease(e: React.FormEvent) {
+    e.preventDefault();
+    try {
+      const payload: Partial<DiseaseCatalogItem> = {
+        disease_name: dName,
+        crop_name: dCrop,
+        symptoms: dSymptoms,
+        causes: dCauses,
+        organic_treatment: dOrganic,
+        chemical_treatment: dChemical,
+        prevention_tips: dPrevention,
+      };
+
+      if (editingDiseaseId) {
+        await ValamAPI.updateDiseaseEntry(editingDiseaseId, payload);
+        setStatusMsg({ type: "ok", text: `Disease ${dName} updated!` });
+      } else {
+        await ValamAPI.createDiseaseEntry(payload);
+        setStatusMsg({ type: "ok", text: `Disease ${dName} added to catalog!` });
+      }
+
+      setShowDiseaseModal(false);
+      const res = await ValamAPI.getDiseaseCatalog();
+      setDiseaseCatalog(res);
+    } catch (err) {
+      setStatusMsg({ type: "error", text: err instanceof Error ? err.message : "Failed to save disease entry." });
+    }
+  }
+
+  async function handleDeleteDisease(id: number) {
+    try {
+      await ValamAPI.deleteDiseaseEntry(id);
+      setStatusMsg({ type: "ok", text: "Disease entry deleted." });
+      setDiseaseCatalog((prev) => prev.filter((item) => item.id !== id));
+    } catch (err) {
+      setStatusMsg({ type: "error", text: err instanceof Error ? err.message : "Failed to delete disease entry." });
+    }
+  }
+
+  // --- FARMER DISEASE REPORT HANDLERS ---
+  async function handleUpdateReportStatus(id: number, status: string, rec?: string) {
+    try {
+      const updated = await ValamAPI.updateFarmerDiseaseReport(id, { status, recommendations: rec });
+      setStatusMsg({ type: "ok", text: `Disease report #${id} updated to ${status}` });
+      setFarmerReports((prev) => prev.map((item) => (item.id === id ? updated : item)));
+      setEditingReport(null);
+    } catch (err) {
+      setStatusMsg({ type: "error", text: err instanceof Error ? err.message : "Failed to update report." });
+    }
+  }
+
+  // --- NOTIFICATION HANDLERS ---
+  async function handleCreateNotification(e: React.FormEvent) {
+    e.preventDefault();
+    try {
+      await ValamAPI.createSystemNotification({
+        title: noteTitle,
+        message: noteMsg,
+        category: noteCategory,
+        target_type: noteTargetType,
+        target_value: noteTargetVal,
+      });
+      setStatusMsg({ type: "ok", text: `Notification '${noteTitle}' created & broadcasted!` });
+      setShowNoteModal(false);
+      setNoteTitle("");
+      setNoteMsg("");
+      const res = await ValamAPI.getSystemNotifications();
+      setNotifications(res);
+    } catch (err) {
+      setStatusMsg({ type: "error", text: err instanceof Error ? err.message : "Failed to send notification." });
+    }
+  }
+
+  async function handleDeleteNotification(id: number) {
+    try {
+      await ValamAPI.deleteSystemNotification(id);
+      setStatusMsg({ type: "ok", text: "Notification record deleted." });
+      setNotifications((prev) => prev.filter((item) => item.id !== id));
+    } catch (err) {
+      setStatusMsg({ type: "error", text: err instanceof Error ? err.message : "Failed to delete notification." });
+    }
+  }
+
+  // --- ADMIN ACCOUNTS HANDLERS (SUPER ADMIN) ---
   function openCreateAdminModal() {
     setEditingAdminId(null);
     setAdminName("");
@@ -311,44 +584,24 @@ export default function AdminPage() {
     }
   }
 
+  // --- SYSTEM SETTINGS HANDLERS ---
+  async function handleSaveSystemSettings(e: React.FormEvent) {
+    e.preventDefault();
+    try {
+      await ValamAPI.updateSystemSettings(sysSettings);
+      setStatusMsg({ type: "ok", text: "System Settings updated successfully!" });
+    } catch (err) {
+      setStatusMsg({ type: "error", text: err instanceof Error ? err.message : "Failed to update settings." });
+    }
+  }
+
   if (loading) {
     return (
       <AuthGuard>
         <Navbar active="dashboard" />
         <div style={{ minHeight: "65vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ fontSize: 18, color: "#1B4D3E", fontWeight: 600, display: "flex", alignItems: "center", gap: 10 }}>
-            <RefreshCw size={24} className="spin" /> Loading Admin Portal...
-          </div>
-        </div>
-        <Footer />
-      </AuthGuard>
-    );
-  }
-
-  // Non-Admin Access Control Screen
-  if (user && user.role !== "admin" && user.role !== "super_admin") {
-    return (
-      <AuthGuard>
-        <Navbar active="dashboard" />
-        <div style={{ minHeight: "65vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#F8FAFC", padding: 24 }}>
-          <div style={{ background: "#FFFFFF", borderRadius: 20, padding: 40, maxWidth: 480, width: "100%", textAlign: "center", border: "1px solid #E2E8F0", boxShadow: "0 10px 30px rgba(0,0,0,0.06)" }}>
-            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#FEF2F2", color: "#EF4444", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
-              <Lock size={32} />
-            </div>
-            <h2 style={{ fontSize: 22, fontWeight: 800, color: "#1E293B", margin: 0 }}>
-              Admin Access Restricted
-            </h2>
-            <p style={{ fontSize: 14, color: "#64748B", marginTop: 8, lineHeight: 1.6 }}>
-              You are currently logged in as <strong>{user.full_name}</strong> (Farmer role). This section requires administrator credentials.
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 24 }}>
-              <button onClick={handleAdminLogout} className="btn btn-sun" style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: 12 }}>
-                <LogOut size={18} /> Switch / Login as Admin
-              </button>
-              <button onClick={() => router.push("/dashboard")} className="btn btn-outline" style={{ width: "100%", padding: 12 }}>
-                Return to Farmer Dashboard
-              </button>
-            </div>
+            <RefreshCw size={24} className="spin" /> Loading Central Control Panel...
           </div>
         </div>
         <Footer />
@@ -363,32 +616,19 @@ export default function AdminPage() {
       <Navbar active="dashboard" pageTitle={t("adminPortalTitle")} />
 
       {/* Hero Header */}
-      <section className="page-hero" style={{ padding: "32px 0" }}>
+      <section className="page-hero" style={{ padding: "28px 0" }}>
         <div className="container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
           <div>
             <div className="crumb" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span>Valam / Admin Portal</span>
+              <span>Valam / Central Control Panel</span>
               <span style={{ background: isSuperAdmin ? "#F59E0B" : "#10B981", color: "#FFF", padding: "3px 10px", borderRadius: 12, fontSize: 11, fontWeight: 700 }}>
                 {isSuperAdmin ? "👑 Super Admin Session" : "🛡️ Admin Session"}: {user?.full_name}
               </span>
             </div>
-            <h1 style={{ fontSize: 30, marginTop: 6 }}>System Administration &amp; Operations</h1>
-            <p style={{ marginTop: 6, color: "#CFE3D5", maxWidth: 640, fontSize: 14 }}>
-              Manage users, ban/unban accounts, configure crop growth lifecycles, assign administrator permissions, and audit logs.
-            </p>
+            <h1 style={{ fontSize: 28, marginTop: 4 }}>System Administration &amp; Operations Panel</h1>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            {activeTab === "crops" && (
-              <button onClick={openCreateCropForm} className="btn btn-sun" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <Plus size={18} /> Add Crop Guide
-              </button>
-            )}
-            {activeTab === "admins" && isSuperAdmin && (
-              <button onClick={openCreateAdminModal} className="btn btn-sun" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <UserPlus size={18} /> Add New Admin
-              </button>
-            )}
             <button onClick={handleAdminLogout} className="btn btn-outline" style={{ display: "flex", alignItems: "center", gap: 6, borderColor: "rgba(255,255,255,0.4)", color: "#FFF" }}>
               <LogOut size={16} /> Logout
             </button>
@@ -396,10 +636,10 @@ export default function AdminPage() {
         </div>
       </section>
 
-      <section className="section" style={{ background: "#F7F9F7", minHeight: "65vh" }}>
+      <section className="section" style={{ background: "#F7F9F7", minHeight: "70vh", padding: "24px 0" }}>
         <div className="container">
 
-          {/* Status Message Notification Toast */}
+          {/* Toast Notification */}
           {statusMsg && (
             <div
               style={{
@@ -426,768 +666,620 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* Navigation Tabs Bar */}
-          <div style={{ display: "flex", gap: 10, borderBottom: "2px solid #E2E8F0", marginBottom: 24, flexWrap: "wrap" }}>
-            <button
-              onClick={() => setActiveTab("users")}
-              style={{
-                padding: "12px 20px",
-                fontWeight: 700,
-                fontSize: 15,
-                color: activeTab === "users" ? "#10B981" : "#64748B",
-                borderBottom: activeTab === "users" ? "3px solid #10B981" : "3px solid transparent",
-                background: "none",
-                borderTop: "none",
-                borderLeft: "none",
-                borderRight: "none",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-              }}
-            >
-              <Users size={19} /> User Management
-            </button>
+          <div style={{ display: "grid", gridTemplateColumns: "240px 1fr", gap: 24 }}>
 
-            <button
-              onClick={() => setActiveTab("crops")}
-              style={{
-                padding: "12px 20px",
-                fontWeight: 700,
-                fontSize: 15,
-                color: activeTab === "crops" ? "#10B981" : "#64748B",
-                borderBottom: activeTab === "crops" ? "3px solid #10B981" : "3px solid transparent",
-                background: "none",
-                borderTop: "none",
-                borderLeft: "none",
-                borderRight: "none",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-              }}
-            >
-              <Sprout size={19} /> Crop Management
-            </button>
+            {/* Sidebar Module Navigation Selector */}
+            <div style={{ background: "#FFFFFF", borderRadius: 16, padding: 12, border: "1px solid #E2E8F0", height: "fit-content", boxShadow: "0 2px 10px rgba(0,0,0,0.02)" }}>
+              <div style={{ padding: "8px 12px", fontSize: 11, textTransform: "uppercase", letterSpacing: "1px", color: "#94A3B8", fontWeight: 700 }}>
+                Control Modules
+              </div>
 
-            {isSuperAdmin && (
-              <button
-                onClick={() => setActiveTab("admins")}
-                style={{
-                  padding: "12px 20px",
-                  fontWeight: 700,
-                  fontSize: 15,
-                  color: activeTab === "admins" ? "#F59E0B" : "#64748B",
-                  borderBottom: activeTab === "admins" ? "3px solid #F59E0B" : "3px solid transparent",
-                  background: "none",
-                  borderTop: "none",
-                  borderLeft: "none",
-                  borderRight: "none",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                }}
-              >
-                <ShieldCheck size={19} /> Admin Accounts (Super Admin)
-              </button>
-            )}
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <button onClick={() => setActiveTab("overview")} className={`admin-side-btn ${activeTab === "overview" ? "active" : ""}`}>
+                  <BarChart3 size={18} /> Overview Stats
+                </button>
+                <button onClick={() => setActiveTab("users")} className={`admin-side-btn ${activeTab === "users" ? "active" : ""}`}>
+                  <Users size={18} /> User Management
+                </button>
+                <button onClick={() => setActiveTab("crops")} className={`admin-side-btn ${activeTab === "crops" ? "active" : ""}`}>
+                  <Sprout size={18} /> Crop Database
+                </button>
+                <button onClick={() => setActiveTab("lifecycles")} className={`admin-side-btn ${activeTab === "lifecycles" ? "active" : ""}`}>
+                  <Layers size={18} /> Crop Lifecycles
+                </button>
+                <button onClick={() => setActiveTab("diseases")} className={`admin-side-btn ${activeTab === "diseases" ? "active" : ""}`}>
+                  <Bug size={18} /> Disease Catalog
+                </button>
+                <button onClick={() => setActiveTab("reports")} className={`admin-side-btn ${activeTab === "reports" ? "active" : ""}`}>
+                  <Stethoscope size={18} /> Farmer Reports
+                </button>
+                {isSuperAdmin && (
+                  <button onClick={() => setActiveTab("admins")} className={`admin-side-btn ${activeTab === "admins" ? "active" : ""}`}>
+                    <ShieldCheck size={18} /> Admin Accounts
+                  </button>
+                )}
+                <button onClick={() => setActiveTab("notifications")} className={`admin-side-btn ${activeTab === "notifications" ? "active" : ""}`}>
+                  <Bell size={18} /> Notifications
+                </button>
+                <button onClick={() => setActiveTab("weather")} className={`admin-side-btn ${activeTab === "weather" ? "active" : ""}`}>
+                  <CloudSun size={18} /> Weather Config
+                </button>
+                <button onClick={() => setActiveTab("analytics")} className={`admin-side-btn ${activeTab === "analytics" ? "active" : ""}`}>
+                  <FileSpreadsheet size={18} /> Reports &amp; Export
+                </button>
+                <button onClick={() => setActiveTab("feedback")} className={`admin-side-btn ${activeTab === "feedback" ? "active" : ""}`}>
+                  <MessageSquare size={18} /> User Feedback
+                </button>
+                <button onClick={() => setActiveTab("faqs")} className={`admin-side-btn ${activeTab === "faqs" ? "active" : ""}`}>
+                  <HelpCircle size={18} /> FAQ Knowledge
+                </button>
+                {isSuperAdmin && (
+                  <button onClick={() => setActiveTab("settings")} className={`admin-side-btn ${activeTab === "settings" ? "active" : ""}`}>
+                    <Settings size={18} /> System Settings
+                  </button>
+                )}
+                <button onClick={() => setActiveTab("logs")} className={`admin-side-btn ${activeTab === "logs" ? "active" : ""}`}>
+                  <History size={18} /> Audit Logs
+                </button>
+              </div>
+            </div>
 
-            <button
-              onClick={() => setActiveTab("logs")}
-              style={{
-                padding: "12px 20px",
-                fontWeight: 700,
-                fontSize: 15,
-                color: activeTab === "logs" ? "#10B981" : "#64748B",
-                borderBottom: activeTab === "logs" ? "3px solid #10B981" : "3px solid transparent",
-                background: "none",
-                borderTop: "none",
-                borderLeft: "none",
-                borderRight: "none",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-              }}
-            >
-              <History size={19} /> Audit Logs
-            </button>
-          </div>
+            {/* Main Active Module Content Window */}
+            <div>
 
-          {/* TAB 1: USER MANAGEMENT MODULE */}
-          {activeTab === "users" && (
-            <div style={{ background: "#FFFFFF", borderRadius: 20, padding: 24, border: "1px solid #E2E8F0", boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16, marginBottom: 20 }}>
-                <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1E293B", margin: 0 }}>
-                  Registered Farmer Directory
-                </h2>
+              {/* MODULE 1: REAL-TIME OVERVIEW DASHBOARD */}
+              {activeTab === "overview" && stats && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                  <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1E293B", margin: 0 }}>System Overview &amp; Live Metrics</h2>
 
-                {/* Filters */}
-                <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-                  <div style={{ position: "relative", minWidth: 220 }}>
-                    <Search size={16} color="#64748B" style={{ position: "absolute", left: 12, top: 12 }} />
+                  {/* Users Stats Grid */}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
+                    <div className="stat-box">
+                      <div className="stat-num">{stats.users.total}</div>
+                      <div className="stat-label">Total Users</div>
+                      <div className="stat-sub">{stats.users.new_today} registered today</div>
+                    </div>
+                    <div className="stat-box">
+                      <div className="stat-num" style={{ color: "#10B981" }}>{stats.users.active}</div>
+                      <div className="stat-label">Active Users</div>
+                      <div className="stat-sub">{stats.users.farmers} Farmers</div>
+                    </div>
+                    <div className="stat-box">
+                      <div className="stat-num" style={{ color: "#EF4444" }}>{stats.users.banned}</div>
+                      <div className="stat-label">Banned Users</div>
+                      <div className="stat-sub">Suspended accounts</div>
+                    </div>
+                    <div className="stat-box">
+                      <div className="stat-num" style={{ color: "#F59E0B" }}>{stats.crops.total_supported}</div>
+                      <div className="stat-label">Supported Crops</div>
+                      <div className="stat-sub">Most: {stats.crops.most_cultivated}</div>
+                    </div>
+                  </div>
+
+                  {/* Additional Cards */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+                    <div style={{ background: "#FFF", borderRadius: 16, padding: 20, border: "1px solid #E2E8F0" }}>
+                      <h3 style={{ fontSize: 16, fontWeight: 700, color: "#1B4D3E", marginBottom: 12 }}>User Category Breakdown</h3>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 14 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}><span>Farmers:</span><strong>{stats.users.farmers}</strong></div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}><span>Home Gardeners:</span><strong>{stats.users.home_gardeners}</strong></div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}><span>Terrace Gardeners:</span><strong>{stats.users.terrace_gardeners}</strong></div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}><span>Beginners:</span><strong>{stats.users.beginners}</strong></div>
+                      </div>
+                    </div>
+
+                    <div style={{ background: "#FFF", borderRadius: 16, padding: 20, border: "1px solid #E2E8F0" }}>
+                      <h3 style={{ fontSize: 16, fontWeight: 700, color: "#1B4D3E", marginBottom: 12 }}>Disease Reports Summary</h3>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 14 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}><span>Total Reports:</span><strong>{stats.diseases.total}</strong></div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}><span>Pending Review:</span><strong style={{ color: "#F59E0B" }}>{stats.diseases.pending}</strong></div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}><span>Resolved:</span><strong style={{ color: "#10B981" }}>{stats.diseases.resolved}</strong></div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}><span>Notifications Sent:</span><strong>{stats.system.total_notifications_sent}</strong></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* MODULE 2: USER MANAGEMENT (FULL CRUD) */}
+              {activeTab === "users" && (
+                <div style={{ background: "#FFF", borderRadius: 16, padding: 24, border: "1px solid #E2E8F0" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16, marginBottom: 20 }}>
+                    <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1E293B", margin: 0 }}>Farmer Directory &amp; Account Control</h2>
+                    <button onClick={openCreateUserForm} className="btn btn-sun" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <UserPlus size={16} /> Create User Account
+                    </button>
+                  </div>
+
+                  <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", marginBottom: 16 }}>
                     <input
                       type="text"
                       placeholder="Search name, email, phone..."
                       value={userSearch}
                       onChange={(e) => setUserSearch(e.target.value)}
-                      style={{ padding: "8px 12px 8px 36px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 13, width: "100%" }}
+                      style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #CBD5E1", fontSize: 13, minWidth: 220 }}
                     />
+                    <select value={userStatusFilter} onChange={(e) => setUserStatusFilter(e.target.value)} style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #CBD5E1", fontSize: 13 }}>
+                      <option value="All">All Statuses</option>
+                      <option value="active">Active Only</option>
+                      <option value="banned">Banned Only</option>
+                    </select>
                   </div>
 
-                  <select
-                    value={userStatusFilter}
-                    onChange={(e) => setUserStatusFilter(e.target.value)}
-                    style={{ padding: "8px 12px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 13, background: "#FFF" }}
-                  >
-                    <option value="All">All Statuses</option>
-                    <option value="active">Active Only</option>
-                    <option value="banned">Banned Only</option>
-                  </select>
-
-                  <select
-                    value={userDistrictFilter}
-                    onChange={(e) => setUserDistrictFilter(e.target.value)}
-                    style={{ padding: "8px 12px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 13, background: "#FFF" }}
-                  >
-                    <option value="All">All Districts</option>
-                    <option value="Vavuniya">Vavuniya</option>
-                    <option value="Jaffna">Jaffna</option>
-                    <option value="Kilinochchi">Kilinochchi</option>
-                    <option value="Mannar">Mannar</option>
-                    <option value="Mullaitivu">Mullaitivu</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Users Table */}
-              <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 14 }}>
-                  <thead>
-                    <tr style={{ background: "#F8FAFC", borderBottom: "2px solid #E2E8F0", color: "#475569", fontWeight: 700 }}>
-                      <th style={{ padding: 12 }}>Name</th>
-                      <th style={{ padding: 12 }}>Email</th>
-                      <th style={{ padding: 12 }}>Phone</th>
-                      <th style={{ padding: 12 }}>Category</th>
-                      <th style={{ padding: 12 }}>District</th>
-                      <th style={{ padding: 12 }}>Status</th>
-                      <th style={{ padding: 12 }}>Registration Date</th>
-                      <th style={{ padding: 12, textAlign: "right" }}>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {usersList.length > 0 ? (
-                      usersList.map((u) => (
-                        <tr key={u.id} style={{ borderBottom: "1px solid #F1F5F9" }}>
-                          <td style={{ padding: 12, fontWeight: 700, color: "#1E293B" }}>
-                            {u.full_name}
-                            {u.role === "super_admin" && (
-                              <span style={{ marginLeft: 6, fontSize: 10, background: "#F59E0B", color: "#FFF", padding: "2px 6px", borderRadius: 8 }}>Super Admin</span>
-                            )}
-                          </td>
-                          <td style={{ padding: 12, color: "#475569" }}>{u.email}</td>
-                          <td style={{ padding: 12, color: "#475569" }}>{u.phone || "—"}</td>
-                          <td style={{ padding: 12, color: "#334155" }}>{u.farming_category || "Farmer"}</td>
-                          <td style={{ padding: 12, color: "#334155" }}>{u.district || "Vavuniya"}</td>
-                          <td style={{ padding: 12 }}>
-                            <span
-                              style={{
-                                padding: "4px 10px",
-                                borderRadius: 12,
-                                fontSize: 12,
-                                fontWeight: 700,
-                                background: u.status === "banned" ? "#FEE2E2" : "#DCFCE7",
-                                color: u.status === "banned" ? "#991B1B" : "#15803D",
-                                border: u.status === "banned" ? "1px solid #FCA5A5" : "1px solid #A7F3D0",
-                              }}
-                            >
-                              {u.status === "banned" ? "Banned 🚫" : "Active ✓"}
-                            </span>
-                          </td>
-                          <td style={{ padding: 12, color: "#64748B", fontSize: 13 }}>
-                            {u.created_at ? new Date(u.created_at).toLocaleDateString() : "Recent"}
-                          </td>
-                          <td style={{ padding: 12, textAlign: "right" }}>
-                            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-                              {u.role !== "super_admin" && (
-                                <button
-                                  onClick={() => handleToggleBanUser(u)}
-                                  title={u.status === "banned" ? "Unban User" : "Ban User"}
-                                  style={{
-                                    padding: "6px 12px",
-                                    borderRadius: 8,
-                                    border: u.status === "banned" ? "1px solid #10B981" : "1px solid #F59E0B",
-                                    background: u.status === "banned" ? "#ECFDF5" : "#FEF3C7",
-                                    color: u.status === "banned" ? "#047857" : "#B45309",
-                                    fontWeight: 700,
-                                    fontSize: 12,
-                                    cursor: "pointer",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 4,
-                                  }}
-                                >
-                                  {u.status === "banned" ? <UserCheck size={14} /> : <Ban size={14} />}
-                                  {u.status === "banned" ? "Unban" : "Ban"}
-                                </button>
-                              )}
-
-                              {isSuperAdmin && u.id !== user?.id && (
-                                <button
-                                  onClick={() => setUserToDelete(u)}
-                                  title="Delete User Permanently"
-                                  style={{
-                                    padding: "6px 10px",
-                                    borderRadius: 8,
-                                    border: "1px solid #EF4444",
-                                    background: "#FEE2E2",
-                                    color: "#991B1B",
-                                    cursor: "pointer",
-                                  }}
-                                >
-                                  <Trash2 size={14} />
-                                </button>
-                              )}
-                            </div>
-                          </td>
+                  <div style={{ overflowX: "auto" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 13 }}>
+                      <thead>
+                        <tr style={{ background: "#F8FAFC", borderBottom: "2px solid #E2E8F0", color: "#475569", fontWeight: 700 }}>
+                          <th style={{ padding: 10 }}>Name</th>
+                          <th style={{ padding: 10 }}>Email</th>
+                          <th style={{ padding: 10 }}>Phone</th>
+                          <th style={{ padding: 10 }}>Category</th>
+                          <th style={{ padding: 10 }}>District</th>
+                          <th style={{ padding: 10 }}>Status</th>
+                          <th style={{ padding: 10, textAlign: "right" }}>Actions</th>
                         </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={8} style={{ padding: 24, textAlign: "center", color: "#64748B" }}>
-                          No registered users found matching the selected filters.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Pagination */}
-              {userTotalPages > 1 && (
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 20 }}>
-                  <span style={{ fontSize: 13, color: "#64748B" }}>Page {userPage} of {userTotalPages}</span>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button
-                      disabled={userPage <= 1}
-                      onClick={() => setUserPage((p) => Math.max(1, p - 1))}
-                      style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid #CBD5E1", background: "#FFF", cursor: userPage <= 1 ? "not-allowed" : "pointer" }}
-                    >
-                      <ChevronLeft size={16} />
-                    </button>
-                    <button
-                      disabled={userPage >= userTotalPages}
-                      onClick={() => setUserPage((p) => p + 1)}
-                      style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid #CBD5E1", background: "#FFF", cursor: userPage >= userTotalPages ? "not-allowed" : "pointer" }}
-                    >
-                      <ChevronRight size={16} />
-                    </button>
+                      </thead>
+                      <tbody>
+                        {usersList.map((u) => (
+                          <tr key={u.id} style={{ borderBottom: "1px solid #F1F5F9" }}>
+                            <td style={{ padding: 10, fontWeight: 700, color: "#1E293B" }}>{u.full_name}</td>
+                            <td style={{ padding: 10, color: "#475569" }}>{u.email}</td>
+                            <td style={{ padding: 10, color: "#475569" }}>{u.phone || "—"}</td>
+                            <td style={{ padding: 10 }}>{u.farming_category || "Farmer"}</td>
+                            <td style={{ padding: 10 }}>{u.district || "Vavuniya"}</td>
+                            <td style={{ padding: 10 }}>
+                              <span style={{ padding: "3px 8px", borderRadius: 10, fontSize: 11, fontWeight: 700, background: u.status === "banned" ? "#FEE2E2" : "#DCFCE7", color: u.status === "banned" ? "#991B1B" : "#15803D" }}>
+                                {u.status === "banned" ? "Banned" : "Active"}
+                              </span>
+                            </td>
+                            <td style={{ padding: 10, textAlign: "right" }}>
+                              <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
+                                <button onClick={() => openEditUserForm(u)} title="Edit Profile" style={{ padding: 6, borderRadius: 6, border: "1px solid #CBD5E1", background: "#FFF" }}><Edit size={14} /></button>
+                                <button onClick={() => setUserToResetPass(u)} title="Reset Password" style={{ padding: 6, borderRadius: 6, border: "1px solid #F59E0B", background: "#FEF3C7", color: "#B45309" }}><Key size={14} /></button>
+                                {u.role !== "super_admin" && (
+                                  <button onClick={() => handleToggleBanUser(u)} title={u.status === "banned" ? "Unban" : "Ban"} style={{ padding: "4px 8px", borderRadius: 6, border: u.status === "banned" ? "1px solid #10B981" : "1px solid #F59E0B", background: u.status === "banned" ? "#ECFDF5" : "#FEF3C7", color: u.status === "banned" ? "#047857" : "#B45309", fontSize: 12, fontWeight: 700 }}>
+                                    {u.status === "banned" ? "Unban" : "Ban"}
+                                  </button>
+                                )}
+                                {isSuperAdmin && u.id !== user?.id && (
+                                  <button onClick={() => setUserToDelete(u)} title="Delete User" style={{ padding: 6, borderRadius: 6, border: "1px solid #EF4444", background: "#FEE2E2", color: "#991B1B" }}><Trash2 size={14} /></button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               )}
-            </div>
-          )}
 
-          {/* TAB 2: CROP MANAGEMENT MODULE */}
-          {activeTab === "crops" && (
-            <div style={{ background: "#FFFFFF", borderRadius: 20, padding: 24, border: "1px solid #E2E8F0", boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16, marginBottom: 20 }}>
-                <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1E293B", margin: 0 }}>
-                  Crop Lifecycle &amp; Botanical Database
-                </h2>
-                <button onClick={openCreateCropForm} className="btn btn-sun" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <Plus size={18} /> Add New Crop Guide
-                </button>
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 20 }}>
-                {guides.map((g) => (
-                  <div key={g.id} style={{ background: "#F8FAFC", borderRadius: 16, padding: 20, border: "1px solid #E2E8F0", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                    <div>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-                        <div>
-                          <h3 style={{ fontSize: 18, fontWeight: 800, color: "#1B4D3E", margin: 0 }}>{g.crop_name}</h3>
-                          <div style={{ fontSize: 13, color: "#64748B", fontStyle: "italic" }}>{g.variety || "Standard Variety"}</div>
-                        </div>
-                        <span style={{ background: "#DCFCE7", color: "#15803D", padding: "4px 10px", borderRadius: 12, fontSize: 12, fontWeight: 700 }}>
-                          5 Growth Stages
-                        </span>
-                      </div>
-
-                      <div style={{ fontSize: 13, color: "#475569", marginBottom: 12 }}>
-                        <strong>Season:</strong> {g.recommended_season || "Yala & Maha"}
-                      </div>
-                      <div style={{ fontSize: 13, color: "#475569", marginBottom: 12 }}>
-                        <strong>Watering:</strong> {g.water_requirements || "Regular"}
-                      </div>
-                    </div>
-
-                    <div style={{ display: "flex", gap: 10, marginTop: 16, borderTop: "1px solid #E2E8F0", paddingTop: 14 }}>
-                      <button
-                        onClick={() => openEditCropForm(g)}
-                        style={{
-                          flex: 1,
-                          padding: "8px 14px",
-                          borderRadius: 10,
-                          border: "1px solid #10B981",
-                          background: "#ECFDF5",
-                          color: "#047857",
-                          fontWeight: 700,
-                          fontSize: 13,
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: 6,
-                        }}
-                      >
-                        <Edit size={16} /> Edit Guide
-                      </button>
-                      <button
-                        onClick={() => setCropToDelete(g)}
-                        style={{
-                          padding: "8px 12px",
-                          borderRadius: 10,
-                          border: "1px solid #EF4444",
-                          background: "#FEE2E2",
-                          color: "#991B1B",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
+              {/* MODULE 3 & 4: CROP MANAGEMENT & LIFECYCLES */}
+              {(activeTab === "crops" || activeTab === "lifecycles") && (
+                <div style={{ background: "#FFF", borderRadius: 16, padding: 24, border: "1px solid #E2E8F0" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16, marginBottom: 20 }}>
+                    <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1E293B", margin: 0 }}>Crop Catalog &amp; 5 Growth Stages Configurator</h2>
+                    <button onClick={openCreateCropForm} className="btn btn-sun" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <Plus size={16} /> Add Crop Guide
+                    </button>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
 
-          {/* TAB 3: ADMIN ACCOUNTS MANAGEMENT MODULE (SUPER ADMIN ONLY) */}
-          {activeTab === "admins" && isSuperAdmin && (
-            <div style={{ background: "#FFFFFF", borderRadius: 20, padding: 24, border: "1px solid #E2E8F0", boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16, marginBottom: 20 }}>
-                <div>
-                  <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1E293B", margin: 0 }}>
-                    Administrator Accounts Directory
-                  </h2>
-                  <div style={{ fontSize: 13, color: "#64748B", marginTop: 2 }}>
-                    Manage system administrators and assign Super Admin vs Admin privileges.
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+                    {guides.map((g) => (
+                      <div key={g.id} style={{ background: "#F8FAFC", borderRadius: 14, padding: 18, border: "1px solid #E2E8F0" }}>
+                        <h3 style={{ fontSize: 17, fontWeight: 800, color: "#1B4D3E", margin: 0 }}>{g.crop_name}</h3>
+                        <div style={{ fontSize: 12, color: "#64748B", fontStyle: "italic", marginBottom: 8 }}>{g.variety}</div>
+                        <div style={{ fontSize: 13, color: "#475569", marginBottom: 6 }}>Season: {g.recommended_season || "Yala & Maha"}</div>
+                        <div style={{ fontSize: 13, color: "#475569", marginBottom: 12 }}>Watering: {g.water_requirements}</div>
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <button onClick={() => openEditCropForm(g)} className="btn btn-outline" style={{ flex: 1, padding: "6px 10px", fontSize: 12 }}><Edit size={14} /> Edit Stages</button>
+                          <button onClick={() => setCropToDelete(g)} style={{ padding: "6px 10px", borderRadius: 8, border: "1px solid #EF4444", background: "#FEE2E2", color: "#991B1B" }}><Trash2 size={14} /></button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <button onClick={openCreateAdminModal} className="btn btn-sun" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <UserPlus size={18} /> Add Administrator
-                </button>
-              </div>
+              )}
 
-              <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 14 }}>
-                  <thead>
-                    <tr style={{ background: "#F8FAFC", borderBottom: "2px solid #E2E8F0", color: "#475569", fontWeight: 700 }}>
-                      <th style={{ padding: 12 }}>Admin Name</th>
-                      <th style={{ padding: 12 }}>Email Address</th>
-                      <th style={{ padding: 12 }}>Role</th>
-                      <th style={{ padding: 12 }}>Status</th>
-                      <th style={{ padding: 12 }}>Created Date</th>
-                      <th style={{ padding: 12, textAlign: "right" }}>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {adminAccounts.map((a) => (
-                      <tr key={a.id} style={{ borderBottom: "1px solid #F1F5F9" }}>
-                        <td style={{ padding: 12, fontWeight: 700, color: "#1E293B" }}>{a.full_name}</td>
-                        <td style={{ padding: 12, color: "#475569" }}>{a.email}</td>
-                        <td style={{ padding: 12 }}>
-                          <span
-                            style={{
-                              padding: "4px 10px",
-                              borderRadius: 12,
-                              fontSize: 12,
-                              fontWeight: 700,
-                              background: a.role === "super_admin" ? "#FEF3C7" : "#E0F2FE",
-                              color: a.role === "super_admin" ? "#B45309" : "#0369A1",
-                              border: a.role === "super_admin" ? "1px solid #FDE68A" : "1px solid #BAE6FD",
-                            }}
-                          >
-                            {a.role === "super_admin" ? "👑 Super Admin" : "🛡️ Admin"}
-                          </span>
-                        </td>
-                        <td style={{ padding: 12 }}>
-                          <span
-                            style={{
-                              padding: "4px 10px",
-                              borderRadius: 12,
-                              fontSize: 12,
-                              fontWeight: 700,
-                              background: a.status === "banned" ? "#FEE2E2" : "#DCFCE7",
-                              color: a.status === "banned" ? "#991B1B" : "#15803D",
-                            }}
-                          >
-                            {a.status === "banned" ? "Suspended" : "Active ✓"}
-                          </span>
-                        </td>
-                        <td style={{ padding: 12, color: "#64748B", fontSize: 13 }}>
-                          {a.created_at ? new Date(a.created_at).toLocaleDateString() : "Initial"}
-                        </td>
-                        <td style={{ padding: 12, textAlign: "right" }}>
-                          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-                            <button
-                              onClick={() => openEditAdminModal(a)}
-                              style={{
-                                padding: "6px 12px",
-                                borderRadius: 8,
-                                border: "1px solid #10B981",
-                                background: "#ECFDF5",
-                                color: "#047857",
-                                fontWeight: 700,
-                                fontSize: 12,
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 4,
-                              }}
-                            >
-                              <Edit size={14} /> Edit
-                            </button>
+              {/* MODULE 5: DISEASE CATALOG */}
+              {activeTab === "diseases" && (
+                <div style={{ background: "#FFF", borderRadius: 16, padding: 24, border: "1px solid #E2E8F0" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                    <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1E293B", margin: 0 }}>Agricultural Disease Knowledge Base</h2>
+                    <button onClick={openCreateDiseaseForm} className="btn btn-sun" style={{ display: "flex", alignItems: "center", gap: 6 }}><Plus size={16} /> Add Disease Entry</button>
+                  </div>
 
-                            {a.id !== user?.id && (
-                              <button
-                                onClick={() => setAdminToDelete(a)}
-                                style={{
-                                  padding: "6px 10px",
-                                  borderRadius: 8,
-                                  border: "1px solid #EF4444",
-                                  background: "#FEE2E2",
-                                  color: "#991B1B",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+                    {diseaseCatalog.map((d) => (
+                      <div key={d.id} style={{ background: "#F8FAFC", borderRadius: 14, padding: 18, border: "1px solid #E2E8F0" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                          <h3 style={{ fontSize: 16, fontWeight: 800, color: "#991B1B", margin: 0 }}>{d.disease_name}</h3>
+                          <span style={{ background: "#E0F2FE", color: "#0369A1", padding: "2px 8px", borderRadius: 10, fontSize: 11, fontWeight: 700 }}>{d.crop_name}</span>
+                        </div>
+                        <p style={{ fontSize: 13, color: "#475569", marginTop: 8, lineHeight: 1.4 }}>{d.symptoms}</p>
+                        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                          <button onClick={() => openEditDiseaseForm(d)} className="btn btn-outline" style={{ flex: 1, padding: 6, fontSize: 12 }}><Edit size={14} /> Edit</button>
+                          <button onClick={() => handleDeleteDisease(d.id)} style={{ padding: 6, borderRadius: 8, border: "1px solid #EF4444", background: "#FEE2E2", color: "#991B1B" }}><Trash2 size={14} /></button>
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
+                  </div>
+                </div>
+              )}
 
-          {/* TAB 4: AUDIT ACTIVITY LOGS MODULE */}
-          {activeTab === "logs" && (
-            <div style={{ background: "#FFFFFF", borderRadius: 20, padding: 24, border: "1px solid #E2E8F0", boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1E293B", margin: 0 }}>
-                  Administrative Audit Activity Logs
-                </h2>
-                <span style={{ fontSize: 12, color: "#64748B" }}>Total Records: {logs.length}</span>
-              </div>
-
-              <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 14 }}>
-                  <thead>
-                    <tr style={{ background: "#F8FAFC", borderBottom: "2px solid #E2E8F0", color: "#475569", fontWeight: 700 }}>
-                      <th style={{ padding: 12 }}>Action</th>
-                      <th style={{ padding: 12 }}>Performed By</th>
-                      <th style={{ padding: 12 }}>Details</th>
-                      <th style={{ padding: 12 }}>Date</th>
-                      <th style={{ padding: 12 }}>Time</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {logs.length > 0 ? (
-                      logs.map((l) => (
-                        <tr key={l.id} style={{ borderBottom: "1px solid #F1F5F9" }}>
-                          <td style={{ padding: 12 }}>
-                            <span style={{ padding: "4px 10px", borderRadius: 10, fontSize: 12, fontWeight: 700, background: "#E0F2FE", color: "#0369A1" }}>
-                              {l.action}
-                            </span>
-                          </td>
-                          <td style={{ padding: 12, fontWeight: 700, color: "#1E293B" }}>{l.performed_by}</td>
-                          <td style={{ padding: 12, color: "#475569" }}>{l.details || "—"}</td>
-                          <td style={{ padding: 12, color: "#64748B" }}>{l.date || (l.created_at ? new Date(l.created_at).toLocaleDateString() : "Today")}</td>
-                          <td style={{ padding: 12, color: "#64748B" }}>{l.time || (l.created_at ? new Date(l.created_at).toLocaleTimeString() : "—")}</td>
+              {/* MODULE 6: FARMER DISEASE REPORTS REVIEW */}
+              {activeTab === "reports" && (
+                <div style={{ background: "#FFF", borderRadius: 16, padding: 24, border: "1px solid #E2E8F0" }}>
+                  <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1E293B", marginBottom: 20 }}>Farmer AI Disease Diagnosis Uploads</h2>
+                  <div style={{ overflowX: "auto" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 13 }}>
+                      <thead>
+                        <tr style={{ background: "#F8FAFC", borderBottom: "2px solid #E2E8F0", color: "#475569", fontWeight: 700 }}>
+                          <th style={{ padding: 10 }}>Crop</th>
+                          <th style={{ padding: 10 }}>Diagnosis Result</th>
+                          <th style={{ padding: 10 }}>Confidence</th>
+                          <th style={{ padding: 10 }}>Status</th>
+                          <th style={{ padding: 10, textAlign: "right" }}>Actions</th>
                         </tr>
+                      </thead>
+                      <tbody>
+                        {farmerReports.map((r) => (
+                          <tr key={r.id} style={{ borderBottom: "1px solid #F1F5F9" }}>
+                            <td style={{ padding: 10, fontWeight: 700 }}>{r.crop_name}</td>
+                            <td style={{ padding: 10 }}>{r.diagnosis_result}</td>
+                            <td style={{ padding: 10 }}>{Math.round((r.confidence_score || 0.92) * 100)}%</td>
+                            <td style={{ padding: 10 }}>
+                              <span style={{ padding: "3px 8px", borderRadius: 10, fontSize: 11, fontWeight: 700, background: r.status === "approved" ? "#DCFCE7" : r.status === "rejected" ? "#FEE2E2" : "#FEF3C7", color: r.status === "approved" ? "#15803D" : r.status === "rejected" ? "#991B1B" : "#B45309" }}>
+                                {r.status || "resolved"}
+                              </span>
+                            </td>
+                            <td style={{ padding: 10, textAlign: "right" }}>
+                              <div style={{ display: "flex", gap: 4, justifyContent: "flex-end" }}>
+                                <button onClick={() => handleUpdateReportStatus(r.id, "approved")} style={{ padding: "4px 8px", borderRadius: 6, border: "1px solid #10B981", background: "#ECFDF5", color: "#047857", fontSize: 11, fontWeight: 700 }}>Approve</button>
+                                <button onClick={() => handleUpdateReportStatus(r.id, "rejected")} style={{ padding: "4px 8px", borderRadius: 6, border: "1px solid #EF4444", background: "#FEE2E2", color: "#991B1B", fontSize: 11, fontWeight: 700 }}>Reject</button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* MODULE 7: ADMIN ACCOUNTS (SUPER ADMIN ONLY) */}
+              {activeTab === "admins" && isSuperAdmin && (
+                <div style={{ background: "#FFF", borderRadius: 16, padding: 24, border: "1px solid #E2E8F0" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                    <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1E293B", margin: 0 }}>System Administrators Directory</h2>
+                    <button onClick={openCreateAdminModal} className="btn btn-sun" style={{ display: "flex", alignItems: "center", gap: 6 }}><UserPlus size={16} /> Add Administrator</button>
+                  </div>
+
+                  <div style={{ overflowX: "auto" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 13 }}>
+                      <thead>
+                        <tr style={{ background: "#F8FAFC", borderBottom: "2px solid #E2E8F0", color: "#475569", fontWeight: 700 }}>
+                          <th style={{ padding: 10 }}>Name</th>
+                          <th style={{ padding: 10 }}>Email</th>
+                          <th style={{ padding: 10 }}>Role</th>
+                          <th style={{ padding: 10, textAlign: "right" }}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {adminAccounts.map((a) => (
+                          <tr key={a.id} style={{ borderBottom: "1px solid #F1F5F9" }}>
+                            <td style={{ padding: 10, fontWeight: 700 }}>{a.full_name}</td>
+                            <td style={{ padding: 10 }}>{a.email}</td>
+                            <td style={{ padding: 10 }}>
+                              <span style={{ padding: "3px 8px", borderRadius: 10, fontSize: 11, fontWeight: 700, background: a.role === "super_admin" ? "#FEF3C7" : "#E0F2FE", color: a.role === "super_admin" ? "#B45309" : "#0369A1" }}>
+                                {a.role === "super_admin" ? "👑 Super Admin" : "🛡️ Admin"}
+                              </span>
+                            </td>
+                            <td style={{ padding: 10, textAlign: "right" }}>
+                              <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
+                                <button onClick={() => openEditAdminModal(a)} style={{ padding: 6, borderRadius: 6, border: "1px solid #CBD5E1", background: "#FFF" }}><Edit size={14} /></button>
+                                {a.id !== user?.id && (
+                                  <button onClick={() => setAdminToDelete(a)} style={{ padding: 6, borderRadius: 6, border: "1px solid #EF4444", background: "#FEE2E2", color: "#991B1B" }}><Trash2 size={14} /></button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* MODULE 8: NOTIFICATIONS BROADCAST */}
+              {activeTab === "notifications" && (
+                <div style={{ background: "#FFF", borderRadius: 16, padding: 24, border: "1px solid #E2E8F0" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                    <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1E293B", margin: 0 }}>Broadcast System Notifications</h2>
+                    <button onClick={() => setShowNoteModal(true)} className="btn btn-sun" style={{ display: "flex", alignItems: "center", gap: 6 }}><Send size={16} /> Broadcast Notification</button>
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    {notifications.map((n) => (
+                      <div key={n.id} style={{ background: "#F8FAFC", padding: 16, borderRadius: 12, border: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                        <div>
+                          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                            <span style={{ fontWeight: 800, fontSize: 15, color: "#1B4D3E" }}>{n.title}</span>
+                            <span style={{ background: "#E0F2FE", color: "#0369A1", padding: "2px 8px", borderRadius: 10, fontSize: 11, fontWeight: 700 }}>{n.category}</span>
+                            <span style={{ background: "#DCFCE7", color: "#15803D", padding: "2px 8px", borderRadius: 10, fontSize: 11, fontWeight: 700 }}>Target: {n.target_type}</span>
+                          </div>
+                          <p style={{ fontSize: 13, color: "#475569", marginTop: 6 }}>{n.message}</p>
+                        </div>
+                        <button onClick={() => handleDeleteNotification(n.id)} style={{ padding: 6, borderRadius: 6, border: "1px solid #EF4444", background: "#FEE2E2", color: "#991B1B" }}><Trash2 size={14} /></button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* MODULE 9 & 10: WEATHER & ANALYTICS DATA EXPORTS */}
+              {(activeTab === "weather" || activeTab === "analytics") && (
+                <div style={{ background: "#FFF", borderRadius: 16, padding: 24, border: "1px solid #E2E8F0" }}>
+                  <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1E293B", marginBottom: 16 }}>Reports &amp; One-Click CSV Exports</h2>
+                  <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 20 }}>
+                    <a href={`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api"}/admin/export/users`} download className="btn btn-sun" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+                      <Download size={18} /> Export Users CSV
+                    </a>
+                    <a href={`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api"}/admin/export/crops`} download className="btn btn-outline" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+                      <Download size={18} /> Export Crops CSV
+                    </a>
+                  </div>
+                </div>
+              )}
+
+              {/* MODULE 11: USER FEEDBACK */}
+              {activeTab === "feedback" && (
+                <div style={{ background: "#FFF", borderRadius: 16, padding: 24, border: "1px solid #E2E8F0" }}>
+                  <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1E293B", marginBottom: 20 }}>Farmer Feedback Inbox</h2>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    {feedbackItems.length > 0 ? (
+                      feedbackItems.map((f) => (
+                        <div key={f.id} style={{ background: "#F8FAFC", padding: 16, borderRadius: 12, border: "1px solid #E2E8F0" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between" }}>
+                            <strong>{f.name} ({f.email})</strong>
+                            <span style={{ fontSize: 12, color: "#64748B" }}>{f.status}</span>
+                          </div>
+                          <div style={{ fontWeight: 700, marginTop: 4 }}>{f.subject}</div>
+                          <p style={{ fontSize: 13, color: "#475569", marginTop: 4 }}>{f.message}</p>
+                        </div>
                       ))
                     ) : (
-                      <tr>
-                        <td colSpan={5} style={{ padding: 24, textAlign: "center", color: "#64748B" }}>
-                          No administrative activity logs recorded yet.
-                        </td>
-                      </tr>
+                      <div style={{ color: "#64748B", textAlign: "center", padding: 24 }}>No user feedback items in inbox.</div>
                     )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
+                  </div>
+                </div>
+              )}
 
+              {/* MODULE 12: FAQ KNOWLEDGE BASE */}
+              {activeTab === "faqs" && (
+                <div style={{ background: "#FFF", borderRadius: 16, padding: 24, border: "1px solid #E2E8F0" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                    <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1E293B", margin: 0 }}>Agricultural FAQ Knowledge Base</h2>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    {faqItems.map((f) => (
+                      <div key={f.id} style={{ background: "#F8FAFC", padding: 16, borderRadius: 12, border: "1px solid #E2E8F0" }}>
+                        <div style={{ fontWeight: 700, color: "#1B4D3E" }}>Q: {f.question}</div>
+                        <p style={{ fontSize: 13, color: "#475569", marginTop: 4 }}>A: {f.answer}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* MODULE 13: SYSTEM SETTINGS (SUPER ADMIN ONLY) */}
+              {activeTab === "settings" && isSuperAdmin && (
+                <div style={{ background: "#FFF", borderRadius: 16, padding: 24, border: "1px solid #E2E8F0" }}>
+                  <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1E293B", marginBottom: 20 }}>Platform System Settings</h2>
+                  <form onSubmit={handleSaveSystemSettings}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
+                      <div>
+                        <label style={{ display: "block", fontWeight: 700, fontSize: 13, marginBottom: 4 }}>Platform Name</label>
+                        <input type="text" value={sysSettings.platform_name || "Valam Agricultural Platform"} onChange={(e) => setSysSettings({ ...sysSettings, platform_name: e.target.value })} style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} />
+                      </div>
+                      <div>
+                        <label style={{ display: "block", fontWeight: 700, fontSize: 13, marginBottom: 4 }}>Contact Email</label>
+                        <input type="email" value={sysSettings.contact_email || "support@valam.lk"} onChange={(e) => setSysSettings({ ...sysSettings, contact_email: e.target.value })} style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} />
+                      </div>
+                    </div>
+                    <button type="submit" className="btn btn-sun" style={{ display: "flex", alignItems: "center", gap: 6 }}><Save size={16} /> Save Settings</button>
+                  </form>
+                </div>
+              )}
+
+              {/* MODULE 14: AUDIT ACTIVITY LOGS */}
+              {activeTab === "logs" && (
+                <div style={{ background: "#FFF", borderRadius: 16, padding: 24, border: "1px solid #E2E8F0" }}>
+                  <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1E293B", marginBottom: 20 }}>Administrative Audit Activity Logs</h2>
+                  <div style={{ overflowX: "auto" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 13 }}>
+                      <thead>
+                        <tr style={{ background: "#F8FAFC", borderBottom: "2px solid #E2E8F0", color: "#475569", fontWeight: 700 }}>
+                          <th style={{ padding: 10 }}>Action</th>
+                          <th style={{ padding: 10 }}>Performed By</th>
+                          <th style={{ padding: 10 }}>Details</th>
+                          <th style={{ padding: 10 }}>Date &amp; Time</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {logs.map((l) => (
+                          <tr key={l.id} style={{ borderBottom: "1px solid #F1F5F9" }}>
+                            <td style={{ padding: 10 }}><span style={{ background: "#E0F2FE", color: "#0369A1", padding: "3px 8px", borderRadius: 8, fontSize: 11, fontWeight: 700 }}>{l.action}</span></td>
+                            <td style={{ padding: 10, fontWeight: 700 }}>{l.performed_by}</td>
+                            <td style={{ padding: 10, color: "#475569" }}>{l.details || "—"}</td>
+                            <td style={{ padding: 10, color: "#64748B" }}>{l.created_at ? new Date(l.created_at).toLocaleString() : "Recent"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+            </div>
+          </div>
         </div>
       </section>
 
       {/* --- MODALS --- */}
+      {/* 1. Create/Edit User Modal */}
+      {showUserModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <div style={{ background: "#FFF", borderRadius: 20, padding: 28, maxWidth: 480, width: "100%" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: "#1B4D3E", margin: 0 }}>{editingUserId ? "Edit User Account" : "Create New User Account"}</h3>
+              <button onClick={() => setShowUserModal(false)} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={20} /></button>
+            </div>
+            <form onSubmit={handleSaveUser}>
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Full Name</label>
+                <input type="text" required value={uName} onChange={(e) => setUName(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }} />
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Email</label>
+                <input type="email" required value={uEmail} onChange={(e) => setUEmail(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }} />
+              </div>
+              {!editingUserId && (
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Initial Password</label>
+                  <input type="password" required value={uPassword} onChange={(e) => setUPassword(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }} />
+                </div>
+              )}
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 20 }}>
+                <button type="button" onClick={() => setShowUserModal(false)} className="btn btn-outline">Cancel</button>
+                <button type="submit" className="btn btn-sun"><Save size={16} /> Save User</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
-      {/* 1. Add / Edit Crop Lifecycle Modal */}
+      {/* 2. Reset Password Modal */}
+      {userToResetPass && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <div style={{ background: "#FFF", borderRadius: 20, padding: 28, maxWidth: 420, width: "100%" }}>
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: "#1B4D3E", margin: "0 0 12px" }}>Reset User Password</h3>
+            <p style={{ fontSize: 13, color: "#64748B", marginBottom: 16 }}>Enter new password for <strong>{userToResetPass.email}</strong>:</p>
+            <form onSubmit={handleResetUserPasswordSubmit}>
+              <input type="password" required minLength={6} placeholder="New password (min 6 chars)" value={newResetPassword} onChange={(e) => setNewResetPassword(e.target.value)} style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC", marginBottom: 16 }} />
+              <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                <button type="button" onClick={() => setUserToResetPass(null)} className="btn btn-outline">Cancel</button>
+                <button type="submit" className="btn btn-sun">Reset Password</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 3. Broadcast Notification Modal */}
+      {showNoteModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <div style={{ background: "#FFF", borderRadius: 20, padding: 28, maxWidth: 480, width: "100%" }}>
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: "#1B4D3E", margin: "0 0 16px" }}>Broadcast System Notification</h3>
+            <form onSubmit={handleCreateNotification}>
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Title</label>
+                <input type="text" required placeholder="e.g. Monsoon Rain Warning" value={noteTitle} onChange={(e) => setNoteTitle(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }} />
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Message Content</label>
+                <textarea rows={3} required placeholder="Notification text..." value={noteMsg} onChange={(e) => setNoteMsg(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }} />
+              </div>
+              <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                <button type="button" onClick={() => setShowNoteModal(false)} className="btn btn-outline">Cancel</button>
+                <button type="submit" className="btn btn-sun"><Send size={16} /> Broadcast</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Crop Add/Edit Modal */}
       {showAddCropModal && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, backdropFilter: "blur(4px)" }}>
-          <div style={{ background: "#FFF", borderRadius: 20, padding: 32, maxWidth: 840, width: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 10px 30px rgba(0,0,0,0.2)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-              <h2 style={{ fontSize: 22, fontWeight: 800, color: "#1B4D3E", margin: 0 }}>
-                {editingGuideId ? "Edit Crop Lifecycle Config" : "Create New Crop Lifecycle Config"}
-              </h2>
-              <button onClick={() => setShowAddCropModal(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748B" }}>
-                <X size={24} />
-              </button>
+          <div style={{ background: "#FFF", borderRadius: 20, padding: 28, maxWidth: 780, width: "100%", maxHeight: "90vh", overflowY: "auto" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: "#1B4D3E", margin: 0 }}>{editingGuideId ? "Edit Crop Lifecycle Config" : "Create New Crop Guide"}</h3>
+              <button onClick={() => setShowAddCropModal(false)} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={20} /></button>
             </div>
-
             <form onSubmit={handleSaveCrop}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 16 }}>
-                <div>
-                  <label style={{ display: "block", fontWeight: 700, fontSize: 13, marginBottom: 4 }}>Crop Name *</label>
-                  <input type="text" required placeholder="e.g. Tomato, Okra, Chili" style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={cropName} onChange={(e) => setCropName(e.target.value)} />
-                </div>
-                <div>
-                  <label style={{ display: "block", fontWeight: 700, fontSize: 13, marginBottom: 4 }}>Variety</label>
-                  <input type="text" placeholder="e.g. Thilina / Local" style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={variety} onChange={(e) => setVariety(e.target.value)} />
-                </div>
-                <div>
-                  <label style={{ display: "block", fontWeight: 700, fontSize: 13, marginBottom: 4 }}>Season</label>
-                  <input type="text" placeholder="e.g. Yala & Maha" style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={season} onChange={(e) => setSeason(e.target.value)} />
-                </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+                <div><label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Crop Name</label><input type="text" required value={cropName} onChange={(e) => setCropName(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }} /></div>
+                <div><label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Variety</label><input type="text" value={variety} onChange={(e) => setVariety(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }} /></div>
               </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
-                <div>
-                  <label style={{ display: "block", fontWeight: 700, fontSize: 13, marginBottom: 4 }}>Water Requirements</label>
-                  <textarea rows={2} style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={waterReq} onChange={(e) => setWaterReq(e.target.value)} />
-                </div>
-                <div>
-                  <label style={{ display: "block", fontWeight: 700, fontSize: 13, marginBottom: 4 }}>Fertilizer Guidance</label>
-                  <textarea rows={2} style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={fertGuidance} onChange={(e) => setFertGuidance(e.target.value)} />
-                </div>
-              </div>
-
-              {/* 5 Stages Configurator */}
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: "#1B4D3E", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-                <Layers size={18} /> Configure 5 Growth Stages
-              </h3>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 24 }}>
-                {stages.map((st, idx) => (
-                  <div key={idx} style={{ background: "#F8FAFC", padding: 16, borderRadius: 12, border: "1px solid #E2E8F0" }}>
-                    <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 10 }}>
-                      <span style={{ fontWeight: 800, fontSize: 14, color: "#10B981" }}>Stage {idx + 1}:</span>
-                      <input
-                        type="text"
-                        value={st.stage_name}
-                        onChange={(e) => handleStageChange(idx, "stage_name", e.target.value)}
-                        placeholder="Stage Title"
-                        style={{ flex: 1, padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontWeight: 700 }}
-                      />
-                      <input
-                        type="number"
-                        value={st.start_day}
-                        onChange={(e) => handleStageChange(idx, "start_day", parseInt(e.target.value, 10))}
-                        placeholder="Start Day"
-                        style={{ width: 80, padding: 8, borderRadius: 6, border: "1px solid #CBD5E1" }}
-                      />
-                      <span>to</span>
-                      <input
-                        type="number"
-                        value={st.end_day}
-                        onChange={(e) => handleStageChange(idx, "end_day", parseInt(e.target.value, 10))}
-                        placeholder="End Day"
-                        style={{ width: 80, padding: 8, borderRadius: 6, border: "1px solid #CBD5E1" }}
-                      />
-                    </div>
-
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                      <div>
-                        <label style={{ fontSize: 11, fontWeight: 700, color: "#64748B" }}>Expected Appearance</label>
-                        <input
-                          type="text"
-                          value={st.expected_appearance || ""}
-                          onChange={(e) => handleStageChange(idx, "expected_appearance", e.target.value)}
-                          placeholder="e.g. Young green shoots"
-                          style={{ width: "100%", padding: 6, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 12 }}
-                        />
-                      </div>
-                      <div>
-                        <label style={{ fontSize: 11, fontWeight: 700, color: "#64748B" }}>Daily Tasks (1 per line)</label>
-                        <textarea
-                          rows={2}
-                          value={(st.daily_tasks || []).join("\n")}
-                          onChange={(e) => handleTaskTextChange(idx, e.target.value)}
-                          placeholder="e.g. Water morning\nShield sun"
-                          style={{ width: "100%", padding: 6, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 12 }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
-                <button type="button" onClick={() => setShowAddCropModal(false)} className="btn btn-outline">
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-sun" style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <Save size={16} /> Save Crop Config
-                </button>
+              <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 20 }}>
+                <button type="button" onClick={() => setShowAddCropModal(false)} className="btn btn-outline">Cancel</button>
+                <button type="submit" className="btn btn-sun"><Save size={16} /> Save Crop</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* 2. Add / Edit Admin Modal */}
+      {/* Disease Entry Modal */}
+      {showDiseaseModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <div style={{ background: "#FFF", borderRadius: 20, padding: 28, maxWidth: 540, width: "100%" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: "#1B4D3E", margin: 0 }}>{editingDiseaseId ? "Edit Disease Entry" : "Add Disease to Catalog"}</h3>
+              <button onClick={() => setShowDiseaseModal(false)} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={20} /></button>
+            </div>
+            <form onSubmit={handleSaveDisease}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+                <div><label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Disease Name</label><input type="text" required value={dName} onChange={(e) => setDName(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }} /></div>
+                <div><label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Crop Name</label><input type="text" required value={dCrop} onChange={(e) => setDCrop(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }} /></div>
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Symptoms</label>
+                <textarea rows={2} required value={dSymptoms} onChange={(e) => setDSymptoms(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }} />
+              </div>
+              <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 16 }}>
+                <button type="button" onClick={() => setShowDiseaseModal(false)} className="btn btn-outline">Cancel</button>
+                <button type="submit" className="btn btn-sun"><Save size={16} /> Save Disease</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Modal (Super Admin) */}
       {showAdminModal && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, backdropFilter: "blur(4px)" }}>
-          <div style={{ background: "#FFF", borderRadius: 20, padding: 32, maxWidth: 500, width: "100%", boxShadow: "0 10px 30px rgba(0,0,0,0.2)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-              <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1B4D3E", margin: 0 }}>
-                {editingAdminId ? "Edit Admin Account" : "Create New Admin Account"}
-              </h2>
-              <button onClick={() => setShowAdminModal(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748B" }}>
-                <X size={24} />
-              </button>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <div style={{ background: "#FFF", borderRadius: 20, padding: 28, maxWidth: 480, width: "100%" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: "#1B4D3E", margin: 0 }}>{editingAdminId ? "Edit Admin Account" : "Create New Admin Account"}</h3>
+              <button onClick={() => setShowAdminModal(false)} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={20} /></button>
             </div>
-
             <form onSubmit={handleSaveAdmin}>
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ display: "block", fontWeight: 700, fontSize: 13, marginBottom: 4 }}>Full Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={adminName}
-                  onChange={(e) => setAdminName(e.target.value)}
-                  placeholder="e.g. Admin Officer"
-                  style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }}
-                />
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Full Name</label>
+                <input type="text" required value={adminName} onChange={(e) => setAdminName(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }} />
               </div>
-
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ display: "block", fontWeight: 700, fontSize: 13, marginBottom: 4 }}>Email Address *</label>
-                <input
-                  type="email"
-                  required
-                  value={adminEmail}
-                  onChange={(e) => setAdminEmail(e.target.value)}
-                  placeholder="admin@example.com"
-                  style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }}
-                />
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Email</label>
+                <input type="email" required value={adminEmail} onChange={(e) => setAdminEmail(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }} />
               </div>
-
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ display: "block", fontWeight: 700, fontSize: 13, marginBottom: 4 }}>
-                  {editingAdminId ? "Password (leave blank to keep unchanged)" : "Password *"}
-                </label>
-                <input
-                  type="password"
-                  required={!editingAdminId}
-                  minLength={6}
-                  value={adminPassword}
-                  onChange={(e) => setAdminPassword(e.target.value)}
-                  placeholder="At least 6 characters"
-                  style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }}
-                />
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Password</label>
+                <input type="password" required={!editingAdminId} value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }} />
               </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 20 }}>
-                <div>
-                  <label style={{ display: "block", fontWeight: 700, fontSize: 13, marginBottom: 4 }}>Admin Role *</label>
-                  <select
-                    value={adminRole}
-                    onChange={(e) => setAdminRole(e.target.value as any)}
-                    style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC", background: "#FFF" }}
-                  >
-                    <option value="admin">Admin</option>
-                    <option value="super_admin">Super Admin</option>
-                  </select>
-                </div>
-
-                {editingAdminId && (
-                  <div>
-                    <label style={{ display: "block", fontWeight: 700, fontSize: 13, marginBottom: 4 }}>Status</label>
-                    <select
-                      value={adminStatus}
-                      onChange={(e) => setAdminStatus(e.target.value as any)}
-                      style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC", background: "#FFF" }}
-                    >
-                      <option value="active">Active</option>
-                      <option value="banned">Suspended</option>
-                    </select>
-                  </div>
-                )}
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Role</label>
+                <select value={adminRole} onChange={(e) => setAdminRole(e.target.value as any)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }}>
+                  <option value="admin">Admin</option>
+                  <option value="super_admin">Super Admin</option>
+                </select>
               </div>
-
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
-                <button type="button" onClick={() => setShowAdminModal(false)} className="btn btn-outline">
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-sun" style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <Save size={16} /> Save Admin Account
-                </button>
+              <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                <button type="button" onClick={() => setShowAdminModal(false)} className="btn btn-outline">Cancel</button>
+                <button type="submit" className="btn btn-sun"><Save size={16} /> Save Admin</button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* 3. Delete Confirmation Modals */}
-      {userToDelete && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, backdropFilter: "blur(4px)" }}>
-          <div style={{ background: "#FFF", borderRadius: 20, padding: 28, maxWidth: 440, width: "100%", textAlign: "center" }}>
-            <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#FEE2E2", color: "#EF4444", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-              <Trash2 size={28} />
-            </div>
-            <h3 style={{ fontSize: 18, fontWeight: 800, color: "#1E293B", margin: 0 }}>Permanently Delete User?</h3>
-            <p style={{ fontSize: 14, color: "#64748B", marginTop: 8 }}>
-              Are you sure you want to delete <strong>{userToDelete.full_name}</strong> ({userToDelete.email})? This action cannot be undone.
-            </p>
-            <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 20 }}>
-              <button onClick={() => setUserToDelete(null)} className="btn btn-outline" style={{ flex: 1 }}>Cancel</button>
-              <button onClick={handleConfirmDeleteUser} className="btn" style={{ flex: 1, background: "#EF4444", color: "#FFF", border: "none" }}>Confirm Delete</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {cropToDelete && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, backdropFilter: "blur(4px)" }}>
-          <div style={{ background: "#FFF", borderRadius: 20, padding: 28, maxWidth: 440, width: "100%", textAlign: "center" }}>
-            <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#FEE2E2", color: "#EF4444", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-              <Trash2 size={28} />
-            </div>
-            <h3 style={{ fontSize: 18, fontWeight: 800, color: "#1E293B", margin: 0 }}>Delete Crop Guide?</h3>
-            <p style={{ fontSize: 14, color: "#64748B", marginTop: 8 }}>
-              Are you sure you want to delete <strong>{cropToDelete.crop_name}</strong> from the crop guide database?
-            </p>
-            <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 20 }}>
-              <button onClick={() => setCropToDelete(null)} className="btn btn-outline" style={{ flex: 1 }}>Cancel</button>
-              <button onClick={handleConfirmDeleteCrop} className="btn" style={{ flex: 1, background: "#EF4444", color: "#FFF", border: "none" }}>Confirm Delete</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {adminToDelete && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, backdropFilter: "blur(4px)" }}>
-          <div style={{ background: "#FFF", borderRadius: 20, padding: 28, maxWidth: 440, width: "100%", textAlign: "center" }}>
-            <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#FEE2E2", color: "#EF4444", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-              <Trash2 size={28} />
-            </div>
-            <h3 style={{ fontSize: 18, fontWeight: 800, color: "#1E293B", margin: 0 }}>Delete Admin Account?</h3>
-            <p style={{ fontSize: 14, color: "#64748B", marginTop: 8 }}>
-              Are you sure you want to delete administrator <strong>{adminToDelete.full_name}</strong> ({adminToDelete.email})?
-            </p>
-            <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 20 }}>
-              <button onClick={() => setAdminToDelete(null)} className="btn btn-outline" style={{ flex: 1 }}>Cancel</button>
-              <button onClick={handleConfirmDeleteAdmin} className="btn" style={{ flex: 1, background: "#EF4444", color: "#FFF", border: "none" }}>Confirm Delete</button>
-            </div>
           </div>
         </div>
       )}

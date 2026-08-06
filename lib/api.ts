@@ -16,6 +16,11 @@ import type {
   ToolListing,
   PerenualPlantInfo,
   AdminActivityLog,
+  AdminOverviewStats,
+  DiseaseCatalogItem,
+  SystemNotificationItem,
+  UserFeedbackItem,
+  FAQItem,
   ValamUser,
   WeatherAdvisoryResponse,
 } from "./types";
@@ -250,6 +255,10 @@ export const ValamAPI = {
   },
 
   // Admin Management Endpoints
+  async getAdminStats(): Promise<AdminOverviewStats> {
+    return apiRequest<AdminOverviewStats>("/admin/stats", { auth: true });
+  },
+
   async getAdminUsers(params: { search?: string; category?: string; district?: string; status?: string; page?: number; per_page?: number } = {}): Promise<{ items: ValamUser[]; total: number; pages: number }> {
     const qp = new URLSearchParams();
     if (params.search) qp.set("search", params.search);
@@ -259,6 +268,30 @@ export const ValamAPI = {
     if (params.page) qp.set("page", String(params.page));
     if (params.per_page) qp.set("per_page", String(params.per_page));
     return apiRequest<{ items: ValamUser[]; total: number; pages: number }>(`/admin/users?${qp.toString()}`, { auth: true });
+  },
+
+  async createAdminUser(data: Partial<ValamUser> & { password?: string }): Promise<ValamUser> {
+    return apiRequest<ValamUser>("/admin/users", {
+      method: "POST",
+      auth: true,
+      body: data,
+    });
+  },
+
+  async updateAdminUserProfile(userId: number | string, data: Partial<ValamUser>): Promise<ValamUser> {
+    return apiRequest<ValamUser>(`/admin/users/${userId}`, {
+      method: "PUT",
+      auth: true,
+      body: data,
+    });
+  },
+
+  async resetUserPassword(userId: number | string, password: string): Promise<void> {
+    await apiRequest(`/admin/users/${userId}/reset-password`, {
+      method: "PUT",
+      auth: true,
+      body: { password },
+    });
   },
 
   async banUser(userId: number | string, status?: string): Promise<ValamUser> {
@@ -300,6 +333,126 @@ export const ValamAPI = {
     await apiRequest(`/admin/accounts/${id}`, {
       method: "DELETE",
       auth: true,
+    });
+  },
+
+  // Disease Catalog & Reports
+  async getDiseaseCatalog(): Promise<DiseaseCatalogItem[]> {
+    return apiRequest<DiseaseCatalogItem[]>("/admin/diseases", { auth: true });
+  },
+
+  async createDiseaseEntry(data: Partial<DiseaseCatalogItem>): Promise<DiseaseCatalogItem> {
+    return apiRequest<DiseaseCatalogItem>("/admin/diseases", {
+      method: "POST",
+      auth: true,
+      body: data,
+    });
+  },
+
+  async updateDiseaseEntry(id: number, data: Partial<DiseaseCatalogItem>): Promise<DiseaseCatalogItem> {
+    return apiRequest<DiseaseCatalogItem>(`/admin/diseases/${id}`, {
+      method: "PUT",
+      auth: true,
+      body: data,
+    });
+  },
+
+  async deleteDiseaseEntry(id: number): Promise<void> {
+    await apiRequest(`/admin/diseases/${id}`, {
+      method: "DELETE",
+      auth: true,
+    });
+  },
+
+  async getFarmerDiseaseReports(): Promise<DiseaseDiagnosis[]> {
+    return apiRequest<DiseaseDiagnosis[]>("/admin/disease-reports", { auth: true });
+  },
+
+  async updateFarmerDiseaseReport(id: number, data: { status?: string; recommendations?: string }): Promise<DiseaseDiagnosis> {
+    return apiRequest<DiseaseDiagnosis>(`/admin/disease-reports/${id}`, {
+      method: "PUT",
+      auth: true,
+      body: data,
+    });
+  },
+
+  // System Notifications
+  async getSystemNotifications(): Promise<SystemNotificationItem[]> {
+    return apiRequest<SystemNotificationItem[]>("/admin/notifications", { auth: true });
+  },
+
+  async createSystemNotification(data: Partial<SystemNotificationItem>): Promise<SystemNotificationItem> {
+    return apiRequest<SystemNotificationItem>("/admin/notifications", {
+      method: "POST",
+      auth: true,
+      body: data,
+    });
+  },
+
+  async deleteSystemNotification(id: number): Promise<void> {
+    await apiRequest(`/admin/notifications/${id}`, {
+      method: "DELETE",
+      auth: true,
+    });
+  },
+
+  // Feedback & FAQs
+  async getUserFeedback(): Promise<UserFeedbackItem[]> {
+    return apiRequest<UserFeedbackItem[]>("/admin/feedback", { auth: true });
+  },
+
+  async replyUserFeedback(id: number, data: { admin_reply?: string; status?: string }): Promise<UserFeedbackItem> {
+    return apiRequest<UserFeedbackItem>(`/admin/feedback/${id}`, {
+      method: "PUT",
+      auth: true,
+      body: data,
+    });
+  },
+
+  async deleteUserFeedback(id: number): Promise<void> {
+    await apiRequest(`/admin/feedback/${id}`, {
+      method: "DELETE",
+      auth: true,
+    });
+  },
+
+  async getAllAdminFAQs(): Promise<FAQItem[]> {
+    return apiRequest<FAQItem[]>("/admin/faqs/all", { auth: true });
+  },
+
+  async createFAQItem(data: Partial<FAQItem>): Promise<FAQItem> {
+    return apiRequest<FAQItem>("/admin/faqs", {
+      method: "POST",
+      auth: true,
+      body: data,
+    });
+  },
+
+  async updateFAQItem(id: number, data: Partial<FAQItem>): Promise<FAQItem> {
+    return apiRequest<FAQItem>(`/admin/faqs/${id}`, {
+      method: "PUT",
+      auth: true,
+      body: data,
+    });
+  },
+
+  async deleteFAQItem(id: number): Promise<void> {
+    await apiRequest(`/admin/faqs/${id}`, {
+      method: "DELETE",
+      auth: true,
+    });
+  },
+
+  // System Settings
+  async getSystemSettings(): Promise<Record<string, string>> {
+    return apiRequest<Record<string, string>>("/admin/settings", { auth: true });
+  },
+
+  async updateSystemSettings(data: Record<string, string>): Promise<void> {
+    await apiRequest("/admin/settings", {
+      method: "PUT",
+      auth: true,
+      body: data,
     });
   },
 
