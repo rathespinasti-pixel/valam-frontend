@@ -8,6 +8,26 @@ import type { WeatherAdvisoryResponse } from "@/lib/types";
 import { useLanguage } from "@/context/LanguageContext";
 import { CloudSun, Thermometer, Droplets, Wind, AlertTriangle, CheckCircle2 } from "lucide-react";
 
+function getLocalizedWeatherCondition(condition: string, lang: "en" | "ta" | "si" = "en"): string {
+  if (!condition) return "";
+  const c = condition.toLowerCase();
+  if (lang === "ta") {
+    if (c.includes("rain") || c.includes("shower")) return "மழை பெய்யும் வாய்ப்பு";
+    if (c.includes("cloud") || c.includes("overcast")) return "மேகமூட்டம்";
+    if (c.includes("sun") || c.includes("clear")) return "தெளிவான வெயில்";
+    if (c.includes("thunder") || c.includes("storm")) return "இடி மின்னலுடன் கூடிய மழை";
+    return "மிதமான தட்பவெப்பநிலை";
+  }
+  if (lang === "si") {
+    if (c.includes("rain") || c.includes("shower")) return "වැසි සහිත කාලගුණය";
+    if (c.includes("cloud") || c.includes("overcast")) return "වලාකුළු බරිත කාලගුණය";
+    if (c.includes("sun") || c.includes("clear")) return "පැහැදිලි අව් රශ්මිය";
+    if (c.includes("thunder") || c.includes("storm")) return "ගගුරුම් සහිත වැසි";
+    return "සාමාන්‍ය කාලගුණය";
+  }
+  return condition;
+}
+
 export default function WeatherPage() {
   const { t, language } = useLanguage();
   const [data, setData] = useState<WeatherAdvisoryResponse | null>(null);
@@ -80,7 +100,9 @@ export default function WeatherPage() {
                       {t("currentCondition")}
                     </div>
                     <h2 style={{ fontSize: 32, fontWeight: 800, margin: "4px 0", color: "#FFF" }}>{data.location}</h2>
-                    <div style={{ fontSize: 18, color: "#E8F5E9" }}>{data.current?.condition || "Partly Cloudy"}</div>
+                    <div style={{ fontSize: 18, color: "#E8F5E9" }}>
+                      {getLocalizedWeatherCondition(data.current?.condition || "Partly Cloudy", language)}
+                    </div>
                   </div>
 
                   <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>

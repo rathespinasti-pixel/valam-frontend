@@ -16,25 +16,85 @@ export interface ComputedLifecycle {
   nextStageStartDate: string | null;
 }
 
+export const CROP_NAME_TRANSLATIONS: Record<string, { ta: string; si: string; en: string }> = {
+  tomato: { en: "Tomato", ta: "தக்காளி", si: "තක්කාලි" },
+  eggplant: { en: "Eggplant (Brinjal)", ta: "கத்தரிக்காய்", si: "වම්බටු" },
+  brinjal: { en: "Eggplant (Brinjal)", ta: "கத்தரிக்காய்", si: "வම්බටු" },
+  "green chili": { en: "Green Chili", ta: "பச்சை மிளகாய்", si: "අමු මිරිස්" },
+  chili: { en: "Green Chili", ta: "பச்சை மிளகாய்", si: "අමු மිරිස්" },
+  okra: { en: "Okra (Ladies Finger)", ta: "வெண்டைக்காய்", si: "බණ්ඩක්කා" },
+  "ladies finger": { en: "Okra (Ladies Finger)", ta: "வெண்டைக்காய்", si: "බණ්ඩක්කා" },
+  "red onion": { en: "Red Onion", ta: "சின்ன வெங்காயம்", si: "රතු ළූණු" },
+  onion: { en: "Red Onion", ta: "சின்ன வெங்காயம்", si: "රතු ළූණු" },
+  paddy: { en: "Paddy (Rice)", ta: "நெல்", si: "වී වගාව" },
+  rice: { en: "Paddy (Rice)", ta: "நெல்", si: "වී වගාව" },
+};
+
+export function getLocalizedCropName(cropName: string, lang: "en" | "ta" | "si" = "en"): string {
+  if (!cropName) return "";
+  const key = cropName.toLowerCase().trim();
+  for (const k in CROP_NAME_TRANSLATIONS) {
+    if (key.includes(k)) {
+      return CROP_NAME_TRANSLATIONS[k][lang] || cropName;
+    }
+  }
+  return cropName;
+}
+
+export const STAGE_NAME_TRANSLATIONS: Record<string, { ta: string; si: string; en: string }> = {
+  "seedling": { en: "🌱 Seedling / Nursery", ta: "🌱 நாற்று / முளைப்பு நிலை", si: "🌱 පැළ / තවාන් අවස්ථාව" },
+  "nursery": { en: "🌱 Seedling / Nursery", ta: "🌱 நாற்று / முளைப்பு நிலை", si: "🌱 පැළ / තවාන් අවස්ථාව" },
+  "vegetative": { en: "🌿 Vegetative Growth", ta: "🌿 வளர்ச்சி நிலை", si: "🌿 වර්ධන අවස්ථාව" },
+  "flowering": { en: "🌸 Flowering Phase", ta: "🌸 பூக்கும் நிலை", si: "🌸 මල් පිපීමේ අවස්ථාව" },
+  "fruiting": { en: "🍅 Fruiting & Maturation", ta: "🍅 காய் / கனி காய்க்கும் நிலை", si: "🍅 ඵල හටගැනීමේ අවස්ථාව" },
+  "harvest": { en: "🧺 Harvesting & Picking", ta: "🧺 அறுவடை நிலை", si: "🧺 අස්වැන්න නෙලීම" },
+};
+
+export function getLocalizedStageName(stageName: string, lang: "en" | "ta" | "si" = "en"): string {
+  if (!stageName) return "";
+  const key = stageName.toLowerCase().trim();
+  for (const k in STAGE_NAME_TRANSLATIONS) {
+    if (key.includes(k)) {
+      return STAGE_NAME_TRANSLATIONS[k][lang] || stageName;
+    }
+  }
+  return stageName;
+}
+
 // Fallback stage generator for crops without DB guides
-export function getDefaultStagesForCrop(cropName: string): CropStageAdvice[] {
+export function getDefaultStagesForCrop(cropName: string, lang: "en" | "ta" | "si" = "en"): CropStageAdvice[] {
+  const isTa = lang === "ta";
+  const isSi = lang === "si";
+
   return [
     {
       stage_id: 1,
-      stage_name: "Seedling / Nursery",
+      stage_name: isTa ? "🌱 நாற்று / முளைப்பு நிலை" : isSi ? "🌱 පැළ / තවාන් අවස්ථාව" : "🌱 Seedling / Nursery",
       icon: "🌱",
       start_day: 1,
       end_day: 20,
-      description: `Initial nursery prep and germination phase for ${cropName}.`,
-      expected_appearance: "Tender young green shoots with initial true leaves.",
-      daily_tasks: ["Water early morning with gentle spray", "Shield from harsh midday sun", "Inspect seedlings for fungal rot"],
-      water_requirement: "1.0 - 1.5 L/m² daily",
-      fertilizer_recommendation: "Basal organic compost & light liquid fertilizer",
+      description: isTa
+        ? `${cropName} பயிரின் ஆரம்ப நாற்று வளர்ப்பு மற்றும் முளைப்பு நிலை.`
+        : isSi
+        ? `${cropName} වගාවේ ආරම්භක තවාන් සහ ප්‍රරෝහන අවස්ථාව.`
+        : `Initial nursery prep and germination phase for ${cropName}.`,
+      expected_appearance: isTa
+        ? "மென்மையான பச்சை முளைகள் மற்றும் முதல் இலைகள் தோன்றுதல்."
+        : isSi
+        ? "ළපටි කොළ පැළ සහ මුල් පත්‍ර හටගැනීම."
+        : "Tender young green shoots with initial true leaves.",
+      daily_tasks: isTa
+        ? ["காலை வேளையில் மிதமான நீர் தெளிக்கவும்", "நண்பகல் கடும் வெயிலில் இருந்து பாதுகாக்கவும்", "பூஞ்சை தாக்குதலை கண்காணிக்கவும்"]
+        : isSi
+        ? ["උදෑසන කාලයේදී මෘදු ලෙස ජලය ඉසින්න", "දහවල් තද අව්වෙන් ආරක්ෂා කරන්න", "දිලීර රෝග තිබේදැයි පරීක්ෂා කරන්න"]
+        : ["Water early morning with gentle spray", "Shield from harsh midday sun", "Inspect seedlings for fungal rot"],
+      water_requirement: isTa ? "தினசரி 1.0 - 1.5 L/m²" : isSi ? "දිනපතා 1.0 - 1.5 L/m²" : "1.0 - 1.5 L/m² daily",
+      fertilizer_recommendation: isTa ? "இயற்கை மட்கிய உரம் மற்றும் திரவ உரம்" : isSi ? "කොම්පෝස්ට් පොහොර සහ දියර පොහොර" : "Basal organic compost & light liquid fertilizer",
       image_url: "https://images.unsplash.com/photo-1592417817098-8f3d69a0a19e?auto=format&fit=crop&w=600&q=80",
     },
     {
       stage_id: 2,
-      stage_name: "Vegetative Growth",
+      stage_name: isTa ? "🌿 வளர்ச்சி நிலை" : isSi ? "🌿 වර්ධන අවස්ථාව" : "🌿 Vegetative Growth",
       icon: "🌿",
       start_day: 21,
       end_day: 45,

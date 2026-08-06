@@ -8,7 +8,7 @@ import { Footer } from "@/components/layout/Footer";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { ValamAPI } from "@/lib/api";
 import type { ValamUser, Crop, CropGuide, WeatherAdvisoryResponse, PerenualPlantInfo } from "@/lib/types";
-import { computeLifecycle, ComputedLifecycle } from "@/lib/lifecycle";
+import { computeLifecycle, ComputedLifecycle, getLocalizedCropName, getLocalizedStageName } from "@/lib/lifecycle";
 import { useLanguage } from "@/context/LanguageContext";
 import {
   Sprout,
