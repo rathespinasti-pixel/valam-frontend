@@ -234,11 +234,11 @@ export const ValamAPI = {
   },
 
   // AI Assistant & Disease Diagnosis
-  async askChatbot(question: string, category?: string): Promise<ChatbotEntry> {
+  async askChatbot(question: string, category?: string, language?: string): Promise<ChatbotEntry> {
     return apiRequest<ChatbotEntry>("/chatbot/ask", {
       method: "POST",
       auth: true,
-      body: { question, category },
+      body: { question, category, language },
     });
   },
 

@@ -1,63 +1,38 @@
-import type { Metadata } from "next";
-import Image from "next/image";
+"use client";
+
 import Link from "next/link";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Reveal } from "@/components/ui/Reveal";
 import { StatCounter } from "@/components/ui/StatCounter";
 import { TestimonialSlider } from "@/components/ui/TestimonialSlider";
-import { MarketplacePreviewGrid } from "@/components/home/MarketplacePreviewGrid";
-import { FeatureGrid } from "@/components/home/FeatureGrid";
-import { MarketplaceCtaButton } from "@/components/home/MarketplaceCtaButton";
 import { ChatPreview } from "@/components/home/ChatPreview";
-
-export const metadata: Metadata = {
-  title: "Valam (வளம்) — அறிவார்ந்த விவசாயத்தின் டிஜிட்டல் துணை",
-  description:
-    "Valam is an all-in-one smart farming app: real-time weather alerts, AI plant-disease detection, a seeds & fertilizer marketplace and a farmer community — built for small and medium farmers.",
-};
-
-const MARQUEE_ITEMS = [
-  { icon: "fa-cloud-sun", label: "Weather Forecast & Farming Alerts" },
-  { icon: "fa-seedling", label: "Crop Guides — Vegetables, Fruits, Rice & Spices" },
-  { icon: "fa-magnifying-glass", label: "AI Chatbot & Plant Disease Detection" },
-  { icon: "fa-solar-panel", label: "Irrigation & Solar Farming Guidance" },
-  { icon: "fa-store", label: "Seeds & Fertilizer Marketplace" },
-];
-
-const PROBLEMS = [
-  { icon: "fa-cloud-bolt", title: "No timely weather data", text: "Sudden rain, drought or wind damages crops because alerts don't reach farmers in time." },
-  { icon: "fa-bug", title: "Late disease detection", text: "Pests and crop diseases are usually spotted only after serious damage has spread." },
-  { icon: "fa-store-slash", title: "Limited market access", text: "Middlemen reduce profits, and quality seeds or fertilizer are hard to source reliably." },
-  { icon: "fa-file-circle-exclamation", title: "Missed govt. schemes", text: "Subsidy programs and agricultural policy updates rarely reach farmers on time." },
-  { icon: "fa-bolt", title: "High irrigation cost", text: "Rising electricity and fuel costs make traditional irrigation expensive and wasteful." },
-  { icon: "fa-comments", title: "No expert network", text: "Farmers have few ways to reach agricultural experts or learn from each other." },
-];
-
-
-const FEATURES = [
-  { num: "01", href: "/chatbot?topic=weather", img: "/images/weather-alerts.jpg", alt: "Farmer checking AI weather forecast in the field", icon: "fa-cloud-sun-rain", title: "Weather Forecast & Farming Alerts", text: "District and village-level forecasts with irrigation and rainfall warnings sent straight to your phone.", cta: "Chat about this" },
-  { num: "02", href: "/crop-simulator", img: "/images/crop-guide.jpg", alt: "Fresh harvested vegetables and crops", icon: "fa-book-open", title: "Crop Guides — Vegetables, Fruits, Rice & Spices", text: "Step-by-step growing guides, plus an AI Digital Twin that simulates your crop cycle in 30 seconds.", cta: "Simulate Your Crop Twin" },
-  { num: "03", href: "/pest-radar", img: "/images/ai-chatbot.jpg", alt: "Farmer scanning a crop leaf with the AI chatbot app", icon: "fa-camera-retro", title: "AI Chatbot & Plant Disease Detection", text: "Ask a farming question or record insect sounds for instant pest identification.", cta: "Detect a pest" },
-  { num: "04", href: "/irrigation-solar", img: "/images/irrigation-solar.jpg", alt: "Solar-powered irrigation pump watering crops", icon: "fa-solar-panel", title: "Irrigation & Solar Farming Guidance", text: "An AI Solar Farming Assistant — price tracking, system recommendations, subsidy checks and daily setup guidance.", cta: "Try the Solar Assistant" },
-  { num: "05", href: "/chatbot?topic=marketplace", img: "/images/marketplace.jpg", alt: "Assorted vegetable seed packets", icon: "fa-store", title: "Seeds & Fertilizer Marketplace", text: "Buy and sell seeds, fertilizer and organic products directly — no middlemen involved.", cta: "Chat about this" },
-];
-
-const STEPS = [
-  { n: 1, title: "Create your farm profile", text: "Add your district, crop type and land size — takes under two minutes." },
-  { n: 2, title: "Get daily alerts", text: "Receive weather and irrigation notifications tailored to your exact location." },
-  { n: 3, title: "Ask the AI chatbot", text: "Upload a crop photo or ask a farming question, anytime, in Tamil or English." },
-  { n: 4, title: "Buy & sell on the marketplace", text: "Order seeds and fertilizer, or list your own produce for sale — direct, no middlemen." },
-];
-
-const TESTIMONIALS = [
-  { stars: 5, quote: "The weather alert saved my paddy field before last month's unexpected rain. I moved harvesting up by two days.", initial: "K", name: "Kumaravel S.", role: "Paddy Farmer, Vavuniya" },
-  { stars: 5, quote: "I uploaded a photo of a diseased leaf and got a diagnosis in seconds. It used to take days to find an expert.", initial: "R", name: "Ranjini P.", role: "Home Gardener, Jaffna" },
-  { stars: 4.5, quote: "Selling directly on the marketplace cut out the middleman — my margins improved noticeably this season.", initial: "M", name: "Murugan T.", role: "Vegetable Farmer, Anuradhapura" },
-  { stars: 5, quote: "The solar pump subsidy guide walked me through the whole application. I wouldn't have found it otherwise.", initial: "S", name: "Selvi A.", role: "Smallholder Farmer, Batticaloa" },
-];
+import { useLanguage } from "@/context/LanguageContext";
+import { CloudSun, BookOpen, Camera, Droplet, Store, CheckCircle, ShieldCheck } from "lucide-react";
 
 export default function HomePage() {
+  const { t, language } = useLanguage();
+
+  const MARQUEE_ITEMS = [
+    { icon: "fa-cloud-sun", label: language === "ta" ? "வானிலை முன்னறிவிப்பு & எச்சரிக்கைகள்" : language === "si" ? "කාලගුණ අනාවැකි සහ අනතුරු අඟවීම්" : "Weather Forecast & Farming Alerts" },
+    { icon: "fa-seedling", label: language === "ta" ? "பயிர் வழிகாட்டிகள் — காய்கறிகள் & தானியங்கள்" : language === "si" ? "වගා මාර්ගෝපදේශ — එළවළු සහ ධාන්‍ය" : "Crop Guides — Vegetables & Grains" },
+    { icon: "fa-magnifying-glass", label: language === "ta" ? "AI அரட்டை & பயிர் நோய் கண்டறிதல்" : language === "si" ? "AI සහකරු සහ රෝග හඳුනාගැනීම" : "AI Chatbot & Plant Disease Detection" },
+    { icon: "fa-solar-panel", label: language === "ta" ? "நீர்ப்பாசன திட்டமிடுதல் & வழிகாட்டல்" : language === "si" ? "ජලසම්පාදන සැලසුම්කරණය" : "Smart Irrigation Planning" },
+  ];
+
+  const STEPS = [
+    { n: 1, title: language === "ta" ? "பண்ணை சுயவிவரத்தை உருவாக்கவும்" : language === "si" ? "ගොවිපළ ගිණුම සාදන්න" : "Create your farm profile", text: language === "ta" ? "உங்கள் மாவட்டம், பயிர் வகை மற்றும் நில அளவை சேர்க்கவும்." : language === "si" ? "ඔබේ දිස්ත්‍රික්කය සහ ඉඩම් ප්‍රමාණය එක් කරන්න." : "Add your district, crop type and land size in two minutes." },
+    { n: 2, title: language === "ta" ? "தினசரி விவசாய அறிவிப்புகளைப் பெறுக" : language === "si" ? "දෛනික වගා උපදෙස් ලබා ගන්න" : "Get daily farming alerts", text: language === "ta" ? "உங்கள் இருப்பிடத்திற்கு ஏற்ப வானிலை மற்றும் பாசன அறிவிப்புகளைப் பெறுங்கள்." : language === "si" ? "ඔබේ ස්ථානයට ගැලපෙන කාලගුණ අනතුරු ඇඟවීම් ලබා ගන්න." : "Receive weather and irrigation notifications tailored to your location." },
+    { n: 3, title: language === "ta" ? "AI விவசாய துணையிடம் கேட்கவும்" : language === "si" ? "AI සහකරුගෙන් ප්‍රශ්න අසන්න" : "Ask the AI assistant", text: language === "ta" ? "புகைப்படத்தைப் பதிவேற்றி நோயைக் கண்டறியவும் அல்லது கேள்விகளைக் கேட்கவும்." : language === "si" ? "ඡායාරූපයක් එක් කර රෝග හඳුනා ගන්න නැතහොත් ප්‍රශ්න අසන්න." : "Upload a crop photo or ask any farming question in Tamil, Sinhala, or English." },
+    { n: 4, title: language === "ta" ? "வளமான விளைச்சலைப் பெறுக" : language === "si" ? "සාර්ථක අස්වැන්නක් ලබා ගන්න" : "Achieve higher yields", text: language === "ta" ? "பரிந்துரைக்கப்பட்ட உரங்கள் மற்றும் நீர் அட்டவணையைப் பின்பற்றி லாபத்தைப் பெருக்கவும்." : language === "si" ? "නිර්දේශිත පොහොර සහ ජලසම්පාදන කාලසටහන භාවිතා කරන්න." : "Follow smart irrigation and fertilizer schedules for high profit." },
+  ];
+
+  const TESTIMONIALS = [
+    { stars: 5, quote: "The weather alert saved my paddy field before last month's unexpected rain. I moved harvesting up by two days.", initial: "K", name: "Kumaravel S.", role: "Paddy Farmer, Vavuniya" },
+    { stars: 5, quote: "I uploaded a photo of a diseased leaf and got a diagnosis in seconds. It used to take days to find an expert.", initial: "R", name: "Ranjini P.", role: "Home Gardener, Jaffna" },
+    { stars: 5, quote: "The smart irrigation calculator helped me estimate my pipe requirements accurately for my brinjal field.", initial: "M", name: "Murugan T.", role: "Vegetable Farmer, Anuradhapura" },
+  ];
+
   return (
     <>
       <Navbar active="home" />
@@ -66,21 +41,28 @@ export default function HomePage() {
         <div className="container hero-grid">
           <div>
             <span className="eyebrow">
-              <i className="fa-solid fa-seedling" aria-hidden="true" /> Smart Farming System
+              <i className="fa-solid fa-seedling" aria-hidden="true" /> {t("smartFarming")}
             </span>
             <h1 style={{ marginTop: 18 }}>
-              Weather, disease alerts &amp; a marketplace — <em>all under one leaf.</em>
+              {language === "ta"
+                ? "வானிலை, நோய் எச்சரிக்கைகள் & நீர்ப்பாசனம் — ஒரே தளத்தில்."
+                : language === "si"
+                ? "කාලගුණය, රෝග අනතුරු ඇඟවීම් සහ ජලසම්පාදනය — එකම ස්ථානයකින්."
+                : "Weather, disease alerts & smart irrigation — all under one leaf."}
             </h1>
             <p className="lead">
-              Valam (வளம்) brings hyper-local weather warnings, AI-powered plant disease detection, and a trusted
-              seeds &amp; fertilizer marketplace to every small and medium farmer, in Tamil and English.
+              {language === "ta"
+                ? "வளம் (Valam) வட மாகாண விவசாயிகளுக்காக துல்லியமான வானிலை எச்சரிக்கைகள், AI நோய் பரிசோதனை மற்றும் நீர்ப்பாசன வழிகாட்டுதலை வழங்குகிறது."
+                : language === "si"
+                ? "වළම් (Valam) උතුරු පළාතේ ගොවීන් සඳහා කාලගුණ අනතුරු ඇඟවීම්, AI රෝග විනිශ්චය සහ ජලසම්පාදන මාර්ගෝපදේශ ලබා දෙයි."
+                : "Valam (வளம்) brings hyper-local weather warnings, AI-powered plant disease detection, and smart irrigation planning to small and medium farmers in Tamil, Sinhala, and English."}
             </p>
             <div className="hero-actions">
-              <Link href="/services" className="btn btn-primary">
-                <i className="fa-solid fa-mobile-screen-button" aria-hidden="true" /> Explore Features
+              <Link href="/dashboard" className="btn btn-sun">
+                {t("dashboard")}
               </Link>
-              <Link href="/about" className="btn btn-outline">
-                How Valam Works
+              <Link href="/diagnosis" className="btn btn-outline">
+                {t("plantDiagnosis")}
               </Link>
             </div>
             <div className="hero-stats">
@@ -89,12 +71,12 @@ export default function HomePage() {
                 <span>Districts covered</span>
               </div>
               <div>
-                <b><StatCounter target={5} /></b>
-                <span>Core farming tools</span>
+                <b><StatCounter target={100} suffix="%" /></b>
+                <span>Localized i18n</span>
               </div>
               <div>
                 <b><StatCounter target={24} suffix="/7" /></b>
-                <span>AI chatbot support</span>
+                <span>AI Chatbot</span>
               </div>
             </div>
           </div>
@@ -102,7 +84,7 @@ export default function HomePage() {
             <div className="hero-card">
               <div className="row">
                 <div className="tag">
-                  <i className="fa-solid fa-cloud-sun-rain" aria-hidden="true" /> Today&apos;s Weather — Vavuniya
+                  <i className="fa-solid fa-cloud-sun-rain" aria-hidden="true" /> Weather — Vavuniya
                 </div>
                 <div className="val">28°C</div>
               </div>
@@ -110,11 +92,11 @@ export default function HomePage() {
                 <div className="tag">
                   <i className="fa-solid fa-droplet" aria-hidden="true" /> Irrigation Advisory
                 </div>
-                <div className="val">Evening slot</div>
+                <div className="val">Evening Slot</div>
               </div>
               <div className="row">
                 <div className="tag">
-                  <i className="fa-solid fa-leaf" aria-hidden="true" /> Disease Risk (Rice)
+                  <i className="fa-solid fa-leaf" aria-hidden="true" /> Disease Risk
                 </div>
                 <div className="val">Low</div>
               </div>
@@ -142,20 +124,10 @@ export default function HomePage() {
         </svg>
       </div>
 
-
-      <section className="section section-light" id="features">
-        <div className="container">
-          <Reveal className="section-head">
-            <h2 style={{ marginTop: 14 }}>Six tools. One green app.</h2>
-            <p>Everything a farmer needs — from the first forecast to the final sale — in a single, easy-to-use platform.</p>
-          </Reveal>
-          <FeatureGrid />
-        </div>
-      </section>
-
+      {/* How It Works Steps (Cleaned Layout) */}
       <section className="section">
         <div className="container">
-          <Reveal className="section-head">
+          <Reveal className="section-head" style={{ textAlign: "center", marginInline: "auto" }}>
             <span className="eyebrow">How It Works</span>
             <h2 style={{ marginTop: 14 }}>From sign-up to harvest, in four steps</h2>
           </Reveal>
@@ -172,30 +144,39 @@ export default function HomePage() {
         </div>
       </section>
 
-
+      {/* AI Chatbot Hero Banner */}
       <section className="section section-dark">
         <div className="container two-col">
           <Reveal>
-            <span className="eyebrow" style={{ background: "rgba(255,255,255,.1)", color: "var(--sunrise-2)" }}>
+            <span className="eyebrow" style={{ background: "rgba(255,255,255,.1)", color: "#FDE047" }}>
               AI Chatbot
             </span>
-            <h2 style={{ marginTop: 14, color: "#fff" }}>Ask Valam anything about your farm</h2>
+            <h2 style={{ marginTop: 14, color: "#fff" }}>
+              {language === "ta"
+                ? "உங்கள் விவசாய கேள்விகளுக்கு AI துணையிடம் உடனடி பதில் பெறுங்கள்"
+                : language === "si"
+                ? "ඔබේ ගොවිපළ ගැටළු සඳහා AI සහකරුගෙන් ක්ෂණික පිළිතුරු ලබා ගන්න"
+                : "Ask Valam AI anything about your farm"}
+            </h2>
             <p style={{ marginTop: 14, color: "#C4D8CC", maxWidth: 480 }}>
-              Our chatbot answers farming questions and detects plant diseases from a photo — available in Tamil and
-              English, day or night.
+              {language === "ta"
+                ? "பயிர் சாகுபடி, பூச்சி நோய்கள் மற்றும் உர அட்டவணை பற்றிய தகவல்களை தமிழ், சிங்களம் மற்றும் ஆங்கிலத்தில் அறியலாம்."
+                : language === "si"
+                ? "වගා පාලනය, පලිබෝධ සහ පොහොර පිළිබඳ උපදෙස් දෙමළ, සිංහල සහ ඉංග්‍රීසි භාෂාවලින් ලබා ගත හැක."
+                : "Our AI assistant answers farming queries and diagnoses crop diseases from photos — available 24/7 in Tamil, Sinhala, and English."}
             </p>
             <ul style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 12 }}>
-              <li style={{ color: "#EAF3EC", fontSize: ".94rem" }}>
-                <i className="fa-solid fa-check" style={{ color: "var(--leaf-light)", marginRight: 10 }} aria-hidden="true" />
+              <li style={{ color: "#EAF3EC", fontSize: ".94rem", display: "flex", alignItems: "center" }}>
+                <CheckCircle size={18} color="#10B981" style={{ marginRight: 10 }} />
                 Instant answers on crops, pests and weather
               </li>
-              <li style={{ color: "#EAF3EC", fontSize: ".94rem" }}>
-                <i className="fa-solid fa-check" style={{ color: "var(--leaf-light)", marginRight: 10 }} aria-hidden="true" />
+              <li style={{ color: "#EAF3EC", fontSize: ".94rem", display: "flex", alignItems: "center" }}>
+                <CheckCircle size={18} color="#10B981" style={{ marginRight: 10 }} />
                 Photo-based disease diagnosis
               </li>
-              <li style={{ color: "#EAF3EC", fontSize: ".94rem" }}>
-                <i className="fa-solid fa-check" style={{ color: "var(--leaf-light)", marginRight: 10 }} aria-hidden="true" />
-                Works in Tamil and English
+              <li style={{ color: "#EAF3EC", fontSize: ".94rem", display: "flex", alignItems: "center" }}>
+                <CheckCircle size={18} color="#10B981" style={{ marginRight: 10 }} />
+                Supports Tamil (தமிழ்), Sinhala (සිංහල) &amp; English
               </li>
             </ul>
           </Reveal>
@@ -205,24 +186,26 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Testimonials */}
       <section className="section">
         <div className="container">
           <Reveal className="section-head" style={{ marginInline: "auto", textAlign: "center" }}>
             <span className="eyebrow">Farmer Voices</span>
-            <h2 style={{ marginTop: 14 }}>Trusted by farmers across districts</h2>
+            <h2 style={{ marginTop: 14 }}>Trusted by farmers across Sri Lanka</h2>
           </Reveal>
           <TestimonialSlider items={TESTIMONIALS} />
         </div>
       </section>
 
+      {/* Call to Action */}
       <section className="section section-light">
         <div className="container">
           <Reveal className="cta-strip">
             <div>
               <h3>Ready to grow smarter?</h3>
-              <p>Join farmers already using Valam for weather, disease alerts and trading.</p>
+              <p>Join farmers using Valam for weather, disease alerts and smart irrigation.</p>
             </div>
-            <Link href="/contact" className="btn btn-sun">
+            <Link href="/dashboard" className="btn btn-sun">
               Get Started Today
             </Link>
           </Reveal>

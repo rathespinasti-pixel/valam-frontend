@@ -33,6 +33,7 @@ export const metadata: Metadata = {
 };
 
 import { LanguageProvider } from "@/context/LanguageContext";
+import { FloatingChatbot } from "@/components/ui/FloatingChatbot";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <LanguageProvider>
           {children}
+          <FloatingChatbot />
           <BackToTop />
           <ScrollRevealProvider />
         </LanguageProvider>

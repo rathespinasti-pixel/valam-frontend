@@ -89,16 +89,23 @@ export interface TranslationDictionary {
 
   // Weather Rules
   weatherAdvisory: string;
+  weatherHeroSubtitle: string;
+  selectLocation: string;
   currentTemp: string;
   rainProbability: string;
   humidity: string;
   windSpeed: string;
   uvIndex: string;
   sevenDayForecast: string;
+  fiveDayForecast: string;
   weatherAlerts: string;
   skipWateringRain: string;
   waterCropSunny: string;
   waterCoolerHours: string;
+  actionableFarmingAdvice: string;
+  fetchingWeather: string;
+  couldNotLoadWeather: string;
+  currentCondition: string;
 
   // Calculations & Guidance & Smart Irrigation
   smartIrrigationPlanner: string;
@@ -326,16 +333,23 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
     stageDetails: "Stage Details & Recommendations",
 
     weatherAdvisory: "Northern Province Weather Advisory",
+    weatherHeroSubtitle: "Real-time weather data converted into actionable farming decisions: spray alerts, irrigation timing, and crop heat stress warnings.",
+    selectLocation: "Select Location",
     currentTemp: "Current Temperature",
     rainProbability: "Rain Probability",
     humidity: "Humidity",
     windSpeed: "Wind Speed",
     uvIndex: "UV Index",
     sevenDayForecast: "7-Day Weather Forecast",
+    fiveDayForecast: "5-Day Weather Forecast",
     weatherAlerts: "Weather Alerts",
     skipWateringRain: "Raining today — Skip watering.",
     waterCropSunny: "Sunny condition — Water crop as scheduled.",
     waterCoolerHours: "High temperature — Water during early morning or late evening.",
+    actionableFarmingAdvice: "Actionable Farming Advice for Today",
+    fetchingWeather: "Fetching weather forecast...",
+    couldNotLoadWeather: "Could not load weather advisory data.",
+    currentCondition: "Current Weather Condition",
 
     // Calculations & Guidance & Smart Irrigation
     smartIrrigationPlanner: "Smart Irrigation Planner",
@@ -558,16 +572,23 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
     stageDetails: "வளர்ச்சி நிலை விவரங்கள் & ஆலோசனைகள்",
 
     weatherAdvisory: "வட மாகாண வானிலை வழிகாட்டி",
+    weatherHeroSubtitle: "நிகழ்நேர வானிலை தரவு விவசாய முடிவுகளாக மாற்றப்படுகிறது: மருந்து தெளித்தல், பாசன நேரம் மற்றும் வெப்ப எச்சரிக்கைகள்.",
+    selectLocation: "இடத்தைத் தேர்ந்தெடுக்கவும்",
     currentTemp: "தற்போதைய வெப்பநிலை",
     rainProbability: "மழை வாய்ப்பு",
     humidity: "ஈரப்பதம்",
     windSpeed: "காற்றின் வேகம்",
     uvIndex: "UV குறியீடு",
     sevenDayForecast: "7 நாள் வானிலை முன்னறிவிப்பு",
+    fiveDayForecast: "5 நாள் வானிலை முன்னறிவிப்பு",
     weatherAlerts: "வானிலை எச்சரிக்கைகள்",
     skipWateringRain: "இன்று மழை பொழிகிறது — நீர்ப்பாசனத்தை தவிர்க்கவும்.",
     waterCropSunny: "வெயில் உள்ள காலநிலை — திட்டமிட்டபடி நீர் பாய்ச்சவும்.",
     waterCoolerHours: "அதிக வெப்பநிலை — காலை அல்லது மாலை வேளையில் நீர் பாய்ச்சவும்.",
+    actionableFarmingAdvice: "இன்றைய விவசாய ஆலோசனைகள்",
+    fetchingWeather: "வானிலை விவரங்கள் பெறப்படுகின்றன...",
+    couldNotLoadWeather: "வானிலை விபரங்களைப் பெற முடியவில்லை.",
+    currentCondition: "தற்போதைய வானிலை நிலை",
 
     // Calculations & Guidance & Smart Irrigation
     smartIrrigationPlanner: "ஸ்மார்ட் நீர்ப்பாசன திட்டமிடுபவர்",
@@ -790,16 +811,23 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
     stageDetails: "අවධි විස්තර සහ උපදෙස්",
 
     weatherAdvisory: "උතුරු පළාත් කාලගුණ උපදෙස්",
+    weatherHeroSubtitle: "තථ්‍ය කාලීන කාලගුණ දත්ත ගොවිතැන් තීරණ බවට පරිවර්තනය කෙරේ: පොහොර යෙදීම්, ජලසම්පාදන වේලාවන් සහ උෂ්ණත්ව අනතුරු ඇඟවීම්.",
+    selectLocation: "ස්ථානය තෝරන්න",
     currentTemp: "වත්මන් උෂ්ණත්වය",
     rainProbability: "වැසි සම්භාවිතාව",
     humidity: "ආර්ද්‍රතාවය",
     windSpeed: "සුළඟේ වේගය",
     uvIndex: "UV දර්ශකය",
     sevenDayForecast: "දින 7 කාලගුණ අනාවැකිය",
+    fiveDayForecast: "දින 5 කාලගුණ අනාවැකිය",
     weatherAlerts: "කාලගුණ අනතුරු ඇඟවීම්",
     skipWateringRain: "අද වැසි සහිතයි — ජලය දැමීම මඟහරින්න.",
-    waterCropSunny: "අව්ව සහිත කාලගුණය — නියමිත පරිදි ජලය දමන්න.",
+    waterCropSunny: "අව්ව සහිත කාලගුණය — නியමිත පරිදි ජලය දමන්න.",
     waterCoolerHours: "තද උෂ්ණත්වය — උදෑසන හෝ සවස ජලය දමන්න.",
+    actionableFarmingAdvice: "අද දින ගොවිතැන් උපදෙස්",
+    fetchingWeather: "කාලගුණ දත්ත ලබා ගනිමින් පවතී...",
+    couldNotLoadWeather: "කාලගුණ දත්ත ලබා ගැනීමට නොහැකි විය.",
+    currentCondition: "වත්මන් කාලගුණ තත්ත්වය",
 
     // Calculations & Guidance & Smart Irrigation
     smartIrrigationPlanner: "බුද්ධිමත් ජලසම්පාදන සැලසුම්කරු",
