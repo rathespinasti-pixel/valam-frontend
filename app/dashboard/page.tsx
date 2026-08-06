@@ -12,25 +12,19 @@ import { computeLifecycle, ComputedLifecycle, getLocalizedCropName, getLocalized
 import { useLanguage } from "@/context/LanguageContext";
 import {
   Sprout,
-  Sun,
   CloudSun,
-  CloudRain,
   Droplets,
-  Wind,
-  Bot,
-  ChevronRight,
-  AlertTriangle,
-  ShieldCheck,
   Calendar,
-  Thermometer,
-  Eye,
   CheckCircle2,
   BellRing,
   Clock,
   Zap,
-  Sparkles,
   Layers,
   ArrowRight,
+  BookOpen,
+  Bot,
+  Stethoscope,
+  ShoppingBag,
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -55,6 +49,11 @@ export default function DashboardPage() {
       try {
         const u = await ValamAPI.me();
         setUser(u);
+
+        if (u.role === "admin" || u.role === "super_admin") {
+          router.push("/admin");
+          return;
+        }
 
         const [cropsRes, guidesRes, weatherRes] = await Promise.allSettled([
           ValamAPI.getCrops(),
@@ -150,34 +149,98 @@ export default function DashboardPage() {
     <AuthGuard>
       <Navbar active="dashboard" pageTitle={t("dashboard")} />
 
-      {/* Hero Section */}
+      {/* Clean Welcome Banner */}
       <section className="page-hero" style={{ padding: "32px 0" }}>
-        <div
-          className="container"
-          style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 20 }}
-        >
-          <div>
-            <div className="crumb">Northern Province Farmer Portal / Daily Assistant</div>
-            <h1 style={{ fontSize: 32 }}>Ayubowan / Vanakkam, {user?.full_name || "Farmer"}!</h1>
-            <p style={{ marginTop: 8, color: "#CFE3D5", fontSize: 16 }}>
-              📍 {user?.district || "Vavuniya"} · {user?.ds_division || "Vavuniya Town"} · {user?.farming_category || "Farmer"} ({user?.land_size || 1} {user?.land_size_unit || "Acres"})
-            </p>
+        <div className="container">
+          <div className="crumb" style={{ fontSize: "clamp(0.75rem, 1.8vw, 0.85rem)" }}>
+            Northern Province Farmer Portal / Daily Assistant
           </div>
-          <div style={{ display: "flex", gap: 12 }}>
-            {activeCrop && (
-              <Link href={`/crops/lifecycle?crop_id=${activeCrop.id}`} className="btn btn-sun" style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <Layers size={18} /> View Full Crop Lifecycle
-              </Link>
-            )}
-            <Link href="/crops" className="btn btn-outline" style={{ background: "rgba(255,255,255,0.1)", color: "#FFF", borderColor: "#FFF" }}>
-              + {t("addCrop")}
-            </Link>
-          </div>
+          <h1 style={{ fontSize: "clamp(1.5rem, 3.5vw, 2.2rem)", lineHeight: 1.2, marginTop: 4 }}>
+            Ayubowan / Vanakkam, {user?.full_name || "Farmer"}!
+          </h1>
+          <p style={{ marginTop: 8, color: "#CFE3D5", fontSize: "clamp(0.88rem, 2vw, 1rem)", lineHeight: 1.4 }}>
+            📍 {user?.district || "Vavuniya"} · {user?.ds_division || "Vavuniya Town"} · {user?.farming_category || "Farmer"} ({user?.land_size || 1} {user?.land_size_unit || "Acres"})
+          </p>
         </div>
       </section>
 
-      <section className="section" style={{ background: "#F7F9F7" }}>
+      <section className="section" style={{ background: "#F7F9F7", paddingTop: 28 }}>
         <div className="container">
+          {/* Dedicated Dashboard Action Buttons Section */}
+          <div className="dashboard-actions-panel">
+            <div className="dashboard-actions-header">
+              <span className="dashboard-actions-title">
+                <Zap size={18} color="#10B981" /> Farmer Quick Actions
+              </span>
+            </div>
+
+            <div className="dashboard-actions-grid">
+              <Link href="/crops" className="dashboard-action-btn">
+                <div className="dashboard-action-icon">
+                  <Sprout size={20} />
+                </div>
+                <span>+ {t("addCrop")}</span>
+              </Link>
+
+              {activeCrop ? (
+                <Link href={`/crops/lifecycle?crop_id=${activeCrop.id}`} className="dashboard-action-btn">
+                  <div className="dashboard-action-icon">
+                    <Layers size={20} />
+                  </div>
+                  <span>Crop Lifecycle</span>
+                </Link>
+              ) : (
+                <Link href="/crops" className="dashboard-action-btn">
+                  <div className="dashboard-action-icon">
+                    <Layers size={20} />
+                  </div>
+                  <span>Crop Lifecycle</span>
+                </Link>
+              )}
+
+              <Link href="/guides" className="dashboard-action-btn">
+                <div className="dashboard-action-icon">
+                  <BookOpen size={20} />
+                </div>
+                <span>{t("cropGuide")}</span>
+              </Link>
+
+              <Link href="/irrigation-solar" className="dashboard-action-btn">
+                <div className="dashboard-action-icon">
+                  <Droplets size={20} />
+                </div>
+                <span>Irrigation & Solar</span>
+              </Link>
+
+              <Link href="/weather" className="dashboard-action-btn">
+                <div className="dashboard-action-icon">
+                  <CloudSun size={20} />
+                </div>
+                <span>{t("weatherForecast")}</span>
+              </Link>
+
+              <Link href="/chatbot" className="dashboard-action-btn">
+                <div className="dashboard-action-icon">
+                  <Bot size={20} />
+                </div>
+                <span>{t("aiChatbot")}</span>
+              </Link>
+
+              <Link href="/diagnosis" className="dashboard-action-btn">
+                <div className="dashboard-action-icon">
+                  <Stethoscope size={20} />
+                </div>
+                <span>{t("plantDiagnosis")}</span>
+              </Link>
+
+              <Link href="/marketplace" className="dashboard-action-btn">
+                <div className="dashboard-action-icon">
+                  <ShoppingBag size={20} />
+                </div>
+                <span>{t("marketplace")}</span>
+              </Link>
+            </div>
+          </div>
 
           {/* Active Crop Selector Bar if multiple crops exist */}
           {crops.length > 1 && (
@@ -185,37 +248,43 @@ export default function DashboardPage() {
               style={{
                 background: "#FFFFFF",
                 borderRadius: 14,
-                padding: "14px 20px",
+                padding: "12px 18px",
                 marginBottom: 24,
                 border: "1px solid #E2E8F0",
                 display: "flex",
                 alignItems: "center",
-                gap: 16,
+                gap: 12,
                 overflowX: "auto",
+                WebkitOverflowScrolling: "touch",
+                scrollbarWidth: "thin",
               }}
             >
-              <span style={{ fontWeight: 700, fontSize: 14, color: "#1B4D3E", whiteSpace: "nowrap" }}>
+              <span style={{ fontWeight: 700, fontSize: 14, color: "#1B4D3E", whiteSpace: "nowrap", flexShrink: 0 }}>
                 Select Active Crop:
               </span>
-              {crops.map((c) => (
-                <button
-                  key={c.id}
-                  onClick={() => setSelectedCropId(c.id)}
-                  style={{
-                    padding: "8px 16px",
-                    borderRadius: 20,
-                    border: selectedCropId === c.id ? "2px solid #10B981" : "1px solid #CBD5E1",
-                    background: selectedCropId === c.id ? "#DCFCE7" : "#F8FAFC",
-                    color: selectedCropId === c.id ? "#166534" : "#475569",
-                    fontWeight: 700,
-                    fontSize: 13,
-                    cursor: "pointer",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  🌱 {c.crop_name} ({c.variety || "Local"})
-                </button>
-              ))}
+              <div style={{ display: "flex", gap: 10, overflowX: "auto", flexWrap: "nowrap" }}>
+                {crops.map((c) => (
+                  <button
+                    key={c.id}
+                    onClick={() => setSelectedCropId(c.id)}
+                    style={{
+                      padding: "7px 15px",
+                      borderRadius: 20,
+                      border: selectedCropId === c.id ? "2px solid #10B981" : "1px solid #CBD5E1",
+                      background: selectedCropId === c.id ? "#DCFCE7" : "#F8FAFC",
+                      color: selectedCropId === c.id ? "#166534" : "#475569",
+                      fontWeight: 700,
+                      fontSize: 13,
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                      flexShrink: 0,
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    🌱 {c.crop_name} ({c.variety || "Local"})
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 

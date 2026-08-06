@@ -23,9 +23,10 @@ export function LoginForm() {
     const password = (form.elements.namedItem("password") as HTMLInputElement).value;
 
     try {
-      await ValamAPI.login({ email, password });
+      const res = await ValamAPI.login({ email, password });
       setStatus({ type: "ok", text: "Login successful — redirecting…" });
-      setTimeout(() => router.push("/dashboard"), 600);
+      const isAdminRole = res.user.role === "admin" || res.user.role === "super_admin";
+      setTimeout(() => router.push(isAdminRole ? "/admin" : "/dashboard"), 600);
     } catch (err) {
       setStatus({ type: "error", text: err instanceof Error ? err.message : "Login failed." });
       setSubmitting(false);

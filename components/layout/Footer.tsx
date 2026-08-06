@@ -56,9 +56,6 @@ export function Footer({ platformLinksVariant = "default" }: FooterProps) {
               <li>
                 <Link href="/contact">{isTa ? "தொடர்பு கொள்ள" : isSi ? "සම්බන්ධ වන්න" : "Contact"}</Link>
               </li>
-              <li>
-                <Link href="/admin" style={{ color: "#10B981", fontWeight: 600 }}>{isTa ? "நிர்வாகி போர்டல்" : isSi ? "පරිපාලක ද්වාරය" : "Admin Portal"}</Link>
-              </li>
             </ul>
           </div>
 

@@ -67,7 +67,7 @@ export function SidebarDrawer({ isOpen, onClose, user, onLogout, activeKey }: Si
   if (!isOpen) return null;
 
   return (
-    <>
+    <div className="sidebar-drawer-shell">
       {/* Backdrop Overlay */}
       <div
         onClick={onClose}
@@ -229,8 +229,8 @@ export function SidebarDrawer({ isOpen, onClose, user, onLogout, activeKey }: Si
             );
           })}
 
-          {/* Admin Portal Link for Admin Users */}
-          {user?.role === "admin" && (
+          {/* Admin Portal Link for Admin Users & Super Admins */}
+          {(user?.role === "admin" || user?.role === "super_admin") && (
             <Link
               href="/admin"
               onClick={onClose}
@@ -292,6 +292,6 @@ export function SidebarDrawer({ isOpen, onClose, user, onLogout, activeKey }: Si
           </button>
         </div>
       </aside>
-    </>
+    </div>
   );
 }
