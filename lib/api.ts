@@ -15,6 +15,7 @@ import type {
   RegisterInput,
   ToolListing,
   PerenualPlantInfo,
+  AdminActivityLog,
   ValamUser,
   WeatherAdvisoryResponse,
 } from "./types";
@@ -246,6 +247,64 @@ export const ValamAPI = {
   async getPerenualPlantInfo(cropName: string): Promise<PerenualPlantInfo> {
     const params = new URLSearchParams({ crop_name: cropName });
     return apiRequest<PerenualPlantInfo>(`/crops/plant-info?${params.toString()}`);
+  },
+
+  // Admin Management Endpoints
+  async getAdminUsers(params: { search?: string; category?: string; district?: string; status?: string; page?: number; per_page?: number } = {}): Promise<{ items: ValamUser[]; total: number; pages: number }> {
+    const qp = new URLSearchParams();
+    if (params.search) qp.set("search", params.search);
+    if (params.category) qp.set("category", params.category);
+    if (params.district) qp.set("district", params.district);
+    if (params.status) qp.set("status", params.status);
+    if (params.page) qp.set("page", String(params.page));
+    if (params.per_page) qp.set("per_page", String(params.per_page));
+    return apiRequest<{ items: ValamUser[]; total: number; pages: number }>(`/admin/users?${qp.toString()}`, { auth: true });
+  },
+
+  async banUser(userId: number | string, status?: string): Promise<ValamUser> {
+    return apiRequest<ValamUser>(`/admin/users/${userId}/ban`, {
+      method: "PUT",
+      auth: true,
+      body: { status },
+    });
+  },
+
+  async deleteAdminUser(userId: number | string): Promise<void> {
+    await apiRequest(`/admin/users/${userId}`, {
+      method: "DELETE",
+      auth: true,
+    });
+  },
+
+  async getAdminAccounts(): Promise<ValamUser[]> {
+    return apiRequest<ValamUser[]>("/admin/accounts", { auth: true });
+  },
+
+  async createAdminAccount(data: { full_name: string; email: string; password: string; role?: string }): Promise<ValamUser> {
+    return apiRequest<ValamUser>("/admin/accounts", {
+      method: "POST",
+      auth: true,
+      body: data,
+    });
+  },
+
+  async updateAdminAccount(id: number | string, data: Partial<ValamUser> & { password?: string }): Promise<ValamUser> {
+    return apiRequest<ValamUser>(`/admin/accounts/${id}`, {
+      method: "PUT",
+      auth: true,
+      body: data,
+    });
+  },
+
+  async deleteAdminAccount(id: number | string): Promise<void> {
+    await apiRequest(`/admin/accounts/${id}`, {
+      method: "DELETE",
+      auth: true,
+    });
+  },
+
+  async getAdminLogs(page: number = 1): Promise<{ items: AdminActivityLog[]; total: number }> {
+    return apiRequest<{ items: AdminActivityLog[]; total: number }>(`/admin/logs?page=${page}`, { auth: true });
   },
 
   // Weather Advisory

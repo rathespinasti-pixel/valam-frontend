@@ -228,6 +228,35 @@ export function SidebarDrawer({ isOpen, onClose, user, onLogout, activeKey }: Si
               </Link>
             );
           })}
+
+          {/* Admin Portal Link for Admin Users */}
+          {user?.role === "admin" && (
+            <Link
+              href="/admin"
+              onClick={onClose}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "12px 14px",
+                borderRadius: 10,
+                textDecoration: "none",
+                fontWeight: pathname === "/admin" ? 700 : 600,
+                fontSize: 14,
+                color: "#FDE68A",
+                backgroundColor: pathname === "/admin" ? "#D97706" : "rgba(217, 119, 6, 0.2)",
+                border: "1px solid #F59E0B",
+                marginTop: 6,
+                transition: "all 0.18s ease",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <ShieldCheck size={19} color="#FDE68A" />
+                <span>Admin Portal</span>
+              </div>
+              <ChevronRight size={16} color="#FDE68A" />
+            </Link>
+          )}
         </div>
 
         {/* Fixed Footer with Logout Button */}

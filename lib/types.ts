@@ -5,7 +5,9 @@ export interface ValamUser {
   phone?: string;
   farm_location?: string;
   farm_size_acres?: number;
-  role?: string;
+  role?: "farmer" | "admin" | "super_admin" | string;
+  status?: "active" | "banned" | string;
+  created_at?: string;
   district_asc?: string;
   farmer_type?: string;
   farming_experience?: string;
@@ -20,6 +22,17 @@ export interface ValamUser {
   land_size_unit?: "Acres" | "Perches" | "Hectares" | "Square Feet" | string;
   irrigation_preference?: "Drip Irrigation" | "Sprinkler Irrigation" | "Manual Watering" | string;
   fertilizer_preference?: "Organic" | "Chemical" | string;
+}
+
+export interface AdminActivityLog {
+  id: number;
+  action: string;
+  performed_by: string;
+  performed_by_id?: number;
+  details?: string;
+  created_at?: string;
+  date?: string;
+  time?: string;
 }
 
 export interface AuthSession {
