@@ -6,6 +6,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ValamAPI } from "@/lib/api";
 import type { CommunityPost } from "@/lib/types";
+import { useNotification } from "@/context/NotificationContext";
 import { MessageSquare, Plus, Search, User, MapPin, Send, MessageCircle } from "lucide-react";
 
 export default function CommunityPage() {
@@ -44,6 +45,8 @@ export default function CommunityPage() {
     fetchPosts();
   }, [category, search]);
 
+  const { showSuccess, showError } = useNotification();
+
   async function handleCreatePost(e: React.FormEvent) {
     e.preventDefault();
     if (!ValamAPI.isLoggedIn()) {
@@ -64,8 +67,9 @@ export default function CommunityPage() {
       setContent("");
       setImageUrl("");
       fetchPosts();
+      showSuccess("Community Discussion Posted!", "Your post has been published for local farmers to read and discuss.");
     } catch (err: any) {
-      alert(err.message || "Failed to create post");
+      showError("Post Creation Failed", err.message || "Could not publish your post. Please check fields.");
     } finally {
       setSubmitting(false);
     }
@@ -94,8 +98,9 @@ export default function CommunityPage() {
       await ValamAPI.addCommunityComment(selectedPost.id, commentText.trim());
       setCommentText("");
       handleOpenPost(selectedPost.id);
+      showSuccess("Reply Posted", "Your comment has been added to the discussion.");
     } catch (err: any) {
-      alert(err.message || "Failed to add comment");
+      showError("Reply Failed", err.message || "Could not post your comment.");
     } finally {
       setCommenting(false);
     }

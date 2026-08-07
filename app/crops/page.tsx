@@ -9,6 +9,7 @@ import { AuthGuard } from "@/components/auth/AuthGuard";
 import { ValamAPI } from "@/lib/api";
 import type { Crop, ValamUser } from "@/lib/types";
 import { useLanguage } from "@/context/LanguageContext";
+import { useNotification } from "@/context/NotificationContext";
 import {
   Sprout,
   Plus,
@@ -120,6 +121,8 @@ export default function CropsPage() {
     fetchCrops();
   }, [router]);
 
+  const { showSuccess, showError, confirmAction } = useNotification();
+
   async function handleAddCrop(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -144,8 +147,14 @@ export default function CropsPage() {
       setNotes("");
       setSelectedCrop(newCrop);
       fetchCrops();
+      showSuccess(
+        "Crop Cultivation Added!",
+        `${newCrop.crop_name} (${newCrop.variety || "Standard Variety"}) has been added to your field tracking.`
+      );
     } catch (err: any) {
-      setError(err.message || "Failed to add crop");
+      const msg = err.message || "Failed to add crop record. Please try again.";
+      setError(msg);
+      showError("Failed to Add Crop", msg);
     } finally {
       setSaving(false);
     }
@@ -156,20 +165,28 @@ export default function CropsPage() {
       const updated = await ValamAPI.updateCrop(cropId, { current_stage: stageName });
       setCrops((prev) => prev.map((c) => (c.id === cropId ? updated : c)));
       if (selectedCrop?.id === cropId) setSelectedCrop(updated);
-    } catch (err) {
-      alert("Failed to update crop stage");
+      showSuccess("Growth Stage Updated", `Crop stage changed to ${stageName}.`);
+    } catch (err: any) {
+      showError("Update Failed", err.message || "Could not update crop growth stage.");
     }
   }
 
-  async function handleDelete(cropId: number) {
-    if (!confirm("Are you sure you want to remove this crop cultivation record?")) return;
-    try {
-      await ValamAPI.deleteCrop(cropId);
-      if (selectedCrop?.id === cropId) setSelectedCrop(null);
-      fetchCrops();
-    } catch (err) {
-      alert("Failed to delete crop");
-    }
+  function handleDelete(cropId: number) {
+    confirmAction({
+      title: "Delete Crop Record",
+      message: "Are you sure you want to remove this crop cultivation record? All associated data will be deleted.",
+      confirmText: "Yes, Delete Record",
+      onConfirm: async () => {
+        try {
+          await ValamAPI.deleteCrop(cropId);
+          if (selectedCrop?.id === cropId) setSelectedCrop(null);
+          fetchCrops();
+          showSuccess("Crop Record Removed", "The crop record was deleted successfully.");
+        } catch (err: any) {
+          showError("Deletion Failed", err.message || "Could not delete crop record.");
+        }
+      },
+    });
   }
 
   // Calculations for active/selected crop

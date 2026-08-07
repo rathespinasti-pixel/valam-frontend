@@ -26,6 +26,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { SidebarDrawer } from "./SidebarDrawer";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { useLanguage } from "@/context/LanguageContext";
+import { useNotification } from "@/context/NotificationContext";
 import logo from "@/public/images/logo.png";
 
 type NavKey =
@@ -73,10 +74,19 @@ export function Navbar({ active, pageTitle }: NavbarProps) {
     };
   }, [loading, isLoggedIn]);
 
-  async function handleLogout() {
-    await logout();
-    setSidebarOpen(false);
-    router.push("/login");
+  const { confirmAction } = useNotification();
+
+  function triggerLogoutConfirm() {
+    confirmAction({
+      title: "Confirm Logout",
+      message: "Are you sure you want to log out of your Valam farmer account?",
+      confirmText: "Yes, Logout",
+      onConfirm: async () => {
+        await logout();
+        setSidebarOpen(false);
+        router.push("/login");
+      },
+    });
   }
 
   const isAdminUser = user?.role === "admin" || user?.role === "super_admin";
@@ -164,7 +174,7 @@ export function Navbar({ active, pageTitle }: NavbarProps) {
 
               <button
                 type="button"
-                onClick={handleLogout}
+                onClick={triggerLogoutConfirm}
                 className="sidebar-item"
                 style={{ background: "none", border: "none", width: "100%", textAlign: "left", color: "#DC2626", cursor: "pointer", marginTop: 2 }}
               >
@@ -307,7 +317,7 @@ export function Navbar({ active, pageTitle }: NavbarProps) {
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
           user={user}
-          onLogout={handleLogout}
+          onLogout={triggerLogoutConfirm}
           activeKey={active}
         />
       )}

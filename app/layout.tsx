@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Poppins, Inter, Noto_Sans_Tamil } from "next/font/google";
 import { BackToTop } from "@/components/layout/BackToTop";
 import { ScrollRevealProvider } from "@/components/layout/ScrollRevealProvider";
+import { LanguageProvider } from "@/context/LanguageContext";
+import { NotificationProvider } from "@/context/NotificationContext";
+import { FloatingChatbot } from "@/components/ui/FloatingChatbot";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -32,9 +35,6 @@ export const metadata: Metadata = {
   icons: { icon: "/images/logo.png" },
 };
 
-import { LanguageProvider } from "@/context/LanguageContext";
-import { FloatingChatbot } from "@/components/ui/FloatingChatbot";
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${poppins.variable} ${inter.variable} ${notoSansTamil.variable}`}>
@@ -46,10 +46,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <LanguageProvider>
-          {children}
-          <FloatingChatbot />
-          <BackToTop />
-          <ScrollRevealProvider />
+          <NotificationProvider>
+            {children}
+            <FloatingChatbot />
+            <BackToTop />
+            <ScrollRevealProvider />
+          </NotificationProvider>
         </LanguageProvider>
       </body>
     </html>
