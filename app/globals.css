@@ -1529,3 +1529,12 @@ button{ font-family:inherit; cursor:pointer; }
 @media (max-width:560px){
   .maint-grid{ grid-template-columns:1fr; }
 }
+@media (max-width: 800px) {
+  .admin-control-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .admin-control-layout > aside {
+    position: static !important;
+  }
+}

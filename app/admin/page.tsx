@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { ValamAPI } from "@/lib/api";
 import type {
@@ -19,7 +17,6 @@ import type {
   FAQItem,
 } from "@/lib/types";
 import { getDefaultStagesForCrop } from "@/lib/lifecycle";
-import { useLanguage } from "@/context/LanguageContext";
 import {
   BarChart3,
   Users,
@@ -76,7 +73,6 @@ type ControlPanelTab =
 
 export default function AdminPage() {
   const router = useRouter();
-  const { t } = useLanguage();
 
   const [user, setUser] = useState<ValamUser | null>(null);
   const [activeTab, setActiveTab] = useState<ControlPanelTab>("overview");
@@ -190,6 +186,13 @@ export default function AdminPage() {
       setLoading(true);
       const u = await ValamAPI.me();
       setUser(u);
+
+      // Do not render the control panel for a farmer while the protected
+      // API calls are being rejected in the background.
+      if (u.role !== "admin" && u.role !== "super_admin") {
+        router.replace("/dashboard");
+        return;
+      }
 
       const [statsRes, usersRes, guidesRes, diseasesRes, reportsRes, notesRes, feedbackRes, faqsRes, logsRes] =
         await Promise.allSettled([
@@ -598,13 +601,11 @@ export default function AdminPage() {
   if (loading) {
     return (
       <AuthGuard>
-        <Navbar active="dashboard" />
-        <div style={{ minHeight: "65vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#F7F9F7" }}>
           <div style={{ fontSize: 18, color: "#1B4D3E", fontWeight: 600, display: "flex", alignItems: "center", gap: 10 }}>
             <RefreshCw size={24} className="spin" /> Loading Central Control Panel...
           </div>
         </div>
-        <Footer />
       </AuthGuard>
     );
   }
@@ -613,10 +614,8 @@ export default function AdminPage() {
 
   return (
     <AuthGuard>
-      <Navbar active="dashboard" pageTitle={t("adminPortalTitle")} />
-
-      {/* Hero Header */}
-      <section className="page-hero" style={{ padding: "28px 0" }}>
+      {/* Dedicated admin workspace — farmers never see this layout. */}
+      <section className="page-hero" style={{ padding: "20px 0" }}>
         <div className="container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
           <div>
             <div className="crumb" style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -666,10 +665,10 @@ export default function AdminPage() {
             </div>
           )}
 
-          <div style={{ display: "grid", gridTemplateColumns: "240px 1fr", gap: 24 }}>
+          <div className="admin-control-layout" style={{ display: "grid", gridTemplateColumns: "260px minmax(0, 1fr)", gap: 24, alignItems: "start" }}>
 
             {/* Sidebar Module Navigation Selector */}
-            <div style={{ background: "#FFFFFF", borderRadius: 16, padding: 12, border: "1px solid #E2E8F0", height: "fit-content", boxShadow: "0 2px 10px rgba(0,0,0,0.02)" }}>
+            <aside style={{ background: "#FFFFFF", borderRadius: 16, padding: 12, border: "1px solid #E2E8F0", height: "fit-content", position: "sticky", top: 20, boxShadow: "0 2px 10px rgba(0,0,0,0.02)" }}>
               <div style={{ padding: "8px 12px", fontSize: 11, textTransform: "uppercase", letterSpacing: "1px", color: "#94A3B8", fontWeight: 700 }}>
                 Control Modules
               </div>
@@ -722,7 +721,7 @@ export default function AdminPage() {
                   <History size={18} /> Audit Logs
                 </button>
               </div>
-            </div>
+            </aside>
 
             {/* Main Active Module Content Window */}
             <div>
@@ -786,9 +785,11 @@ export default function AdminPage() {
                 <div style={{ background: "#FFF", borderRadius: 16, padding: 24, border: "1px solid #E2E8F0" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16, marginBottom: 20 }}>
                     <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1E293B", margin: 0 }}>Farmer Directory &amp; Account Control</h2>
-                    <button onClick={openCreateUserForm} className="btn btn-sun" style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <UserPlus size={16} /> Create User Account
-                    </button>
+                    {isSuperAdmin && (
+                      <button onClick={openCreateUserForm} className="btn btn-sun" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <UserPlus size={16} /> Create User Account
+                      </button>
+                    )}
                   </div>
 
                   <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", marginBottom: 16 }}>
@@ -834,13 +835,15 @@ export default function AdminPage() {
                             </td>
                             <td style={{ padding: 10, textAlign: "right" }}>
                               <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
-                                <button onClick={() => openEditUserForm(u)} title="Edit Profile" style={{ padding: 6, borderRadius: 6, border: "1px solid #CBD5E1", background: "#FFF" }}><Edit size={14} /></button>
-                                <button onClick={() => setUserToResetPass(u)} title="Reset Password" style={{ padding: 6, borderRadius: 6, border: "1px solid #F59E0B", background: "#FEF3C7", color: "#B45309" }}><Key size={14} /></button>
-                                {u.role !== "super_admin" && (
-                                  <button onClick={() => handleToggleBanUser(u)} title={u.status === "banned" ? "Unban" : "Ban"} style={{ padding: "4px 8px", borderRadius: 6, border: u.status === "banned" ? "1px solid #10B981" : "1px solid #F59E0B", background: u.status === "banned" ? "#ECFDF5" : "#FEF3C7", color: u.status === "banned" ? "#047857" : "#B45309", fontSize: 12, fontWeight: 700 }}>
-                                    {u.status === "banned" ? "Unban" : "Ban"}
-                                  </button>
-                                )}
+                                {isSuperAdmin && <>
+                                  <button onClick={() => openEditUserForm(u)} title="Edit Profile" style={{ padding: 6, borderRadius: 6, border: "1px solid #CBD5E1", background: "#FFF" }}><Edit size={14} /></button>
+                                  <button onClick={() => setUserToResetPass(u)} title="Reset Password" style={{ padding: 6, borderRadius: 6, border: "1px solid #F59E0B", background: "#FEF3C7", color: "#B45309" }}><Key size={14} /></button>
+                                  {u.role !== "super_admin" && (
+                                    <button onClick={() => handleToggleBanUser(u)} title={u.status === "banned" ? "Unban" : "Ban"} style={{ padding: "4px 8px", borderRadius: 6, border: u.status === "banned" ? "1px solid #10B981" : "1px solid #F59E0B", background: u.status === "banned" ? "#ECFDF5" : "#FEF3C7", color: u.status === "banned" ? "#047857" : "#B45309", fontSize: 12, fontWeight: 700 }}>
+                                      {u.status === "banned" ? "Unban" : "Ban"}
+                                    </button>
+                                  )}
+                                </>}
                                 {isSuperAdmin && u.id !== user?.id && (
                                   <button onClick={() => setUserToDelete(u)} title="Delete User" style={{ padding: 6, borderRadius: 6, border: "1px solid #EF4444", background: "#FEE2E2", color: "#991B1B" }}><Trash2 size={14} /></button>
                                 )}
@@ -1284,7 +1287,6 @@ export default function AdminPage() {
         </div>
       )}
 
-      <Footer />
     </AuthGuard>
   );
 }
