@@ -19,11 +19,11 @@ export interface ComputedLifecycle {
 export const CROP_NAME_TRANSLATIONS: Record<string, { ta: string; si: string; en: string }> = {
   tomato: { en: "Tomato", ta: "தக்காளி", si: "තක්කාලි" },
   eggplant: { en: "Eggplant (Brinjal)", ta: "கத்தரிக்காய்", si: "වම්බටු" },
-  brinjal: { en: "Eggplant (Brinjal)", ta: "கத்தரிக்காய்", si: "வම්බටු" },
+  brinjal: { en: "Eggplant (Brinjal)", ta: "கத்தரிக்காய்", si: "වම්බටු" },
   "green chili": { en: "Green Chili", ta: "பச்சை மிளகாய்", si: "අමු මිරිස්" },
-  chili: { en: "Green Chili", ta: "பச்சை மிளகாய்", si: "අමු மිරිස්" },
+  chili: { en: "Green Chili", ta: "பச்சை மிளகாய்", si: "අමු මිරිස්" },
   okra: { en: "Okra (Ladies Finger)", ta: "வெண்டைக்காய்", si: "බණ්ඩක්කා" },
-  "ladies finger": { en: "Okra (Ladies Finger)", ta: "வெண்டைக்காய்", si: "බණ්ඩක්කා" },
+  "ladies finger": { en: "Okra (Ladies Finger)", ta: "வெண்டைக்காய்", si: "බණ්ඩக்කා" },
   "red onion": { en: "Red Onion", ta: "சின்ன வெங்காயம்", si: "රතු ළූණු" },
   onion: { en: "Red Onion", ta: "சின்ன வெங்காயம்", si: "රතු ළූණු" },
   paddy: { en: "Paddy (Rice)", ta: "நெல்", si: "වී වගාව" },
@@ -47,7 +47,7 @@ export const STAGE_NAME_TRANSLATIONS: Record<string, { ta: string; si: string; e
   "vegetative": { en: "🌿 Vegetative Growth", ta: "🌿 வளர்ச்சி நிலை", si: "🌿 වර්ධන අවස්ථාව" },
   "flowering": { en: "🌸 Flowering Phase", ta: "🌸 பூக்கும் நிலை", si: "🌸 මල් පිපීමේ අවස්ථාව" },
   "fruiting": { en: "🍅 Fruiting & Maturation", ta: "🍅 காய் / கனி காய்க்கும் நிலை", si: "🍅 ඵල හටගැනීමේ අවස්ථාව" },
-  "harvest": { en: "🧺 Harvesting & Picking", ta: "🧺 அறுவடை நிலை", si: "🧺 අස්වැන්න නෙලීම" },
+  "harvest": { en: "🧺 Harvesting & Picking", ta: "🧺 அறுவடை நிலை", si: "🧺 අස්වැන්න நෙලීම" },
 };
 
 export function getLocalizedStageName(stageName: string, lang: "en" | "ta" | "si" = "en"): string {
@@ -61,7 +61,60 @@ export function getLocalizedStageName(stageName: string, lang: "en" | "ta" | "si
   return stageName;
 }
 
-// Fallback stage generator for crops without DB guides
+// Crop-specific dynamic visual fallbacks ensuring distinct identity per crop & stage
+export function getCropSpecificFallbackImage(cropName: string, stageName: string): string {
+  const c = (cropName || "").toLowerCase();
+  const s = (stageName || "").toLowerCase();
+
+  const isSeedling = s.includes("seedling") || s.includes("nursery") || s.includes("1");
+  const isVeg = s.includes("vegetative") || s.includes("growth") || s.includes("2");
+  const isFlower = s.includes("flower") || s.includes("bloom") || s.includes("3");
+  const isFruit = s.includes("fruit") || s.includes("pod") || s.includes("matur") || s.includes("4");
+  const isHarvest = s.includes("harvest") || s.includes("pick") || s.includes("5");
+
+  if (c.includes("chilli") || c.includes("chili")) {
+    if (isSeedling) return "https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?auto=format&fit=crop&w=800&q=80";
+    if (isVeg) return "https://images.unsplash.com/photo-1583857502409-728b7a66f4ef?auto=format&fit=crop&w=800&q=80";
+    if (isFlower) return "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=800&q=80";
+    if (isFruit) return "https://images.unsplash.com/photo-1588252303782-cb80119abd6d?auto=format&fit=crop&w=800&q=80";
+    if (isHarvest) return "https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?auto=format&fit=crop&w=800&q=80";
+    return "https://images.unsplash.com/photo-1588252303782-cb80119abd6d?auto=format&fit=crop&w=800&q=80";
+  }
+
+  if (c.includes("brinjal") || c.includes("eggplant")) {
+    if (isSeedling) return "https://images.unsplash.com/photo-1622383563227-04401ab4e5ea?auto=format&fit=crop&w=800&q=80";
+    if (isVeg) return "https://images.unsplash.com/photo-1592417817098-8f3d69a0a19e?auto=format&fit=crop&w=800&q=80";
+    if (isFlower) return "https://images.unsplash.com/photo-1595855759920-86582396756a?auto=format&fit=crop&w=800&q=80";
+    if (isFruit || isHarvest) return "https://images.unsplash.com/photo-1613744655060-d8a4362a78f2?auto=format&fit=crop&w=800&q=80";
+    return "https://images.unsplash.com/photo-1613744655060-d8a4362a78f2?auto=format&fit=crop&w=800&q=80";
+  }
+
+  if (c.includes("okra") || c.includes("ladies finger")) {
+    if (isSeedling || isVeg) return "https://images.unsplash.com/photo-1589927986089-35812388d1f4?auto=format&fit=crop&w=800&q=80";
+    if (isFlower) return "https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=800&q=80";
+    return "https://images.unsplash.com/photo-1628773822503-930a858340d2?auto=format&fit=crop&w=800&q=80";
+  }
+
+  if (c.includes("paddy") || c.includes("rice")) {
+    if (isSeedling) return "https://images.unsplash.com/photo-1530595467537-0b5996c41f2d?auto=format&fit=crop&w=800&q=80";
+    if (isVeg) return "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=800&q=80";
+    if (isFlower || isFruit) return "https://images.unsplash.com/photo-1536657464919-892534f60d6e?auto=format&fit=crop&w=800&q=80";
+    return "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=800&q=80";
+  }
+
+  if (c.includes("onion")) {
+    return "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=800&q=80";
+  }
+
+  // Tomato visuals
+  if (isSeedling) return "https://images.unsplash.com/photo-1592417817098-8f3d69a0a19e?auto=format&fit=crop&w=800&q=80";
+  if (isVeg) return "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=800&q=80";
+  if (isFlower) return "https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?auto=format&fit=crop&w=800&q=80";
+  if (isFruit) return "https://images.unsplash.com/photo-1592841200221-a6898f307baa?auto=format&fit=crop&w=800&q=80";
+  return "https://images.unsplash.com/photo-1561136594-7f68413baa99?auto=format&fit=crop&w=800&q=80";
+}
+
+// Stages generator for crops
 export function getDefaultStagesForCrop(cropName: string, lang: "en" | "ta" | "si" = "en"): CropStageAdvice[] {
   const isTa = lang === "ta";
   const isSi = lang === "si";
@@ -86,11 +139,11 @@ export function getDefaultStagesForCrop(cropName: string, lang: "en" | "ta" | "s
       daily_tasks: isTa
         ? ["காலை வேளையில் மிதமான நீர் தெளிக்கவும்", "நண்பகல் கடும் வெயிலில் இருந்து பாதுகாக்கவும்", "பூஞ்சை தாக்குதலை கண்காணிக்கவும்"]
         : isSi
-        ? ["උදෑසන කාලයේදී මෘදු ලෙස ජලය ඉසින්න", "දහවල් තද අව්වෙන් ආරක්ෂා කරන්න", "දිලීර රෝග තිබේදැයි පරීක්ෂා කරන්න"]
+        ? ["උදෑසන කාලයේදී මෘදු ලෙස ජලය ඉසින්ன", "දහவල් තද අව්වෙන් ආරක්ෂா කරන්න", "දිලීර රෝග තිබේදැයි පරීක්ෂා කරන්න"]
         : ["Water early morning with gentle spray", "Shield from harsh midday sun", "Inspect seedlings for fungal rot"],
       water_requirement: isTa ? "தினசரி 1.0 - 1.5 L/m²" : isSi ? "දිනපතා 1.0 - 1.5 L/m²" : "1.0 - 1.5 L/m² daily",
       fertilizer_recommendation: isTa ? "இயற்கை மட்கிய உரம் மற்றும் திரவ உரம்" : isSi ? "කොම්පෝස්ට් පොහොර සහ දියර පොහොර" : "Basal organic compost & light liquid fertilizer",
-      image_url: "https://images.unsplash.com/photo-1592417817098-8f3d69a0a19e?auto=format&fit=crop&w=600&q=80",
+      image_url: getCropSpecificFallbackImage(cropName, "Seedling"),
     },
     {
       stage_id: 2,
@@ -103,7 +156,7 @@ export function getDefaultStagesForCrop(cropName: string, lang: "en" | "ta" | "s
       daily_tasks: ["Weed root zone", "Support stems with stakes if needed", "Apply organic mulch around stem base"],
       water_requirement: "2.5 - 3.0 L/m² daily",
       fertilizer_recommendation: "Nitrogen-rich top dressing (Urea / Compost slurry)",
-      image_url: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=600&q=80",
+      image_url: getCropSpecificFallbackImage(cropName, "Vegetative Growth"),
     },
     {
       stage_id: 3,
@@ -116,7 +169,7 @@ export function getDefaultStagesForCrop(cropName: string, lang: "en" | "ta" | "s
       daily_tasks: ["Maintain steady moisture to prevent flower drop", "Inspect leaf undersides for thrips & whiteflies", "Apply micronutrient foliar spray"],
       water_requirement: "3.5 L/m² daily",
       fertilizer_recommendation: "High Potassium & Phosphorus top dressing (MOP / Ash)",
-      image_url: "https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?auto=format&fit=crop&w=600&q=80",
+      image_url: getCropSpecificFallbackImage(cropName, "Flowering"),
     },
     {
       stage_id: 4,
@@ -129,7 +182,7 @@ export function getDefaultStagesForCrop(cropName: string, lang: "en" | "ta" | "s
       daily_tasks: ["Monitor for fruit borer caterpillars", "Ensure uniform drip watering", "Support heavy fruit branches"],
       water_requirement: "4.0 L/m² daily",
       fertilizer_recommendation: "Calcium & Potassium foliar feed",
-      image_url: "https://images.unsplash.com/photo-1592841200221-a6898f307baa?auto=format&fit=crop&w=600&q=80",
+      image_url: getCropSpecificFallbackImage(cropName, "Fruiting"),
     },
     {
       stage_id: 5,
@@ -142,7 +195,7 @@ export function getDefaultStagesForCrop(cropName: string, lang: "en" | "ta" | "s
       daily_tasks: ["Harvest in early morning hours", "Sort and grade produce into crates", "Store in cool shaded area"],
       water_requirement: "Reduce watering to 1.5 L/m² daily",
       fertilizer_recommendation: "No further fertilizer needed",
-      image_url: "https://images.unsplash.com/photo-1561136594-7f68413baa99?auto=format&fit=crop&w=600&q=80",
+      image_url: getCropSpecificFallbackImage(cropName, "Harvest"),
     },
   ];
 }
@@ -192,7 +245,7 @@ export function computeLifecycle(
     const tasks = st.daily_tasks || (st.advice ? [st.advice] : ["Water early morning", "Inspect foliage"]);
     const water = st.water_requirement || "2.5 L/m² daily";
     const fert = st.fertilizer_recommendation || "Apply recommended organic compost";
-    const img = st.image_url || guide?.image_url || "https://images.unsplash.com/photo-1592841200221-a6898f307baa?auto=format&fit=crop&w=600&q=80";
+    const img = getCropSpecificFallbackImage(crop.crop_name, name);
 
     return {
       stage_id: sId,
@@ -215,7 +268,6 @@ export function computeLifecycle(
   );
 
   if (currentStageIndex === -1) {
-    // If age exceeds max stage end day, set to final stage
     const maxEnd = Math.max(...allStages.map((s) => s.end_day || 100));
     if (age > maxEnd) {
       currentStageIndex = allStages.length - 1;
@@ -248,7 +300,7 @@ export function computeLifecycle(
     nextStageStartDate = formatDateString(nextDateObj);
   }
 
-  const currentStageImage = currentStage.image_url || "https://images.unsplash.com/photo-1592841200221-a6898f307baa?auto=format&fit=crop&w=600&q=80";
+  const currentStageImage = currentStage.image_url || getCropSpecificFallbackImage(crop.crop_name, currentStage.stage_name || currentStage.stage || "");
 
   return {
     cropAge: age,

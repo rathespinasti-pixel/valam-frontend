@@ -38,6 +38,7 @@ export default function DashboardPage() {
   const [weatherAdvisory, setWeatherAdvisory] = useState<WeatherAdvisoryResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [taskState, setTaskState] = useState<Record<string, boolean>>({});
+  const [dynamicStageImage, setDynamicStageImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!ValamAPI.isLoggedIn()) {
@@ -93,6 +94,23 @@ export default function DashboardPage() {
     if (!activeCrop) return null;
     return computeLifecycle(activeCrop, guides);
   }, [activeCrop, guides]);
+
+  useEffect(() => {
+    if (activeCrop && lifecycleData) {
+      ValamAPI.getCropLifecycleImage({
+        crop_name: activeCrop.crop_name,
+        stage: lifecycleData.currentStage.stage_name || lifecycleData.currentStage.stage || "Stage 1",
+        crop_id: activeCrop.id,
+        crop_age: lifecycleData.cropAge,
+      })
+        .then((res) => {
+          if (res && res.image_url) {
+            setDynamicStageImage(res.image_url);
+          }
+        })
+        .catch((err) => console.error("Dashboard crop image fetch error:", err));
+    }
+  }, [activeCrop?.id, lifecycleData?.currentStageIndex]);
 
   if (loading) {
     return (
@@ -439,7 +457,7 @@ export default function DashboardPage() {
                     </div>
 
                     <img
-                      src={currentStageImage}
+                      src={dynamicStageImage || currentStageImage}
                       alt={`${activeCrop.crop_name} ${currentStageLabel}`}
                       style={{ width: "100%", height: 180, objectFit: "cover", borderRadius: 12 }}
                     />

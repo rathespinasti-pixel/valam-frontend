@@ -606,4 +606,16 @@ export const ValamAPI = {
       body: { text, target_language },
     });
   },
+
+  async getCropLifecycleImage(data: {
+    crop_name: string;
+    stage: string;
+    crop_id?: number;
+    crop_age?: number;
+  }): Promise<{ image_url: string; crop_name: string; stage: string }> {
+    return apiRequest<{ image_url: string; crop_name: string; stage: string }>("/crops/lifecycle-image", {
+      method: "POST",
+      body: data,
+    });
+  },
 };

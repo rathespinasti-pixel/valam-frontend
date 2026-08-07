@@ -47,6 +47,7 @@ function CropLifecycleContent() {
   const [loading, setLoading] = useState(true);
   const [taskState, setTaskState] = useState<Record<string, boolean>>({});
   const [activeStageTab, setActiveStageTab] = useState<number | null>(null);
+  const [dynamicImages, setDynamicImages] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!ValamAPI.isLoggedIn()) {
@@ -105,15 +106,36 @@ function CropLifecycleContent() {
     return computeLifecycle(activeCrop, guides);
   }, [activeCrop, guides]);
 
-  // Set default stage tab & fetch Perenual plant info when active crop changes
   useEffect(() => {
     if (lifecycleData) {
       setActiveStageTab(lifecycleData.currentStageIndex);
     }
-    if (activeCrop) {
+    if (activeCrop && lifecycleData) {
       ValamAPI.getPerenualPlantInfo(activeCrop.crop_name)
         .then(setPerenualInfo)
         .catch((err) => console.error("Perenual info fetch error", err));
+
+      const cropName = activeCrop.crop_name;
+      const cropId = activeCrop.id;
+      const cropAge = lifecycleData.cropAge;
+
+      lifecycleData.allStages.forEach((st, idx) => {
+        const stageName = st.stage_name || st.stage || `Stage ${idx + 1}`;
+        const key = `${cropId}_${st.stage_id || idx + 1}`;
+
+        ValamAPI.getCropLifecycleImage({
+          crop_name: cropName,
+          stage: stageName,
+          crop_id: cropId,
+          crop_age: cropAge,
+        })
+          .then((res) => {
+            if (res && res.image_url) {
+              setDynamicImages((prev) => ({ ...prev, [key]: res.image_url }));
+            }
+          })
+          .catch((err) => console.error("Lifecycle image fetch error:", err));
+      });
     }
   }, [selectedCropId, activeCrop, lifecycleData?.currentStageIndex]);
 
@@ -425,7 +447,7 @@ function CropLifecycleContent() {
                   <Sparkles size={18} color="#10B981" /> Expected Plant Appearance
                 </div>
                 <img
-                  src={inspectStage.image_url || currentStageImage}
+                  src={(activeCrop && inspectStage) ? (dynamicImages[`${activeCrop.id}_${inspectStage.stage_id || (activeStageTab !== null ? activeStageTab + 1 : 1)}`] || inspectStage.image_url || currentStageImage) : currentStageImage}
                   alt={`${activeCrop.crop_name} ${inspectStage.stage_name}`}
                   style={{ width: "100%", height: 260, objectFit: "cover", borderRadius: 14, boxShadow: "0 4px 14px rgba(0,0,0,0.08)" }}
                 />
