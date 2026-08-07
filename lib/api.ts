@@ -578,4 +578,32 @@ export const ValamAPI = {
     if (search) params.set("search", search);
     return apiRequest<ProductListResponse>(`/products?${params.toString()}`);
   },
+
+  // Gemini AI Features (Backend Integration)
+  async askFarmingAssistant(question: string, language: string = "English"): Promise<{ answer: string }> {
+    return apiRequest<{ answer: string }>("/ai/farming-assistant", {
+      method: "POST",
+      body: { question, language },
+    });
+  },
+
+  async getDiseaseExplanation(data: {
+    crop: string;
+    disease: string;
+    analysis?: string;
+    symptoms?: string;
+    language?: string;
+  }): Promise<{ explanation: string }> {
+    return apiRequest<{ explanation: string }>("/ai/disease-explanation", {
+      method: "POST",
+      body: data,
+    });
+  },
+
+  async translateText(text: string, target_language: string = "English"): Promise<{ translated_text: string }> {
+    return apiRequest<{ translated_text: string }>("/ai/translate", {
+      method: "POST",
+      body: { text, target_language },
+    });
+  },
 };

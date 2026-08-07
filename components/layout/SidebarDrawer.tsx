@@ -17,6 +17,7 @@ import {
   X,
   ChevronRight,
   ShieldCheck,
+  Sprout,
 } from "lucide-react";
 import type { ValamUser } from "@/lib/types";
 import { useLanguage } from "@/context/LanguageContext";
@@ -31,11 +32,12 @@ export interface NavMenuItem {
 
 export const MENU_ITEMS: NavMenuItem[] = [
   { key: "dashboard", transKey: "dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { key: "crops", transKey: "addCrop", href: "/crops", icon: Sprout },
+  { key: "irrigation-solar", transKey: "irrigationSolar", href: "/irrigation-solar", icon: Sun },
   { key: "weather", transKey: "weatherForecast", href: "/weather", icon: CloudSun },
   { key: "guides", transKey: "cropGuide", href: "/guides", icon: BookOpen },
   { key: "chatbot", transKey: "aiChatbot", href: "/chatbot", icon: Bot },
   { key: "diagnosis", transKey: "plantDiagnosis", href: "/diagnosis", icon: Stethoscope },
-  { key: "irrigation-solar", transKey: "irrigationSolar", href: "/irrigation-solar", icon: Sun },
   { key: "marketplace", transKey: "marketplace", href: "/marketplace", icon: ShoppingBag },
   { key: "community", transKey: "community", href: "/community", icon: Users },
   { key: "settings", transKey: "settings", href: "/settings", icon: Settings },

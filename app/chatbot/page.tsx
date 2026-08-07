@@ -58,8 +58,16 @@ export default function ChatbotPage() {
     setLoading(true);
 
     try {
-      const res = await ValamAPI.askChatbot(qText, category, language);
-      const botMsg = { id: (Date.now() + 1).toString(), sender: "bot" as const, text: res.answer };
+      const langName = language === "ta" ? "Tamil" : language === "si" ? "Sinhala" : "English";
+      let answerText = "";
+      try {
+        const aiRes = await ValamAPI.askFarmingAssistant(qText, langName);
+        answerText = aiRes.answer;
+      } catch (geminiErr) {
+        const fallbackRes = await ValamAPI.askChatbot(qText, category, language);
+        answerText = fallbackRes.answer;
+      }
+      const botMsg = { id: (Date.now() + 1).toString(), sender: "bot" as const, text: answerText };
       setMessages((prev) => [...prev, botMsg]);
       loadHistory();
     } catch (err: any) {
