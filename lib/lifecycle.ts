@@ -61,7 +61,37 @@ export function getLocalizedStageName(stageName: string, lang: "en" | "ta" | "si
   return stageName;
 }
 
-// Crop-specific dynamic visual fallbacks ensuring distinct identity per crop & stage
+// Self-contained, crop-labelled placeholder used only when a crop has no
+// curated stock photo below (e.g. an unrecognised crop name). Never falls
+// back to a *different* crop's photo (e.g. tomato) - that misrepresents the
+// plant. Colour is derived deterministically from the crop name so distinct
+// crops still look visually distinct from one another.
+function genericPlaceholderImage(cropName: string, stageName: string): string {
+  let hash = 0;
+  const seed = `${(cropName || "crop").toLowerCase()}::${(stageName || "").toLowerCase()}`;
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  }
+  const hue = hash % 360;
+  const bg = `hsl(${hue},45%,88%)`;
+  const fg = `hsl(${hue},55%,30%)`;
+  const cropLabel = (cropName || "Crop").trim();
+  const stageLabel = (stageName || "Growth").trim();
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600">
+    <rect width="100%" height="100%" fill="${bg}"/>
+    <text x="50%" y="45%" font-family="Segoe UI, Arial, sans-serif" font-size="42" font-weight="700" fill="${fg}" text-anchor="middle">${cropLabel}</text>
+    <text x="50%" y="58%" font-family="Segoe UI, Arial, sans-serif" font-size="24" fill="${fg}" text-anchor="middle">${stageLabel} stage</text>
+    <text x="50%" y="68%" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="${fg}" text-anchor="middle" opacity="0.75">Photo not yet available</text>
+  </svg>`;
+  if (typeof window !== "undefined" && typeof window.btoa === "function") {
+    return `data:image/svg+xml;base64,${window.btoa(unescape(encodeURIComponent(svg)))}`;
+  }
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+// Crop-specific dynamic visual fallbacks ensuring distinct identity per crop & stage.
+// This is only the CLIENT-SIDE placeholder shown before the backend's
+// AI-generated / cached image (see ValamAPI.getCropLifecycleImage) loads.
 export function getCropSpecificFallbackImage(cropName: string, stageName: string): string {
   const c = (cropName || "").toLowerCase();
   const s = (stageName || "").toLowerCase();
@@ -106,12 +136,18 @@ export function getCropSpecificFallbackImage(cropName: string, stageName: string
     return "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=800&q=80";
   }
 
-  // Tomato visuals
-  if (isSeedling) return "https://images.unsplash.com/photo-1592417817098-8f3d69a0a19e?auto=format&fit=crop&w=800&q=80";
-  if (isVeg) return "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=800&q=80";
-  if (isFlower) return "https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?auto=format&fit=crop&w=800&q=80";
-  if (isFruit) return "https://images.unsplash.com/photo-1592841200221-a6898f307baa?auto=format&fit=crop&w=800&q=80";
-  return "https://images.unsplash.com/photo-1561136594-7f68413baa99?auto=format&fit=crop&w=800&q=80";
+  if (c.includes("tomato")) {
+    if (isSeedling) return "https://images.unsplash.com/photo-1592417817098-8f3d69a0a19e?auto=format&fit=crop&w=800&q=80";
+    if (isVeg) return "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=800&q=80";
+    if (isFlower) return "https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?auto=format&fit=crop&w=800&q=80";
+    if (isFruit) return "https://images.unsplash.com/photo-1592841200221-a6898f307baa?auto=format&fit=crop&w=800&q=80";
+    return "https://images.unsplash.com/photo-1561136594-7f68413baa99?auto=format&fit=crop&w=800&q=80";
+  }
+
+  // Crop not recognised above - do NOT default to tomato's photos, show a
+  // neutral, crop-labelled placeholder instead until the backend's
+  // AI-generated image loads.
+  return genericPlaceholderImage(cropName, stageName);
 }
 
 // Stages generator for crops
