@@ -1538,3 +1538,95 @@ button{ font-family:inherit; cursor:pointer; }
     position: static !important;
   }
 }
+
+.admin-theme-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.14);
+  color: #fff;
+  cursor: pointer;
+}
+
+.admin-theme-picker select {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+}
+
+.admin-theme-picker option { color: #10241B; }
+.admin-theme-picker:hover { background: rgba(0, 0, 0, 0.24); border-color: rgba(255, 255, 255, 0.48); }
+
+html[data-admin-theme="dark"] body {
+  background: #111827;
+  color: #E5E7EB;
+}
+
+.admin-overview-card {
+  position: relative;
+  overflow: hidden;
+  min-height: 126px;
+  border: 1px solid transparent !important;
+  border-radius: 16px !important;
+  padding: 20px !important;
+  box-shadow: 0 10px 24px rgba(22, 78, 58, 0.09);
+}
+.admin-overview-card::after { content: ""; position: absolute; width: 88px; height: 88px; right: -28px; top: -32px; border-radius: 50%; background: currentColor; opacity: .09; }
+.admin-overview-card--users { background: linear-gradient(135deg, #EAF7EF, #F9FFFA) !important; color: #176B47; border-color: #C9E9D5 !important; }
+.admin-overview-card--active { background: linear-gradient(135deg, #E8F7F3, #F8FFFD) !important; color: #087F63; border-color: #BCEADF !important; }
+.admin-overview-card--risk { background: linear-gradient(135deg, #FFF3E8, #FFFBF7) !important; color: #B45309; border-color: #F8D7A8 !important; }
+.admin-overview-card--crops { background: linear-gradient(135deg, #EEF4E4, #FCFFF8) !important; color: #5B7F19; border-color: #DCEBC1 !important; }
+.admin-overview-card .stat-num { color: currentColor !important; font-size: 29px; position: relative; z-index: 1; }
+.admin-overview-card .stat-label { color: #274337 !important; font-weight: 800; position: relative; z-index: 1; }
+.admin-overview-card .stat-sub { color: #62756B !important; position: relative; z-index: 1; }
+
+.admin-insight-card { box-shadow: 0 10px 28px rgba(15, 56, 39, 0.07); transition: transform .18s ease, box-shadow .18s ease; }
+.admin-insight-card:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(15, 56, 39, 0.12); }
+
+.admin-user-directory-card {
+  min-height: 610px;
+  border-radius: 20px !important;
+  border-color: #DCE7E1 !important;
+  box-shadow: 0 14px 34px rgba(21, 71, 49, 0.08);
+  background: linear-gradient(180deg, #FFFFFF 0%, #FBFDFC 100%) !important;
+}
+.admin-user-directory-card > div:first-child { padding-bottom: 18px; border-bottom: 1px solid #E7EFEB; }
+.admin-user-directory-card input,
+.admin-user-directory-card select { border-color: #CBDDD3 !important; background: #FCFFFD !important; }
+.admin-user-table { max-height: 440px; margin-top: 4px; border: 1px solid #E6EFEB; border-radius: 12px; }
+.admin-user-table table { min-width: 860px; }
+.admin-user-table thead { position: sticky; top: 0; z-index: 1; }
+.admin-user-table th { background: #F1F7F3 !important; color: #365747 !important; }
+.admin-user-table tbody tr { transition: background .15s ease; }
+.admin-user-table tbody tr:hover { background: #F4FAF6; }
+
+html[data-admin-theme="dark"] .admin-user-directory-card { background: linear-gradient(180deg, #1B2737 0%, #172231 100%) !important; border-color: #34455A !important; box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22); }
+html[data-admin-theme="dark"] .admin-user-directory-card > div:first-child { border-color: #34455A; }
+html[data-admin-theme="dark"] .admin-user-directory-card input,
+html[data-admin-theme="dark"] .admin-user-directory-card select { background: #111B28 !important; border-color: #465A70 !important; color: #E5EDF4 !important; }
+html[data-admin-theme="dark"] .admin-user-table { border-color: #34455A; }
+html[data-admin-theme="dark"] .admin-user-table th { background: #243247 !important; color: #CFE1EF !important; }
+html[data-admin-theme="dark"] .admin-user-table tbody tr:hover { background: #223247; }
+
+html[data-admin-theme="dark"] .page-hero { background: #103C2D; }
+html[data-admin-theme="dark"] .section { background: #101827 !important; }
+html[data-admin-theme="dark"] .admin-control-layout > aside { background: #1B2737 !important; border-color: #34455A !important; }
+html[data-admin-theme="dark"] .admin-overview-card--users { background: linear-gradient(135deg, #173B32, #1B4539) !important; border-color: #2D6754 !important; color: #8BE0B7; }
+html[data-admin-theme="dark"] .admin-overview-card--active { background: linear-gradient(135deg, #123E3B, #194A45) !important; border-color: #2B736A !important; color: #79E2CE; }
+html[data-admin-theme="dark"] .admin-overview-card--risk { background: linear-gradient(135deg, #442F22, #503425) !important; border-color: #805332 !important; color: #FDBA74; }
+html[data-admin-theme="dark"] .admin-overview-card--crops { background: linear-gradient(135deg, #334021, #3C4D27) !important; border-color: #657A3C !important; color: #C9E889; }
+html[data-admin-theme="dark"] .admin-overview-card .stat-label { color: #F1F5F9 !important; }
+html[data-admin-theme="dark"] .admin-overview-card .stat-sub { color: #B8C8D3 !important; }
+html[data-admin-theme="dark"] .admin-insight-card { background: #1B2737 !important; border-color: #34455A !important; }
+html[data-admin-theme="dark"] .admin-insight-card h3,
+html[data-admin-theme="dark"] .admin-insight-card span { color: #DCE7EF !important; }

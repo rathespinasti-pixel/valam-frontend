@@ -53,6 +53,10 @@ import {
   Key,
   Download,
   Check,
+  Moon,
+  Sun,
+  Monitor,
+  ChevronDown,
 } from "lucide-react";
 
 type ControlPanelTab =
@@ -71,11 +75,14 @@ type ControlPanelTab =
   | "settings"
   | "logs";
 
+type AdminTheme = "light" | "dark" | "system";
+
 export default function AdminPage() {
   const router = useRouter();
 
   const [user, setUser] = useState<ValamUser | null>(null);
   const [activeTab, setActiveTab] = useState<ControlPanelTab>("overview");
+  const [theme, setTheme] = useState<AdminTheme>("system");
   const [loading, setLoading] = useState(true);
   const [statusMsg, setStatusMsg] = useState<{ type: "ok" | "error"; text: string } | null>(null);
 
@@ -180,6 +187,33 @@ export default function AdminPage() {
   // 10. Audit Activity Logs State
   const [logs, setLogs] = useState<AdminActivityLog[]>([]);
   const [logPage, setLogPage] = useState(1);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("valam-admin-theme") as AdminTheme | null;
+    if (savedTheme === "light" || savedTheme === "dark" || savedTheme === "system") {
+      setTheme(savedTheme);
+    }
+  }, []);
+
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const applyTheme = () => {
+      const resolved = theme === "system" ? (media.matches ? "dark" : "light") : theme;
+      document.documentElement.dataset.adminTheme = resolved;
+    };
+
+    applyTheme();
+    if (theme === "system") media.addEventListener("change", applyTheme);
+    return () => {
+      media.removeEventListener("change", applyTheme);
+      delete document.documentElement.dataset.adminTheme;
+    };
+  }, [theme]);
+
+  function handleThemeChange(nextTheme: AdminTheme) {
+    setTheme(nextTheme);
+    localStorage.setItem("valam-admin-theme", nextTheme);
+  }
 
   async function loadData() {
     try {
@@ -615,7 +649,7 @@ export default function AdminPage() {
   return (
     <AuthGuard>
       {/* Dedicated admin workspace — farmers never see this layout. */}
-      <section className="page-hero" style={{ padding: "20px 0" }}>
+      <section className="page-hero admin-workspace" style={{ padding: "20px 0" }}>
         <div className="container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
           <div>
             <div className="crumb" style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -628,6 +662,15 @@ export default function AdminPage() {
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <label className="admin-theme-picker" title="Choose control panel theme">
+              {theme === "dark" ? <Moon size={15} /> : theme === "light" ? <Sun size={15} /> : <Monitor size={15} />}
+              <select value={theme} onChange={(event) => handleThemeChange(event.target.value as AdminTheme)} aria-label="Control panel theme">
+                <option value="light">Light</option>
+                <option value="system">System</option>
+                <option value="dark">Dark</option>
+              </select>
+              <ChevronDown size={14} aria-hidden="true" />
+            </label>
             <button onClick={handleAdminLogout} className="btn btn-outline" style={{ display: "flex", alignItems: "center", gap: 6, borderColor: "rgba(255,255,255,0.4)", color: "#FFF" }}>
               <LogOut size={16} /> Logout
             </button>
@@ -733,22 +776,22 @@ export default function AdminPage() {
 
                   {/* Users Stats Grid */}
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
-                    <div className="stat-box">
+                    <div className="stat-box admin-overview-card admin-overview-card--users">
                       <div className="stat-num">{stats.users.total}</div>
                       <div className="stat-label">Total Users</div>
                       <div className="stat-sub">{stats.users.new_today} registered today</div>
                     </div>
-                    <div className="stat-box">
+                    <div className="stat-box admin-overview-card admin-overview-card--active">
                       <div className="stat-num" style={{ color: "#10B981" }}>{stats.users.active}</div>
                       <div className="stat-label">Active Users</div>
                       <div className="stat-sub">{stats.users.farmers} Farmers</div>
                     </div>
-                    <div className="stat-box">
+                    <div className="stat-box admin-overview-card admin-overview-card--risk">
                       <div className="stat-num" style={{ color: "#EF4444" }}>{stats.users.banned}</div>
                       <div className="stat-label">Banned Users</div>
                       <div className="stat-sub">Suspended accounts</div>
                     </div>
-                    <div className="stat-box">
+                    <div className="stat-box admin-overview-card admin-overview-card--crops">
                       <div className="stat-num" style={{ color: "#F59E0B" }}>{stats.crops.total_supported}</div>
                       <div className="stat-label">Supported Crops</div>
                       <div className="stat-sub">Most: {stats.crops.most_cultivated}</div>
@@ -757,7 +800,7 @@ export default function AdminPage() {
 
                   {/* Additional Cards */}
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-                    <div style={{ background: "#FFF", borderRadius: 16, padding: 20, border: "1px solid #E2E8F0" }}>
+                    <div className="admin-insight-card" style={{ background: "#FFF", borderRadius: 16, padding: 20, border: "1px solid #E2E8F0" }}>
                       <h3 style={{ fontSize: 16, fontWeight: 700, color: "#1B4D3E", marginBottom: 12 }}>User Category Breakdown</h3>
                       <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 14 }}>
                         <div style={{ display: "flex", justifyContent: "space-between" }}><span>Farmers:</span><strong>{stats.users.farmers}</strong></div>
@@ -767,7 +810,7 @@ export default function AdminPage() {
                       </div>
                     </div>
 
-                    <div style={{ background: "#FFF", borderRadius: 16, padding: 20, border: "1px solid #E2E8F0" }}>
+                    <div className="admin-insight-card" style={{ background: "#FFF", borderRadius: 16, padding: 20, border: "1px solid #E2E8F0" }}>
                       <h3 style={{ fontSize: 16, fontWeight: 700, color: "#1B4D3E", marginBottom: 12 }}>Disease Reports Summary</h3>
                       <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 14 }}>
                         <div style={{ display: "flex", justifyContent: "space-between" }}><span>Total Reports:</span><strong>{stats.diseases.total}</strong></div>
@@ -782,7 +825,7 @@ export default function AdminPage() {
 
               {/* MODULE 2: USER MANAGEMENT (FULL CRUD) */}
               {activeTab === "users" && (
-                <div style={{ background: "#FFF", borderRadius: 16, padding: 24, border: "1px solid #E2E8F0" }}>
+                <div className="admin-user-directory-card" style={{ background: "#FFF", borderRadius: 16, padding: 24, border: "1px solid #E2E8F0" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16, marginBottom: 20 }}>
                     <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1E293B", margin: 0 }}>Farmer Directory &amp; Account Control</h2>
                     {isSuperAdmin && (
@@ -807,8 +850,8 @@ export default function AdminPage() {
                     </select>
                   </div>
 
-                  <div style={{ overflowX: "auto" }}>
-                    <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 13 }}>
+                  <div className="admin-user-table" style={{ overflowX: "auto" }}>
+                    <table style={{ width: "1000px", height: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 13 }}>
                       <thead>
                         <tr style={{ background: "#F8FAFC", borderBottom: "2px solid #E2E8F0", color: "#475569", fontWeight: 700 }}>
                           <th style={{ padding: 10 }}>Name</th>
