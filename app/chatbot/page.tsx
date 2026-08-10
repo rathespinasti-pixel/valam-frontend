@@ -33,6 +33,24 @@ export default function ChatbotPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const [userCrops, setUserCrops] = useState<any[]>([]);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  async function loadUserAndCrops() {
+    try {
+      if (ValamAPI.isLoggedIn()) {
+        const [cropsRes, userRes] = await Promise.allSettled([
+          ValamAPI.getCrops(),
+          ValamAPI.me(),
+        ]);
+        if (cropsRes.status === "fulfilled") setUserCrops(cropsRes.value.items || []);
+        if (userRes.status === "fulfilled") setCurrentUser(userRes.value);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   async function loadHistory() {
     try {
       if (ValamAPI.isLoggedIn()) {
@@ -46,6 +64,7 @@ export default function ChatbotPage() {
 
   useEffect(() => {
     loadHistory();
+    loadUserAndCrops();
   }, []);
 
   async function handleSend(inputQuestion?: string, category?: string) {
@@ -58,16 +77,21 @@ export default function ChatbotPage() {
     setLoading(true);
 
     try {
-      const langName = language === "ta" ? "Tamil" : language === "si" ? "Sinhala" : "English";
-      let answerText = "";
-      try {
-        const aiRes = await ValamAPI.askFarmingAssistant(qText, langName);
-        answerText = aiRes.answer;
-      } catch (geminiErr) {
-        const fallbackRes = await ValamAPI.askChatbot(qText, category, language);
-        answerText = fallbackRes.answer;
-      }
-      const botMsg = { id: (Date.now() + 1).toString(), sender: "bot" as const, text: answerText };
+      const pageContext = {
+        page: "chatbot-console",
+        district: currentUser?.district || "Vavuniya",
+        active_crops: userCrops.map((c) => ({
+          crop_name: c.crop_name,
+          variety: c.variety,
+          planting_date: c.planting_date,
+          current_stage: c.current_stage,
+          planting_method: c.planting_method,
+          land_size: c.land_size,
+        })),
+      };
+
+      const res = await ValamAPI.askChatbot(qText, category, language, pageContext);
+      const botMsg = { id: (Date.now() + 1).toString(), sender: "bot" as const, text: res.answer };
       setMessages((prev) => [...prev, botMsg]);
       loadHistory();
     } catch (err: any) {
@@ -89,23 +113,28 @@ export default function ChatbotPage() {
 
   const QUICK_PROMPTS = [
     {
-      label: language === "ta" ? "சொட்டுநீர் பாசனம்" : language === "si" ? "බිංදු ජලසම්පාදනය" : "Drip Irrigation Setup",
-      prompt: "How do I calculate drip irrigation lateral pipe requirements for 1 acre of Tomato?",
-      cat: "irrigation-solar",
-    },
-    {
-      label: language === "ta" ? "வேப்ப எண்ணெய் தெளிப்பு" : language === "si" ? "කොහොඹ තෙල් සාරය" : "Organic Pest Spray",
-      prompt: "How to prepare 5% Neem seed kernel extract spray for whiteflies?",
-      cat: "ai-chatbot",
-    },
-    {
-      label: language === "ta" ? "NPK உர அட்டவணை" : language === "si" ? "NPK පොහොර උපදෙස්" : "NPK Dosing Schedule",
-      prompt: "What is the recommended NPK fertilizer schedule for Brinjal in Yala season?",
+      label: language === "ta" ? "நேரடி விதைப்பு & விதை அளவு" : language === "si" ? "සෘජු බීජ & ප්‍රමාණය" : "Direct Seeding & Seed Rate",
+      prompt: "I have 1 acre of land in Vavuniya. If I do direct seeding for Maize, how much seed do I need to buy, what is the cost, and what drip irrigation length is needed?",
       cat: "crop-guides",
     },
     {
-      label: language === "ta" ? "மழைக்கால பாதுகாப்பு" : language === "si" ? "වැසි කාල උපදෙස්" : "Maha Rain Protection",
-      prompt: "What drainage measures should I take before heavy Maha rainfall?",
+      label: language === "ta" ? "சொட்டுநீர் & சூரிய பம்ப் அளவு" : language === "si" ? "බිංදු ජලය & සූර්ය පොම්පය" : "Drip & Solar Pump Sizing",
+      prompt: "How do I calculate drip lateral pipe length, daily water liters, and solar pump HP for 0.5 acre of Tomato?",
+      cat: "irrigation-solar",
+    },
+    {
+      label: language === "ta" ? "பயிர் வளர்ச்சி உரம்" : language === "si" ? "වගා අදියර පොහොර" : "Stage-by-Stage Compost",
+      prompt: "What is the step-by-step organic compost and fertilizer schedule for each growth stage of Chilli?",
+      cat: "crop-guides",
+    },
+    {
+      label: language === "ta" ? "வேப்ப எண்ணெய் பூச்சி மருந்து" : language === "si" ? "කොහොඹ තෙල් සාරය" : "Organic Pest Spray",
+      prompt: "How to prepare 5% Neem seed kernel extract spray for whiteflies and aphids?",
+      cat: "ai-chatbot",
+    },
+    {
+      label: language === "ta" ? "மழைக்கால வடிகால்" : language === "si" ? "වැසි කාල උපදෙස්" : "Maha Rain Drainage",
+      prompt: "What field drainage measures should I take before heavy Maha rainfall in Vavuniya?",
       cat: "weather",
     },
   ];
@@ -173,15 +202,60 @@ export default function ChatbotPage() {
               }}
             >
               {/* Header */}
-              <div style={{ padding: "16px 24px", background: "linear-gradient(135deg, #1B4D3E, #059669)", color: "#FFFFFF", display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ background: "rgba(255,255,255,0.2)", padding: 8, borderRadius: 12 }}>
-                  <Sparkles size={22} color="#FDE047" />
-                </div>
-                <div>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "#FFFFFF" }}>Valam AI Farming Assistant</h3>
-                  <div style={{ fontSize: 12, color: "#D1FAE5" }}>Northern Province Agriculture AI Specialist</div>
+              <div style={{ padding: "16px 24px", background: "linear-gradient(135deg, #1B4D3E, #059669)", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ background: "rgba(255,255,255,0.2)", padding: 8, borderRadius: 12 }}>
+                    <Sparkles size={22} color="#FDE047" />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "#FFFFFF" }}>Valam AI Farming Assistant</h3>
+                    <div style={{ fontSize: 12, color: "#D1FAE5" }}>
+                      {currentUser ? `Connected to ${currentUser.full_name} (${currentUser.district || "Vavuniya"})` : "Dry Zone Agriculture Specialist"}
+                    </div>
+                  </div>
                 </div>
               </div>
+
+              {/* Active Farm & Crop Profile Banner */}
+              {userCrops.length > 0 && (
+                <div
+                  style={{
+                    background: "#ECFDF5",
+                    padding: "10px 20px",
+                    borderBottom: "1px solid #A7F3D0",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    flexWrap: "wrap",
+                    fontSize: 12,
+                    color: "#065F46",
+                  }}
+                >
+                  <span style={{ fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
+                    🌾 Active Crop Context:
+                  </span>
+                  {userCrops.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => handleSend(`What should I do right now for my ${c.crop_name} (${c.variety || 'standard'}) at the ${c.current_stage || 'current'} stage?`)}
+                      style={{
+                        background: "#FFFFFF",
+                        border: "1px solid #10B981",
+                        color: "#047857",
+                        borderRadius: 12,
+                        padding: "3px 10px",
+                        fontSize: 11,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                      }}
+                      title="Click to ask for advice on this crop"
+                    >
+                      {c.crop_name} ({c.current_stage || "Active"}) 💬
+                    </button>
+                  ))}
+                </div>
+              )}
 
               {/* Message Feed */}
               <div style={{ flex: 1, padding: 24, overflowY: "auto", background: "#F8FAFC", display: "flex", flexDirection: "column", gap: 16 }}>

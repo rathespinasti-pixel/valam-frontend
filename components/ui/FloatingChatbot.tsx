@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { ValamAPI } from "@/lib/api";
+import type { Crop } from "@/lib/types";
 import { useLanguage } from "@/context/LanguageContext";
-import { MessageSquare, Send, X, Bot, Sparkles, User, RefreshCw } from "lucide-react";
+import { MessageSquare, Send, X, Bot, Sparkles, User, RefreshCw, Sprout } from "lucide-react";
 
 interface Message {
   id: string;
@@ -13,23 +15,33 @@ interface Message {
 
 export function FloatingChatbot() {
   const { t, language } = useLanguage();
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
+  const [userCrops, setUserCrops] = useState<Crop[]>([]);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
       sender: "bot",
       text:
         language === "ta"
-          ? "வணக்கம்! நான் வளம் AI விவசாய உதவி. பயிர் சாகுபடி, நோய்கள், நீர் பாசனம் அல்லது உரம் பற்றி என்னிடம் கேளுங்கள்!"
+          ? "வணக்கம்! நான் வளம் AI விவசாய உதவி. உங்கள் பயிர் விவரங்கள் ஏற்கனவே எனக்கு தெரியும். பயிர் சாகுபடி, நோய்கள், நீர் பாசனம் அல்லது உரம் பற்றி என்னிடம் நேரடியாக கேளுங்கள்!"
           : language === "si"
-          ? "ආයුබෝවන්! මම වළම් කෘෂිකාර්මික AI සහකරු. වගා රෝග, ජලසම්පාදනය හෝ පොහොර පිළිබඳව ඕනෑම දෙයක් අසන්න!"
-          : "Hello! I am Valam AI Farming Assistant. Ask me anything about crop cultivation, plant diseases, irrigation, or fertilizers!",
+          ? "ආයුබෝවන්! මම වළම් කෘෂිකාර්මික AI සහකරු. ඔබගේ වගා තොරතුරු මා සතුව ඇත. වගා රෝග, ජලසම්පාදනය හෝ පොහොර පිළිබඳව ඕනෑම දෙයක් අසන්න!"
+          : "Hello! I am Valam AI Farming Assistant. I already have your farm & crop profile loaded. Ask me anything directly about your crops, diseases, irrigation, or fertilizers!",
     },
   ]);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isOpen && ValamAPI.isLoggedIn()) {
+      ValamAPI.getCrops()
+        .then((res) => setUserCrops(res.items || []))
+        .catch(() => {});
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -65,7 +77,18 @@ export function FloatingChatbot() {
     setLoading(true);
 
     try {
-      const res = await ValamAPI.askChatbot(userText, undefined, language);
+      const pageContext = {
+        pathname: pathname || "/",
+        active_crops: userCrops.map((c) => ({
+          crop_name: c.crop_name,
+          variety: c.variety,
+          planting_date: c.planting_date,
+          current_stage: c.current_stage,
+          planting_method: c.planting_method,
+        })),
+      };
+
+      const res = await ValamAPI.askChatbot(userText, undefined, language, pageContext);
       const botMsg: Message = { id: (Date.now() + 1).toString(), sender: "bot", text: res.answer };
       setMessages((prev) => [...prev, botMsg]);
     } catch (err: any) {
@@ -157,6 +180,28 @@ export function FloatingChatbot() {
               <X size={22} />
             </button>
           </div>
+
+          {/* Active Crops Context Banner */}
+          {userCrops.length > 0 && (
+            <div
+              style={{
+                background: "#ECFDF5",
+                padding: "6px 14px",
+                borderBottom: "1px solid #A7F3D0",
+                fontSize: 11,
+                color: "#065F46",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                fontWeight: 600,
+              }}
+            >
+              <Sprout size={13} color="#059669" />
+              <span>
+                Active Crop Context: <strong>{userCrops.map((c) => c.crop_name).join(", ")}</strong>
+              </span>
+            </div>
+          )}
 
           {/* Messages Feed */}
           <div style={{ flex: 1, padding: 16, overflowY: "auto", background: "#F8FAFC", display: "flex", flexDirection: "column", gap: 12 }}>

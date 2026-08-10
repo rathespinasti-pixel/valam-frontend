@@ -8,6 +8,8 @@ import type {
   CommunityPost,
   Crop,
   CropGuide,
+  CropStageAdvice,
+  StageCompostAdvice,
   DiseaseDiagnosis,
   LoginInput,
   OnboardingInput,
@@ -294,11 +296,11 @@ export const ValamAPI = {
     });
   },
 
-  async banUser(userId: number | string, status?: string): Promise<ValamUser> {
+  async banUser(userId: number | string, status?: string, reason?: string): Promise<ValamUser> {
     return apiRequest<ValamUser>(`/admin/users/${userId}/ban`, {
       method: "PUT",
       auth: true,
-      body: { status },
+      body: { status, reason },
     });
   },
 
@@ -467,11 +469,16 @@ export const ValamAPI = {
   },
 
   // AI Assistant & Disease Diagnosis
-  async askChatbot(question: string, category?: string, language?: string): Promise<ChatbotEntry> {
+  async askChatbot(
+    question: string,
+    category?: string,
+    language?: string,
+    pageContext?: Record<string, any>
+  ): Promise<ChatbotEntry> {
     return apiRequest<ChatbotEntry>("/chatbot/ask", {
       method: "POST",
       auth: true,
-      body: { question, category, language },
+      body: { question, category, language, page_context: pageContext },
     });
   },
 
@@ -604,6 +611,35 @@ export const ValamAPI = {
     return apiRequest<{ translated_text: string }>("/ai/translate", {
       method: "POST",
       body: { text, target_language },
+    });
+  },
+
+  async suggestAgronomyPlan(params: {
+    crop_name: string;
+    variety?: string;
+    planting_method?: string;
+    fertilizer_type?: string;
+    season?: string;
+    district?: string;
+  }): Promise<{
+    crop_name: string;
+    variety?: string;
+    total_days: number;
+    planting_method?: string;
+    fertilizer_type?: string;
+    recommended_season?: string;
+    water_requirements?: string;
+    irrigation_method?: string;
+    fertilizer_guidance?: string;
+    common_problems?: string;
+    basic_solutions?: string;
+    growth_stages: CropStageAdvice[];
+    stage_composts: StageCompostAdvice[];
+  }> {
+    return apiRequest("/crop-guides/suggest-agronomy", {
+      method: "POST",
+      auth: true,
+      body: params,
     });
   },
 

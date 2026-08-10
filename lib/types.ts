@@ -7,6 +7,7 @@ export interface ValamUser {
   farm_size_acres?: number;
   role?: "farmer" | "admin" | "super_admin" | string;
   status?: "active" | "banned" | string;
+  ban_reason?: string;
   created_at?: string;
   district_asc?: string;
   farmer_type?: string;
@@ -22,6 +23,7 @@ export interface ValamUser {
   land_size_unit?: "Acres" | "Perches" | "Hectares" | "Square Feet" | string;
   irrigation_preference?: "Drip Irrigation" | "Sprinkler Irrigation" | "Manual Watering" | string;
   fertilizer_preference?: "Organic" | "Chemical" | string;
+  password?: string;
 }
 
 export interface AdminActivityLog {
@@ -226,12 +228,25 @@ export interface CropStageAdvice {
   advice?: string;
 }
 
+export interface StageCompostAdvice {
+  stage_name: string;
+  days_range?: string;
+  compost_type?: "Organic" | "Non-Organic / Chemical" | "Integrated" | string;
+  recommended_compost: string;
+  dosage: string;
+  application_method: string;
+  water_tips?: string;
+}
+
 export interface CropGuide {
   id: number;
   crop_name: string;
   variety?: string;
   recommended_season?: string;
+  planting_method?: "Direct Seeding" | "Transplanting" | "Broadcasting" | "Nursery Raised" | string;
+  fertilizer_type?: "Organic" | "Non-Organic / Chemical" | "Integrated" | string;
   growth_stages: CropStageAdvice[];
+  stage_composts?: StageCompostAdvice[];
   water_requirements?: string;
   fertilizer_guidance?: string;
   common_problems?: string;
