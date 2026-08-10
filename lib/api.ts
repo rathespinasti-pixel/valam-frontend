@@ -525,47 +525,7 @@ export const ValamAPI = {
     await apiRequest(`/community/posts/${id}`, { method: "DELETE", auth: true });
   },
 
-  // Farming Tools Lending
-  async getTools(
-    { category, search, page = 1 }: { category?: string; search?: string; page?: number } = {}
-  ): Promise<{ items: ToolListing[]; total: number }> {
-    const params = new URLSearchParams({ page: String(page) });
-    if (category) params.set("category", category);
-    if (search) params.set("search", search);
-    return apiRequest<{ items: ToolListing[]; total: number }>(`/tools?${params.toString()}`);
-  },
 
-  async getToolDetail(id: number): Promise<ToolListing> {
-    return apiRequest<ToolListing>(`/tools/${id}`);
-  },
-
-  async createToolListing(data: {
-    tool_name: string;
-    description?: string;
-    category?: string;
-    rental_price_per_day: number;
-    location?: string;
-    contact_phone?: string;
-    image_url?: string;
-  }): Promise<ToolListing> {
-    return apiRequest<ToolListing>("/tools", {
-      method: "POST",
-      auth: true,
-      body: data,
-    });
-  },
-
-  async updateToolListing(id: number, data: Partial<ToolListing>): Promise<ToolListing> {
-    return apiRequest<ToolListing>(`/tools/${id}`, {
-      method: "PUT",
-      auth: true,
-      body: data,
-    });
-  },
-
-  async deleteToolListing(id: number): Promise<void> {
-    await apiRequest(`/tools/${id}`, { method: "DELETE", auth: true });
-  },
 
   // Products Marketplace
   async getProducts(
@@ -617,5 +577,31 @@ export const ValamAPI = {
       method: "POST",
       body: data,
     });
+  },
+
+  // Admin-managed crop catalogue. AI responses are previews until an admin saves them.
+  async getManagedCrops(): Promise<{ items: any[]; total: number }> {
+    return apiRequest("/admin/crops", { auth: true });
+  },
+  async getManagedCrop(id: number): Promise<any> {
+    return apiRequest(`/admin/crops/${id}`, { auth: true });
+  },
+  async createManagedCrop(data: any): Promise<any> {
+    return apiRequest("/admin/crops", { method: "POST", auth: true, body: data });
+  },
+  async updateManagedCrop(id: number, data: any): Promise<any> {
+    return apiRequest(`/admin/crops/${id}`, { method: "PUT", auth: true, body: data });
+  },
+  async setManagedCropStatus(id: number, action: "publish" | "activate" | "deactivate"): Promise<any> {
+    return apiRequest(`/admin/crops/${id}/${action}`, { method: "POST", auth: true });
+  },
+  async getManagedCropSuggestions(id: number): Promise<{ suggestions: any; review_required: boolean }> {
+    return apiRequest(`/admin/crops/${id}/ai-suggestions`, { method: "POST", auth: true });
+  },
+  async generateManagedStageImage(cropId: number, stageId: number): Promise<{ preview: string; prompt: string; approved: boolean }> {
+    return apiRequest(`/admin/crops/${cropId}/lifecycle/${stageId}/generate-image`, { method: "POST", auth: true });
+  },
+  async approveManagedStageImage(cropId: number, stageId: number, preview: string): Promise<any> {
+    return apiRequest(`/admin/crops/${cropId}/lifecycle/${stageId}/approve-image`, { method: "POST", auth: true, body: { preview } });
   },
 };

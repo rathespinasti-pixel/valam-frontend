@@ -51,6 +51,9 @@ export interface AdminOverviewStats {
   crops: {
     total_supported: number;
     total_active_records: number;
+    total_managed: number;
+    published: number;
+    draft: number;
     most_cultivated: string;
     recently_added: string[];
   };
