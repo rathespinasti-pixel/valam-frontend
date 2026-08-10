@@ -1690,21 +1690,21 @@ export default function AdminPage() {
                   <form onSubmit={handleSaveSystemSettings}>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
                       <div>
-                        <label style={{ display: "block", fontWeight: 700, fontSize: 13, marginBottom: 4 }}>Platform Name</label>
+                        <label style={{ display: "block", fontWeight: 700, fontSize: 13, color: "#334155", marginBottom: 4 }}>Platform Name</label>
                         <input
                           type="text"
                           value={sysSettings.platform_name || "Valam Agricultural Platform"}
                           onChange={(e) => setSysSettings({ ...sysSettings, platform_name: e.target.value })}
-                          style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }}
+                          style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CBD5E1", fontSize: 13 }}
                         />
                       </div>
                       <div>
-                        <label style={{ display: "block", fontWeight: 700, fontSize: 13, marginBottom: 4 }}>Contact Email</label>
+                        <label style={{ display: "block", fontWeight: 700, fontSize: 13, color: "#334155", marginBottom: 4 }}>Contact Email</label>
                         <input
                           type="email"
                           value={sysSettings.contact_email || "support@valam.lk"}
                           onChange={(e) => setSysSettings({ ...sysSettings, contact_email: e.target.value })}
-                          style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }}
+                          style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CBD5E1", fontSize: 13 }}
                         />
                       </div>
                     </div>
@@ -1865,23 +1865,23 @@ export default function AdminPage() {
             <form onSubmit={handleSaveUser}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Full Name *</label>
-                  <input type="text" required value={uName} onChange={(e) => setUName(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }} />
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>Full Name *</label>
+                  <input type="text" required value={uName} onChange={(e) => setUName(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }} />
                 </div>
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Email Address *</label>
-                  <input type="email" required value={uEmail} onChange={(e) => setUEmail(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }} />
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>Email Address *</label>
+                  <input type="email" required value={uEmail} onChange={(e) => setUEmail(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }} />
                 </div>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Phone Number</label>
-                  <input type="text" value={uPhone} onChange={(e) => setUPhone(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }} />
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>Phone Number</label>
+                  <input type="text" value={uPhone} onChange={(e) => setUPhone(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }} />
                 </div>
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Farming Category</label>
-                  <select value={uCategory} onChange={(e) => setUCategory(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }}>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>Farming Category</label>
+                  <select value={uCategory} onChange={(e) => setUCategory(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }}>
                     <option value="Farmer">Farmer (Commercial / Smallholder)</option>
                     <option value="Home Gardener">Home Gardener</option>
                     <option value="Terrace Gardener">Terrace Gardener</option>
@@ -1892,21 +1892,21 @@ export default function AdminPage() {
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>District</label>
-                  <input type="text" value={uDistrict} onChange={(e) => setUDistrict(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }} />
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>District</label>
+                  <input type="text" value={uDistrict} onChange={(e) => setUDistrict(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }} />
                 </div>
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>DS Division / ASC</label>
-                  <input type="text" value={uDSDivision} onChange={(e) => setUDSDivision(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }} />
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>DS Division / ASC</label>
+                  <input type="text" value={uDSDivision} onChange={(e) => setUDSDivision(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }} />
                 </div>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Land Size &amp; Unit</label>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>Land Size &amp; Unit</label>
                   <div style={{ display: "flex", gap: 6 }}>
-                    <input type="number" step="0.1" value={uLandSize} onChange={(e) => setULandSize(e.target.value)} style={{ flex: 1, padding: 8, borderRadius: 6, border: "1px solid #CCC" }} />
-                    <select value={uLandUnit} onChange={(e) => setULandUnit(e.target.value)} style={{ width: 110, padding: 8, borderRadius: 6, border: "1px solid #CCC" }}>
+                    <input type="number" step="0.1" value={uLandSize} onChange={(e) => setULandSize(e.target.value)} style={{ flex: 1, padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }} />
+                    <select value={uLandUnit} onChange={(e) => setULandUnit(e.target.value)} style={{ width: 110, padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }}>
                       <option value="Acres">Acres</option>
                       <option value="Perches">Perches</option>
                       <option value="Hectares">Hectares</option>
@@ -1915,14 +1915,14 @@ export default function AdminPage() {
                   </div>
                 </div>
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Irrigation &amp; Fertilizer</label>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>Irrigation &amp; Fertilizer</label>
                   <div style={{ display: "flex", gap: 6 }}>
-                    <select value={uIrrigation} onChange={(e) => setUIrrigation(e.target.value)} style={{ flex: 1, padding: 8, borderRadius: 6, border: "1px solid #CCC" }}>
+                    <select value={uIrrigation} onChange={(e) => setUIrrigation(e.target.value)} style={{ flex: 1, padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }}>
                       <option value="Drip Irrigation">Drip</option>
                       <option value="Sprinkler Irrigation">Sprinkler</option>
                       <option value="Manual Watering">Manual</option>
                     </select>
-                    <select value={uFertilizer} onChange={(e) => setUFertilizer(e.target.value)} style={{ width: 110, padding: 8, borderRadius: 6, border: "1px solid #CCC" }}>
+                    <select value={uFertilizer} onChange={(e) => setUFertilizer(e.target.value)} style={{ width: 110, padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }}>
                       <option value="Organic">Organic</option>
                       <option value="Chemical">Chemical</option>
                     </select>
@@ -1932,14 +1932,14 @@ export default function AdminPage() {
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Account Status</label>
-                  <select value={uStatus} onChange={(e) => setUStatus(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }}>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>Account Status</label>
+                  <select value={uStatus} onChange={(e) => setUStatus(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }}>
                     <option value="active">Active</option>
                     <option value="banned">Banned / Suspended</option>
                   </select>
                 </div>
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>
                     {editingUserId ? "Set New Password (optional)" : "Initial Password *"}
                   </label>
                   <input
@@ -1948,7 +1948,7 @@ export default function AdminPage() {
                     placeholder={editingUserId ? "Leave empty to keep current" : "Min 6 characters"}
                     value={uPassword}
                     onChange={(e) => setUPassword(e.target.value)}
-                    style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }}
+                    style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }}
                   />
                 </div>
               </div>
@@ -1963,7 +1963,7 @@ export default function AdminPage() {
                     placeholder="Reason for suspension..."
                     value={uBanReason}
                     onChange={(e) => setUBanReason(e.target.value)}
-                    style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #F87171" }}
+                    style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #F87171", fontSize: 13 }}
                   />
                 </div>
               )}
@@ -1997,7 +1997,7 @@ export default function AdminPage() {
                 placeholder="New password (min 6 chars)"
                 value={newResetPassword}
                 onChange={(e) => setNewResetPassword(e.target.value)}
-                style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC", marginBottom: 16 }}
+                style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CBD5E1", fontSize: 13, marginBottom: 16 }}
               />
               <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
                 <button type="button" onClick={() => setUserToResetPass(null)} className="btn btn-outline">
@@ -2036,7 +2036,7 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* 5. Add / Edit Crop Modal with AI Agronomy Suggestion Engine */}
+      {/* 5. Add / Edit Crop Modal with Harmonious Consistent Fonts & Styling */}
       {showAddCropModal && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, backdropFilter: "blur(4px)" }}>
           <div style={{ background: "#FFF", borderRadius: 20, padding: 28, maxWidth: 880, width: "100%", maxHeight: "90vh", overflowY: "auto" }}>
@@ -2045,7 +2045,7 @@ export default function AdminPage() {
                 <h3 style={{ fontSize: 18, fontWeight: 800, color: "#1B4D3E", margin: 0 }}>
                   {editingGuideId ? "Edit Crop & Stage Compost Advisory" : "Add New Crop Guide with Stage Compost"}
                 </h3>
-                <div style={{ fontSize: 12, color: "#64748B" }}>
+                <div style={{ fontSize: 12, color: "#64748B", marginTop: 2 }}>
                   Define planting method, fertilizer type, and detailed compost guidance for every growth stage.
                 </div>
               </div>
@@ -2055,12 +2055,17 @@ export default function AdminPage() {
             </div>
 
             <form onSubmit={handleSaveCrop}>
-              {/* Section 1: Basic Plant & Cultivation Info */}
-              <div style={{ background: "#F8FAFC", borderRadius: 12, padding: 16, border: "1px solid #E2E8F0", marginBottom: 16 }}>
+              {/* Section 1: Basic Plant & Cultivation Info (Styled exactly identical to Section 2) */}
+              <div style={{ background: "#FFFFFF", borderRadius: 12, padding: 16, border: "1px solid #CBD5E1", marginBottom: 16 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 12 }}>
-                  <h4 style={{ fontSize: 14, fontWeight: 800, color: "#1E293B", margin: 0 }}>
-                    🌱 1. Plant &amp; Cultivation Specifications
-                  </h4>
+                  <div>
+                    <h4 style={{ fontSize: 15, fontWeight: 800, color: "#1B4D3E", margin: 0 }}>
+                      🌱 1. Plant &amp; Cultivation Specifications
+                    </h4>
+                    <p style={{ fontSize: 12, color: "#64748B", margin: "2px 0 0" }}>
+                      Specify crop botanical name, variety, planting method, and seasonal water requirements.
+                    </p>
+                  </div>
 
                   {/* AI & Agricultural API Auto-Fill Button */}
                   <button
@@ -2094,89 +2099,117 @@ export default function AdminPage() {
                   </button>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
-                  <div>
-                    <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Plant / Crop Name *</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Tomato, Chilli, Maize, Paddy, Brinjal"
-                      value={cropName}
-                      onChange={(e) => setCropName(e.target.value)}
-                      style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC", fontWeight: 700 }}
-                    />
+                <div
+                  style={{
+                    background: "#F8FAFC",
+                    borderRadius: 10,
+                    padding: 12,
+                    border: "1px solid #E2E8F0",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 10,
+                  }}
+                >
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                    <div>
+                      <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 2 }}>
+                        Plant / Crop Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Tomato, Chilli, Maize, Paddy, Brinjal"
+                        value={cropName}
+                        onChange={(e) => setCropName(e.target.value)}
+                        style={{ width: "100%", padding: "6px 8px", borderRadius: 6, border: "1px solid #CCC", fontSize: 12 }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 2 }}>
+                        Variety
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Thilina, MI-2, Badulla Red, Ruwan"
+                        value={variety}
+                        onChange={(e) => setVariety(e.target.value)}
+                        style={{ width: "100%", padding: "6px 8px", borderRadius: 6, border: "1px solid #CCC", fontSize: 12 }}
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Variety</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Thilina, MI-2, Badulla Red, Ruwan"
-                      value={variety}
-                      onChange={(e) => setVariety(e.target.value)}
-                      style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }}
-                    />
-                  </div>
-                </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 12 }}>
-                  <div>
-                    <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Planting Method *</label>
-                    <select
-                      value={plantingMethod}
-                      onChange={(e) => setPlantingMethod(e.target.value)}
-                      style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC", fontWeight: 600 }}
-                    >
-                      <option value="Direct Seeding">Direct Seeding</option>
-                      <option value="Transplanting">Transplanting (Nursery Raised)</option>
-                      <option value="Broadcasting">Broadcasting</option>
-                      <option value="Stem Cuttings">Stem Cuttings / Sets</option>
-                    </select>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+                    <div>
+                      <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 2 }}>
+                        Planting Method *
+                      </label>
+                      <select
+                        value={plantingMethod}
+                        onChange={(e) => setPlantingMethod(e.target.value)}
+                        style={{ width: "100%", padding: "6px 8px", borderRadius: 6, border: "1px solid #CCC", fontSize: 12, background: "#FFF" }}
+                      >
+                        <option value="Direct Seeding">Direct Seeding</option>
+                        <option value="Transplanting">Transplanting (Nursery Raised)</option>
+                        <option value="Broadcasting">Broadcasting</option>
+                        <option value="Stem Cuttings">Stem Cuttings / Sets</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 2 }}>
+                        Compost / Fertilizer Type *
+                      </label>
+                      <select
+                        value={fertilizerType}
+                        onChange={(e) => setFertilizerType(e.target.value)}
+                        style={{ width: "100%", padding: "6px 8px", borderRadius: 6, border: "1px solid #CCC", fontSize: 12, background: "#FFF" }}
+                      >
+                        <option value="Organic">Organic (Cow Dung, Vermicompost, Neem)</option>
+                        <option value="Non-Organic / Chemical">Non-Organic / Chemical (NPK, Urea, TSP)</option>
+                        <option value="Integrated">Integrated / Combined</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 2 }}>
+                        Recommended Season
+                      </label>
+                      <select
+                        value={season}
+                        onChange={(e) => setSeason(e.target.value)}
+                        style={{ width: "100%", padding: "6px 8px", borderRadius: 6, border: "1px solid #CCC", fontSize: 12, background: "#FFF" }}
+                      >
+                        <option value="Yala & Maha">Yala &amp; Maha (Both)</option>
+                        <option value="Yala (Dry Season)">Yala (Dry Season)</option>
+                        <option value="Maha (Wet Season)">Maha (Wet Season)</option>
+                        <option value="Year-round">Year-round</option>
+                      </select>
+                    </div>
                   </div>
-                  <div>
-                    <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Compost / Fertilizer Type *</label>
-                    <select
-                      value={fertilizerType}
-                      onChange={(e) => setFertilizerType(e.target.value)}
-                      style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC", fontWeight: 600 }}
-                    >
-                      <option value="Organic">Organic (Cow Dung, Vermicompost, Neem)</option>
-                      <option value="Non-Organic / Chemical">Non-Organic / Chemical (NPK, Urea, TSP)</option>
-                      <option value="Integrated">Integrated / Combined</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Recommended Season</label>
-                    <select
-                      value={season}
-                      onChange={(e) => setSeason(e.target.value)}
-                      style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }}
-                    >
-                      <option value="Yala & Maha">Yala &amp; Maha (Both)</option>
-                      <option value="Yala (Dry Season)">Yala (Dry Season)</option>
-                      <option value="Maha (Wet Season)">Maha (Wet Season)</option>
-                      <option value="Year-round">Year-round</option>
-                    </select>
-                  </div>
-                </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  <div>
-                    <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Water Requirements</label>
-                    <input
-                      type="text"
-                      value={waterReq}
-                      onChange={(e) => setWaterReq(e.target.value)}
-                      style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>General Fertilizer Notes</label>
-                    <input
-                      type="text"
-                      value={fertGuidance}
-                      onChange={(e) => setFertGuidance(e.target.value)}
-                      style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }}
-                    />
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                    <div>
+                      <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 2 }}>
+                        Water Requirements
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 3.5 - 4.5 L/m² daily"
+                        value={waterReq}
+                        onChange={(e) => setWaterReq(e.target.value)}
+                        style={{ width: "100%", padding: "6px 8px", borderRadius: 6, border: "1px solid #CCC", fontSize: 12 }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 2 }}>
+                        General Fertilizer Notes
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Basal compost + Top dressing at vegetative stage"
+                        value={fertGuidance}
+                        onChange={(e) => setFertGuidance(e.target.value)}
+                        style={{ width: "100%", padding: "6px 8px", borderRadius: 6, border: "1px solid #CCC", fontSize: 12 }}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2233,7 +2266,7 @@ export default function AdminPage() {
                             type="text"
                             value={sc.stage_name}
                             onChange={(e) => handleStageCompostChange(index, "stage_name", e.target.value)}
-                            style={{ fontWeight: 700, fontSize: 13, border: "1px solid #CBD5E1", borderRadius: 6, padding: "4px 8px", width: 240 }}
+                            style={{ fontWeight: 700, fontSize: 12, border: "1px solid #CBD5E1", borderRadius: 6, padding: "4px 8px", width: 240 }}
                           />
                           <input
                             type="text"
@@ -2332,25 +2365,25 @@ export default function AdminPage() {
             <h3 style={{ fontSize: 18, fontWeight: 800, color: "#1B4D3E", margin: "0 0 16px" }}>Broadcast System Notification</h3>
             <form onSubmit={handleCreateNotification}>
               <div style={{ marginBottom: 12 }}>
-                <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Title</label>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>Title</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Monsoon Rain Warning"
                   value={noteTitle}
                   onChange={(e) => setNoteTitle(e.target.value)}
-                  style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }}
+                  style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }}
                 />
               </div>
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Message Content</label>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>Message Content</label>
                 <textarea
                   rows={3}
                   required
                   placeholder="Notification text..."
                   value={noteMsg}
                   onChange={(e) => setNoteMsg(e.target.value)}
-                  style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }}
+                  style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }}
                 />
               </div>
               <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
@@ -2381,17 +2414,17 @@ export default function AdminPage() {
             <form onSubmit={handleSaveDisease}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Disease Name</label>
-                  <input type="text" required value={dName} onChange={(e) => setDName(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }} />
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>Disease Name</label>
+                  <input type="text" required value={dName} onChange={(e) => setDName(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }} />
                 </div>
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Crop Name</label>
-                  <input type="text" required value={dCrop} onChange={(e) => setDCrop(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }} />
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>Crop Name</label>
+                  <input type="text" required value={dCrop} onChange={(e) => setDCrop(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }} />
                 </div>
               </div>
               <div style={{ marginBottom: 12 }}>
-                <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Symptoms</label>
-                <textarea rows={2} required value={dSymptoms} onChange={(e) => setDSymptoms(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }} />
+                <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>Symptoms</label>
+                <textarea rows={2} required value={dSymptoms} onChange={(e) => setDSymptoms(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }} />
               </div>
               <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 16 }}>
                 <button type="button" onClick={() => setShowDiseaseModal(false)} className="btn btn-outline">
@@ -2420,26 +2453,26 @@ export default function AdminPage() {
             </div>
             <form onSubmit={handleSaveAdmin}>
               <div style={{ marginBottom: 12 }}>
-                <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Full Name</label>
-                <input type="text" required value={adminName} onChange={(e) => setAdminName(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }} />
+                <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>Full Name</label>
+                <input type="text" required value={adminName} onChange={(e) => setAdminName(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }} />
               </div>
               <div style={{ marginBottom: 12 }}>
-                <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Email</label>
-                <input type="email" required value={adminEmail} onChange={(e) => setAdminEmail(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }} />
+                <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>Email</label>
+                <input type="email" required value={adminEmail} onChange={(e) => setAdminEmail(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }} />
               </div>
               <div style={{ marginBottom: 12 }}>
-                <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Password</label>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>Password</label>
                 <input
                   type="password"
                   required={!editingAdminId}
                   value={adminPassword}
                   onChange={(e) => setAdminPassword(e.target.value)}
-                  style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }}
+                  style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }}
                 />
               </div>
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Role</label>
-                <select value={adminRole} onChange={(e) => setAdminRole(e.target.value as any)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CCC" }}>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>Role</label>
+                <select value={adminRole} onChange={(e) => setAdminRole(e.target.value as any)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }}>
                   <option value="admin">Admin</option>
                   <option value="super_admin">Super Admin</option>
                 </select>
