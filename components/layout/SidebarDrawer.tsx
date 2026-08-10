@@ -233,7 +233,6 @@ export function SidebarDrawer({ isOpen, onClose, user, onLogout, activeKey }: Si
 
           {/* Admin Portal Link for Admin Users & Super Admins */}
           {(user?.role === "admin" || user?.role === "super_admin") && (
-            <>
             <Link
               href="/admin"
               onClick={onClose}
@@ -259,15 +258,6 @@ export function SidebarDrawer({ isOpen, onClose, user, onLogout, activeKey }: Si
               </div>
               <ChevronRight size={16} color="#FDE68A" />
             </Link>
-            <Link
-              href="/admin/crops"
-              onClick={onClose}
-              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderRadius: 10, textDecoration: "none", fontWeight: pathname === "/admin/crops" ? 700 : 600, fontSize: 14, color: "#D1FAE5", backgroundColor: pathname === "/admin/crops" ? "#047857" : "rgba(4,120,87,.2)", border: "1px solid #10B981", marginTop: 6 }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}><Sprout size={19}/><span>Crop Management</span></div>
-              <ChevronRight size={16}/>
-            </Link>
-            </>
           )}
         </div>
 

@@ -53,6 +53,10 @@ import {
   Key,
   Download,
   Check,
+  Moon,
+  Sun,
+  Monitor,
+  ChevronDown,
 } from "lucide-react";
 
 type ControlPanelTab =
@@ -71,11 +75,14 @@ type ControlPanelTab =
   | "settings"
   | "logs";
 
+type AdminTheme = "light" | "dark" | "system";
+
 export default function AdminPage() {
   const router = useRouter();
 
   const [user, setUser] = useState<ValamUser | null>(null);
   const [activeTab, setActiveTab] = useState<ControlPanelTab>("overview");
+  const [theme, setTheme] = useState<AdminTheme>("system");
   const [loading, setLoading] = useState(true);
   const [statusMsg, setStatusMsg] = useState<{ type: "ok" | "error"; text: string } | null>(null);
 
@@ -180,6 +187,33 @@ export default function AdminPage() {
   // 10. Audit Activity Logs State
   const [logs, setLogs] = useState<AdminActivityLog[]>([]);
   const [logPage, setLogPage] = useState(1);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("valam-admin-theme") as AdminTheme | null;
+    if (savedTheme === "light" || savedTheme === "dark" || savedTheme === "system") {
+      setTheme(savedTheme);
+    }
+  }, []);
+
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const applyTheme = () => {
+      const resolved = theme === "system" ? (media.matches ? "dark" : "light") : theme;
+      document.documentElement.dataset.adminTheme = resolved;
+    };
+
+    applyTheme();
+    if (theme === "system") media.addEventListener("change", applyTheme);
+    return () => {
+      media.removeEventListener("change", applyTheme);
+      delete document.documentElement.dataset.adminTheme;
+    };
+  }, [theme]);
+
+  function handleThemeChange(nextTheme: AdminTheme) {
+    setTheme(nextTheme);
+    localStorage.setItem("valam-admin-theme", nextTheme);
+  }
 
   async function loadData() {
     try {
@@ -615,19 +649,28 @@ export default function AdminPage() {
   return (
     <AuthGuard>
       {/* Dedicated admin workspace — farmers never see this layout. */}
-      <section className="page-hero admin-workspace admin-reference-topbar" style={{ padding: "20px 0" }}>
+      <section className="page-hero admin-workspace" style={{ padding: "20px 0" }}>
         <div className="container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
           <div>
             <div className="crumb" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span>Valam Enterprise Suite</span>
+              <span>Valam / Central Control Panel</span>
               <span style={{ background: isSuperAdmin ? "#F59E0B" : "#10B981", color: "#FFF", padding: "3px 10px", borderRadius: 12, fontSize: 11, fontWeight: 700 }}>
                 {isSuperAdmin ? "👑 Super Admin Session" : "🛡️ Admin Session"}: {user?.full_name}
               </span>
             </div>
-            <h1 style={{ fontSize: 28, marginTop: 4 }}>Admin Dashboard Overview</h1>
+            <h1 style={{ fontSize: 28, marginTop: 4 }}>System Administration &amp; Operations Panel</h1>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <label className="admin-theme-picker" title="Choose control panel theme">
+              {theme === "dark" ? <Moon size={15} /> : theme === "light" ? <Sun size={15} /> : <Monitor size={15} />}
+              <select value={theme} onChange={(event) => handleThemeChange(event.target.value as AdminTheme)} aria-label="Control panel theme">
+                <option value="light">Light</option>
+                <option value="system">System</option>
+                <option value="dark">Dark</option>
+              </select>
+              <ChevronDown size={14} aria-hidden="true" />
+            </label>
             <button onClick={handleAdminLogout} className="btn btn-outline" style={{ display: "flex", alignItems: "center", gap: 6, borderColor: "rgba(255,255,255,0.4)", color: "#FFF" }}>
               <LogOut size={16} /> Logout
             </button>
@@ -668,14 +711,12 @@ export default function AdminPage() {
           <div className="admin-control-layout" style={{ display: "grid", gridTemplateColumns: "260px minmax(0, 1fr)", gap: 24, alignItems: "start" }}>
 
             {/* Sidebar Module Navigation Selector */}
-            <aside className="admin-reference-sidebar" style={{ background: "#FFFFFF", borderRadius: 16, padding: 12, border: "1px solid #E2E8F0", height: "fit-content", position: "sticky", top: 20, boxShadow: "0 2px 10px rgba(0,0,0,0.02)" }}>
-              <div className="admin-sidebar-brand"><Sprout size={28}/><div><strong>வளம் · Valam</strong><small>ENTERPRISE SUITE</small></div></div>
-              <div className="admin-sidebar-profile"><span>{user?.full_name?.charAt(0) || "A"}</span><div><strong>{user?.full_name || "Admin"}</strong><small>● {isSuperAdmin ? "Super Administrator" : "Administrator"}</small></div></div>
+            <aside style={{ background: "#FFFFFF", borderRadius: 16, padding: 12, border: "1px solid #E2E8F0", height: "fit-content", position: "sticky", top: 20, boxShadow: "0 2px 10px rgba(0,0,0,0.02)" }}>
               <div style={{ padding: "8px 12px", fontSize: 11, textTransform: "uppercase", letterSpacing: "1px", color: "#94A3B8", fontWeight: 700 }}>
-                Navigation
+                Control Modules
               </div>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 <button onClick={() => setActiveTab("overview")} className={`admin-side-btn ${activeTab === "overview" ? "active" : ""}`}>
                   <BarChart3 size={18} /> Overview Stats
                 </button>
@@ -684,9 +725,6 @@ export default function AdminPage() {
                 </button>
                 <button onClick={() => setActiveTab("crops")} className={`admin-side-btn ${activeTab === "crops" ? "active" : ""}`}>
                   <Sprout size={18} /> Crop Database
-                </button>
-                <button onClick={() => router.push("/admin/crops")} className="admin-side-btn">
-                  <Plus size={18} /> Manage Crop Content
                 </button>
                 <button onClick={() => setActiveTab("lifecycles")} className={`admin-side-btn ${activeTab === "lifecycles" ? "active" : ""}`}>
                   <Layers size={18} /> Crop Lifecycles
@@ -736,37 +774,52 @@ export default function AdminPage() {
                 <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                   <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1E293B", margin: 0 }}>System Overview &amp; Live Metrics</h2>
 
-                  {/* Primary counts requested for day-to-day administration */}
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(160px, 1fr))", gap: 16 }} className="admin-primary-metrics">
+                  {/* Users Stats Grid */}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
                     <div className="stat-box admin-overview-card admin-overview-card--users">
-                      <Users size={23} />
                       <div className="stat-num">{stats.users.total}</div>
                       <div className="stat-label">Total Users</div>
                       <div className="stat-sub">{stats.users.new_today} registered today</div>
                     </div>
-                    <div className="stat-box admin-overview-card admin-overview-card--active"><UserCheck size={23}/><div className="stat-num">{stats.users.active}</div><div className="stat-label">Active Users</div><div className="stat-sub">{stats.users.total ? Math.round(stats.users.active / stats.users.total * 100) : 0}% of total</div></div>
-                    <div className="stat-box admin-overview-card admin-overview-card--crops">
-                      <Sprout size={23} />
-                      <div className="stat-num">{stats.crops.total_managed}</div>
-                      <div className="stat-label">Managed Crops</div>
-                      <div className="stat-sub">{stats.crops.published} published · {stats.crops.draft} drafts</div>
+                    <div className="stat-box admin-overview-card admin-overview-card--active">
+                      <div className="stat-num" style={{ color: "#10B981" }}>{stats.users.active}</div>
+                      <div className="stat-label">Active Users</div>
+                      <div className="stat-sub">{stats.users.farmers} Farmers</div>
                     </div>
-                    <div className="stat-box admin-overview-card admin-overview-card--risk"><Ban size={23}/><div className="stat-num">{stats.users.banned}</div><div className="stat-label">Banned Users</div><div className="stat-sub">Restricted accounts</div></div>
+                    <div className="stat-box admin-overview-card admin-overview-card--risk">
+                      <div className="stat-num" style={{ color: "#EF4444" }}>{stats.users.banned}</div>
+                      <div className="stat-label">Banned Users</div>
+                      <div className="stat-sub">Suspended accounts</div>
+                    </div>
+                    <div className="stat-box admin-overview-card admin-overview-card--crops">
+                      <div className="stat-num" style={{ color: "#F59E0B" }}>{stats.crops.total_supported}</div>
+                      <div className="stat-label">Supported Crops</div>
+                      <div className="stat-sub">Most: {stats.crops.most_cultivated}</div>
+                    </div>
                   </div>
 
                   {/* Additional Cards */}
-                  <div className="admin-reference-analytics">
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
                     <div className="admin-insight-card" style={{ background: "#FFF", borderRadius: 16, padding: 20, border: "1px solid #E2E8F0" }}>
-                      <h3>User Overview</h3><div className="admin-donut" style={{background:`conic-gradient(#37b44a 0 ${stats.users.total ? stats.users.active/stats.users.total*100 : 0}%,#3274e9 0 ${stats.users.total ? (stats.users.active+stats.users.inactive)/stats.users.total*100 : 0}%,#ff6b35 0)`}}><span>{stats.users.total}</span></div>
-                      <div className="admin-chart-legend"><span><i className="green"/>Active <b>{stats.users.active}</b></span><span><i className="blue"/>Inactive <b>{stats.users.inactive}</b></span><span><i className="orange"/>Banned <b>{stats.users.banned}</b></span></div>
+                      <h3 style={{ fontSize: 16, fontWeight: 700, color: "#1B4D3E", marginBottom: 12 }}>User Category Breakdown</h3>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 14 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}><span>Farmers:</span><strong>{stats.users.farmers}</strong></div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}><span>Home Gardeners:</span><strong>{stats.users.home_gardeners}</strong></div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}><span>Terrace Gardeners:</span><strong>{stats.users.terrace_gardeners}</strong></div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}><span>Beginners:</span><strong>{stats.users.beginners}</strong></div>
+                      </div>
                     </div>
 
                     <div className="admin-insight-card" style={{ background: "#FFF", borderRadius: 16, padding: 20, border: "1px solid #E2E8F0" }}>
-                      <h3>Users Growth <small>(This Month)</small></h3><svg className="admin-growth-chart" viewBox="0 0 600 230" preserveAspectRatio="none"><defs><linearGradient id="growth" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#38a449" stopOpacity=".28"/><stop offset="1" stopColor="#38a449" stopOpacity=".02"/></linearGradient></defs><path d="M15 190 L75 184 L135 168 L205 156 L280 126 L355 102 L430 88 L505 65 L585 34 L585 215 L15 215 Z" fill="url(#growth)"/><polyline points="15,190 75,184 135,168 205,156 280,126 355,102 430,88 505,65 585,34" fill="none" stroke="#2da43e" strokeWidth="4"/>{["15,190","75,184","135,168","205,156","280,126","355,102","430,88","505,65","585,34"].map(p=>{const [cx,cy]=p.split(',');return <circle key={p} cx={cx} cy={cy} r="5" fill="#2da43e"/>})}</svg><div className="admin-chart-axis"><span>Jun 1</span><span>Jun 5</span><span>Jun 10</span><span>Jun 15</span></div>
+                      <h3 style={{ fontSize: 16, fontWeight: 700, color: "#1B4D3E", marginBottom: 12 }}>Disease Reports Summary</h3>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 14 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}><span>Total Reports:</span><strong>{stats.diseases.total}</strong></div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}><span>Pending Review:</span><strong style={{ color: "#F59E0B" }}>{stats.diseases.pending}</strong></div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}><span>Resolved:</span><strong style={{ color: "#10B981" }}>{stats.diseases.resolved}</strong></div>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}><span>Notifications Sent:</span><strong>{stats.system.total_notifications_sent}</strong></div>
+                      </div>
                     </div>
-                    <div className="admin-insight-card admin-top-crops"><h3>Top Crops</h3>{(stats.crops.recently_added.length ? stats.crops.recently_added : ["Tomato","Chilli","Brinjal","Cucumber","Beans"]).slice(0,5).map((crop,i)=><div key={crop}><span>{["🍅","🌶️","🍆","🥒","🌿"][i]} {crop}</span><b>{Math.max(1,stats.crops.total_active_records-i*3)}</b></div>)}<button onClick={()=>router.push('/admin/crops')}>View All Crops</button><p className="admin-report-count"><Stethoscope size={16}/><b>{stats.diseases.total}</b> farmer reports · {stats.diseases.pending} pending</p></div>
                   </div>
-                  <div className="admin-recent-card"><div className="admin-table-heading"><h3>Recent Users</h3><button onClick={()=>setActiveTab('users')}>View All Users</button></div><div className="admin-user-table"><table><thead><tr><th>User ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Status</th><th>Joined Date</th></tr></thead><tbody>{usersList.slice(0,5).map(u=><tr key={u.id}><td>USR-{String(u.id).padStart(4,'0')}</td><td><b>{u.full_name}</b></td><td>{u.email}</td><td>{u.phone || '—'}</td><td><span className={`admin-status ${u.status==='banned'?'banned':'active'}`}>{u.status || 'active'}</span></td><td>{u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td></tr>)}</tbody></table></div></div>
                 </div>
               )}
 
