@@ -53,10 +53,17 @@ export default function NotificationDropdown({ onClose }: Props) {
         credentials: "include",
       });
       if (res.ok) {
-        const data: ApiResponse = await res.json();
-        setNotifications(data.notifications);
-        setTotal(data.total);
-        setPage(data.page);
+        const data = await res.json();
+        // Support both paginated response {notifications, total, page} and plain array
+        if (Array.isArray(data)) {
+          setNotifications(data);
+          setTotal(data.length);
+          setPage(pageNumber);
+        } else {
+          setNotifications(data.notifications || []);
+          setTotal(data.total || (data.notifications?.length ?? 0));
+          setPage(data.page || pageNumber);
+        }
       } else {
         console.error("Failed to load notifications:", res.status);
       }
@@ -65,8 +72,8 @@ export default function NotificationDropdown({ onClose }: Props) {
     } finally {
       setLoading(false);
     }
-  };
-
+  }
+// End of fetchNotifications
   // Load when page changes
   useEffect(() => {
     fetchNotifications(page);
@@ -90,6 +97,7 @@ export default function NotificationDropdown({ onClose }: Props) {
 
   return (
     <div
+      id="notification-dropdown"
       ref={dropdownRef}
       className="notification-dropdown absolute right-4 top-16 w-80 bg-white rounded-xl shadow-lg border border-gray-200 z-50"
       style={{ maxHeight: "420px", overflowY: "auto" }}
@@ -177,4 +185,4 @@ export default function NotificationDropdown({ onClose }: Props) {
       )}
     </div>
   );
-}
+  }

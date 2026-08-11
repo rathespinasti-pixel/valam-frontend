@@ -33,7 +33,7 @@ import {
 function CropLifecycleContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const cropIdParam = searchParams.get("crop_id");
+  const cropIdParam = searchParams?.get("crop_id");
   const { t, language } = useLanguage();
 
   const [user, setUser] = useState<ValamUser | null>(null);

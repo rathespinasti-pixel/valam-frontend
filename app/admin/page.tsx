@@ -912,13 +912,7 @@ export default function AdminPage() {
                 >
                   <Sprout size={18} /> Crop Database
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("lifecycles")}
-                  className={`admin-side-btn ${activeTab === "lifecycles" ? "active" : ""}`}
-                >
-                  <Layers size={18} /> Crop Lifecycles
-                </button>
+              
                 <button
                   type="button"
                   onClick={() => setActiveTab("diseases")}

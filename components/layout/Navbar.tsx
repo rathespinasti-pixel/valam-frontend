@@ -28,6 +28,7 @@ import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { useLanguage } from "@/context/LanguageContext";
 import { useNotification } from "@/context/NotificationContext";
 import logo from "@/public/images/logo.png";
+import NotificationDropdown from "./NotificationDropdown";
 
 type NavKey =
   | "home"
@@ -61,6 +62,9 @@ export function Navbar({ active, pageTitle }: NavbarProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { user, isLoggedIn, loading, logout } = useAuth();
+  const [showNotifications, setShowNotifications] = useState(false);
+  const notificationBtnRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -73,6 +77,21 @@ export function Navbar({ active, pageTitle }: NavbarProps) {
       document.body.classList.remove("has-sidebar-layout");
     };
   }, [loading, isLoggedIn]);
+
+  // Close notifications when clicking outside of dropdown or button
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && dropdownRef.current.contains(e.target as Node)) {
+        return;
+      }
+      if (notificationBtnRef.current && notificationBtnRef.current.contains(e.target as Node)) {
+        return;
+      }
+      setShowNotifications(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const { confirmAction } = useNotification();
 
@@ -207,12 +226,17 @@ export function Navbar({ active, pageTitle }: NavbarProps) {
                 onClick={() => setShowNotifications((prev) => !prev)}
                 aria-expanded={showNotifications}
                 aria-controls="notification-dropdown"
+                ref={notificationBtnRef}
               >
                 <Bell size={18} />
                 <span className="topbar-icon-badge" />
               </button>
               {/* Notification Dropdown */}
-              {showNotifications && <NotificationDropdown onClose={() => setShowNotifications(false)} />}
+              {showNotifications && (
+                <div ref={dropdownRef}>
+                    <NotificationDropdown onClose={() => setShowNotifications(false)} />
+                </div>
+              )}
 
               <button
                 type="button"

@@ -192,6 +192,17 @@ export interface OnboardingInput {
   fertilizer_preference?: string;
 }
 
+export interface ManagedCropItem {
+  id: number;
+  name: string;
+  scientific_name?: string;
+  category?: string;
+  description?: string;
+  suitable_regions?: string[];
+  suitable_seasons?: string[];
+  status?: string;
+}
+
 export interface Crop {
   id: number;
   user_id: number;

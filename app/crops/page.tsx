@@ -70,8 +70,23 @@ const CROP_SPACING: Record<string, { plant: string; row: string; plant_cm: numbe
   Pumpkin: { plant: "100 cm", row: "150 cm", plant_cm: 100, row_cm: 150 },
   Cucumber: { plant: "40 cm", row: "100 cm", plant_cm: 40, row_cm: 100 },
   Maize: { plant: "25 cm", row: "75 cm", plant_cm: 25, row_cm: 75 },
-  "Green Gram": { plant: "10 cm", row: "30 cm", plant_cm: 10, row_cm: 30 },
+  Watermelon: { plant: "90 cm", row: "180 cm", plant_cm: 90, row_cm: 180 },
+  watermelon: { plant: "90 cm", row: "180 cm", plant_cm: 90, row_cm: 180 },
 };
+
+const DEFAULT_CROP_OPTIONS = [
+  { name: "Chilli", label: "Chilli (மிளகாய் / මිරිස්)" },
+  { name: "Tomato", label: "Tomato (தக்காளி / තක්කාලි)" },
+  { name: "Red Onion", label: "Red Onion (சின்ன வெங்காயம் / රතු ළූණු)" },
+  { name: "Brinjal", label: "Brinjal (கத்தரி / වම්බටු)" },
+  { name: "Okra", label: "Okra (வெண்டி / බණ්ඩක්කා)" },
+  { name: "Peanut", label: "Peanut / Groundnut (நிலக்கடலை / රටකජு)" },
+  { name: "Pumpkin", label: "Pumpkin (பூசணி / වට්ටක්කා)" },
+  { name: "Cucumber", label: "Cucumber (வெள்ளரி / පිපිඤ්ඤා)" },
+  { name: "Maize", label: "Maize (சோளம் / බඩඉරිඟු)" },
+  { name: "Green Gram", label: "Green Gram (பயறு / මුං ඇට)" },
+  { name: "Watermelon", label: "Watermelon (தர்பூசணி / පැණි කොමඩු)" },
+];
 
 export default function CropsPage() {
   const router = useRouter();
@@ -83,6 +98,7 @@ export default function CropsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedCrop, setSelectedCrop] = useState<Crop | null>(null);
   const [activeStageTab, setActiveStageTab] = useState<1 | 2 | 3>(1);
+  const [cropOptions, setCropOptions] = useState<{ name: string; label: string }[]>(DEFAULT_CROP_OPTIONS);
 
   // Form state
   const [cropName, setCropName] = useState("Tomato");
@@ -100,11 +116,51 @@ export default function CropsPage() {
   async function fetchCrops() {
     try {
       setLoading(true);
-      const res = await ValamAPI.getCrops();
-      setCrops(res.items);
-      if (res.items.length > 0 && !selectedCrop) {
-        setSelectedCrop(res.items[0]);
+      const [res, guidesRes, catalogueRes] = await Promise.allSettled([
+        ValamAPI.getCrops(),
+        ValamAPI.getCropGuides(),
+        ValamAPI.getCatalogueCrops(),
+      ]);
+
+      if (res.status === "fulfilled") {
+        setCrops(res.value.items);
+        if (res.value.items.length > 0 && !selectedCrop) {
+          setSelectedCrop(res.value.items[0]);
+        }
       }
+
+      const dynamicMap = new Map<string, string>();
+      DEFAULT_CROP_OPTIONS.forEach((opt) => dynamicMap.set(opt.name.toLowerCase(), opt.label));
+
+      if (guidesRes.status === "fulfilled" && guidesRes.value?.items) {
+        guidesRes.value.items.forEach((g) => {
+          if (g.crop_name && !dynamicMap.has(g.crop_name.toLowerCase())) {
+            const formatted = g.crop_name.charAt(0).toUpperCase() + g.crop_name.slice(1);
+            dynamicMap.set(g.crop_name.toLowerCase(), formatted);
+          }
+        });
+      }
+
+      if (catalogueRes.status === "fulfilled" && catalogueRes.value?.items) {
+        catalogueRes.value.items.forEach((c) => {
+          if (c.name && !dynamicMap.has(c.name.toLowerCase())) {
+            const formatted = c.name.charAt(0).toUpperCase() + c.name.slice(1);
+            dynamicMap.set(c.name.toLowerCase(), formatted);
+          }
+        });
+      }
+
+      const mergedOptions: { name: string; label: string }[] = [];
+      dynamicMap.forEach((label, lowerKey) => {
+        const foundDef = DEFAULT_CROP_OPTIONS.find((opt) => opt.name.toLowerCase() === lowerKey);
+        if (foundDef) {
+          mergedOptions.push(foundDef);
+        } else {
+          mergedOptions.push({ name: lowerKey.charAt(0).toUpperCase() + lowerKey.slice(1), label });
+        }
+      });
+
+      setCropOptions(mergedOptions);
     } catch (err) {
       console.error(err);
     } finally {
@@ -270,16 +326,11 @@ export default function CropsPage() {
                     <div>
                       <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{t("cropName")} *</label>
                       <select className="input" style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={cropName} onChange={(e) => setCropName(e.target.value)}>
-                        <option value="Chilli">Chilli (மிளகாய் / මිරිස්)</option>
-                        <option value="Tomato">Tomato (தக்காளி / තක්කාලි)</option>
-                        <option value="Red Onion">Red Onion (சின்ன வெங்காயம் / රතු ළූණු)</option>
-                        <option value="Brinjal">Brinjal (கத்தரி / වම්බටු)</option>
-                        <option value="Okra">Okra (வெண்டி / බණ්ඩක්කා)</option>
-                        <option value="Peanut">Peanut / Groundnut (நிலக்கடலை / රටකජු)</option>
-                        <option value="Pumpkin">Pumpkin (பூசணி / වට්ටක්කා)</option>
-                        <option value="Cucumber">Cucumber (வெள்ளரி / පිපිඤ්ඤා)</option>
-                        <option value="Maize">Maize (சோளம் / බඩඉරිඟු)</option>
-                        <option value="Green Gram">Green Gram (பயறு / මුං ඇට)</option>
+                        {cropOptions.map((opt) => (
+                          <option key={opt.name} value={opt.name}>
+                            {opt.label}
+                          </option>
+                        ))}
                       </select>
                     </div>
 

@@ -25,6 +25,7 @@ import type {
   FAQItem,
   ValamUser,
   WeatherAdvisoryResponse,
+  ManagedCropItem,
 } from "./types";
 
 const API_BASE_URL =
@@ -291,6 +292,14 @@ export const ValamAPI = {
 
   async deleteCrop(id: number): Promise<void> {
     await apiRequest(`/crops/${id}`, { method: "DELETE", auth: true });
+  },
+
+  async getCatalogueCrops(): Promise<{ items: ManagedCropItem[]; total: number }> {
+    try {
+      return await apiRequest<{ items: ManagedCropItem[]; total: number }>("/catalogue/crops");
+    } catch {
+      return { items: [], total: 0 };
+    }
   },
 
   // Crop Guides & Calendar
