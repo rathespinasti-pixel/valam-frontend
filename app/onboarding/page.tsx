@@ -1,9 +1,12 @@
 "use client";
 
+/* eslint-disable react-hooks/set-state-in-effect */
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { GpsLocationButton } from "@/components/location/GpsLocationButton";
 import { ValamAPI } from "@/lib/api";
 import type { ValamUser } from "@/lib/types";
 import { useLanguage } from "@/context/LanguageContext";
@@ -21,6 +24,7 @@ export default function OnboardingPage() {
   const [district, setDistrict] = useState("Vavuniya");
   const [dsDivision, setDsDivision] = useState("Vavuniya Town");
   const [gnDivision, setGnDivision] = useState("");
+  const [farmLocation, setFarmLocation] = useState("");
   const [landSize, setLandSize] = useState<number | "">(1.0);
   const [landUnit, setLandUnit] = useState("Acres");
   const [irrigationPref, setIrrigationPref] = useState("Drip Irrigation");
@@ -37,6 +41,7 @@ export default function OnboardingPage() {
       setFullName(stored.full_name || "");
       if (stored.preferred_language) setPrefLang(stored.preferred_language);
       if (stored.farming_category) setFarmingCategory(stored.farming_category);
+      if (stored.farm_location) setFarmLocation(stored.farm_location);
       if (stored.district) setDistrict(stored.district);
       if (stored.ds_division) setDsDivision(stored.ds_division);
       if (stored.gn_division) setGnDivision(stored.gn_division);
@@ -65,7 +70,7 @@ export default function OnboardingPage() {
         land_size_unit: landUnit,
         irrigation_preference: irrigationPref,
         fertilizer_preference: fertilizerPref,
-        farm_location: `${dsDivision}, ${district}`,
+        farm_location: farmLocation.trim() || `${dsDivision}, ${district}`,
         farm_size_acres: typeof landSize === "number" && landUnit === "Acres" ? landSize : 1.0,
       });
       router.push("/dashboard");
@@ -82,7 +87,7 @@ export default function OnboardingPage() {
       <section className="page-hero">
         <div className="container">
           <div className="crumb">Home / Farmer Onboarding</div>
-          <h1>Welcome to Valam! Let's personalize your farm</h1>
+          <h1>Welcome to Valam! Let&apos;s personalize your farm</h1>
           <p style={{ marginTop: 14, color: "#CFE3D5", maxWidth: 640 }}>
             Configure your Northern Province cultivation preferences to receive tailored 3-stage crop guidance and weather alerts.
           </p>
@@ -209,6 +214,30 @@ export default function OnboardingPage() {
                     <option value="Hectares">{t("hectares")}</option>
                     <option value="Square Feet">{t("squareFeet")}</option>
                   </select>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>{t("farmPlace")}</label>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "center" }}>
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder={`${dsDivision}, ${district}`}
+                    style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #CCC" }}
+                    value={farmLocation}
+                    onChange={(e) => setFarmLocation(e.target.value)}
+                  />
+                  <GpsLocationButton
+                    onLocation={(loc) => {
+                      setFarmLocation(loc.farmLocation);
+                      if (loc.district) setDistrict(loc.district);
+                      if (loc.dsDivision) setDsDivision(loc.dsDivision);
+                      if (loc.gnDivision) setGnDivision(loc.gnDivision);
+                      setError("");
+                    }}
+                    onError={(message) => setError(message)}
+                  />
                 </div>
               </div>
 

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { GpsLocationButton } from "@/components/location/GpsLocationButton";
 import { ValamAPI } from "@/lib/api";
 import { useLanguage } from "@/context/LanguageContext";
 import type { Language } from "@/lib/translations";
@@ -26,6 +27,7 @@ export function RegisterForm() {
   const [district, setDistrict] = useState("Vavuniya");
   const [dsDivision, setDsDivision] = useState("Vavuniya Town");
   const [gnDivision, setGnDivision] = useState("");
+  const [farmLocation, setFarmLocation] = useState("");
   const [landSize, setLandSize] = useState<number | "">(1.0);
   const [landUnit, setLandUnit] = useState("Acres");
   const [irrigationPref, setIrrigationPref] = useState("Drip Irrigation");
@@ -58,7 +60,7 @@ export function RegisterForm() {
         land_size_unit: landUnit,
         irrigation_preference: irrigationPref,
         fertilizer_preference: fertilizerPref,
-        farm_location: `${dsDivision}, ${district}`,
+        farm_location: farmLocation.trim() || `${dsDivision}, ${district}`,
         farm_size_acres: typeof landSize === "number" && landUnit === "Acres" ? landSize : 1.0,
       });
 
@@ -217,6 +219,33 @@ export function RegisterForm() {
             value={gnDivision}
             onChange={(e) => setGnDivision(e.target.value)}
             placeholder="e.g. 214-B Omanthai"
+          />
+        </div>
+      </div>
+
+      <div className="field" style={{ marginBottom: 14 }}>
+        <label htmlFor="farm_location">{t("farmPlace")}</label>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "center" }}>
+          <div className="input-wrap">
+            <i className="fa-solid fa-location-crosshairs" aria-hidden="true" />
+            <input
+              type="text"
+              id="farm_location"
+              name="farm_location"
+              value={farmLocation}
+              onChange={(e) => setFarmLocation(e.target.value)}
+              placeholder={`${dsDivision}, ${district}`}
+            />
+          </div>
+          <GpsLocationButton
+            onLocation={(loc) => {
+              setFarmLocation(loc.farmLocation);
+              if (loc.district) setDistrict(loc.district);
+              if (loc.dsDivision) setDsDivision(loc.dsDivision);
+              if (loc.gnDivision) setGnDivision(loc.gnDivision);
+              setStatus({ type: "ok", text: "GPS location added to your farm profile." });
+            }}
+            onError={(message) => setStatus({ type: "error", text: message })}
           />
         </div>
       </div>

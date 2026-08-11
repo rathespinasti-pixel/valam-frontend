@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { GpsLocationButton } from "@/components/location/GpsLocationButton";
 import { ValamAPI } from "@/lib/api";
 import type { WeatherAdvisoryResponse } from "@/lib/types";
 import { useLanguage } from "@/context/LanguageContext";
@@ -33,6 +34,7 @@ export default function WeatherPage() {
   const [data, setData] = useState<WeatherAdvisoryResponse | null>(null);
   const [location, setLocation] = useState("Vavuniya,LK");
   const [loading, setLoading] = useState(true);
+  const [locationError, setLocationError] = useState("");
 
   async function loadWeather(loc: string) {
     try {
@@ -68,21 +70,39 @@ export default function WeatherPage() {
         <div className="container">
 
           {/* Location Selector */}
-          <div style={{ background: "#FFFFFF", borderRadius: 14, padding: 16, marginBottom: 24, display: "flex", gap: 16, alignItems: "center", border: "1px solid #E2E8F0" }}>
-            <span style={{ fontWeight: 700, color: "#1E293B" }}>{t("selectLocation")}:</span>
-            <select
-              style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #CBD5E1", fontSize: 14, background: "#FFF" }}
-              value={location}
-              onChange={(e) => {
-                setLocation(e.target.value);
-                loadWeather(e.target.value);
-              }}
-            >
-              <option value="Vavuniya,LK">Vavuniya Town</option>
-              <option value="Nedunkeni,LK">Vavuniya North (Nedunkeni)</option>
-              <option value="Cheddikulam,LK">Cheddikulam</option>
-              <option value="Omanthai,LK">Omanthai</option>
-            </select>
+          <div style={{ background: "#FFFFFF", borderRadius: 14, padding: 16, marginBottom: 24, border: "1px solid #E2E8F0" }}>
+            <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+              <span style={{ fontWeight: 700, color: "#1E293B" }}>{t("selectLocation")}:</span>
+              <select
+                style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #CBD5E1", fontSize: 14, background: "#FFF" }}
+                value={location}
+                onChange={(e) => {
+                  setLocationError("");
+                  setLocation(e.target.value);
+                  loadWeather(e.target.value);
+                }}
+              >
+                <option value="Vavuniya,LK">Vavuniya Town</option>
+                <option value="Nedunkeni,LK">Vavuniya North (Nedunkeni)</option>
+                <option value="Cheddikulam,LK">Cheddikulam</option>
+                <option value="Omanthai,LK">Omanthai</option>
+              </select>
+              <GpsLocationButton
+                label="Current GPS"
+                onLocation={(loc) => {
+                  const gpsLocation = `${loc.latitude.toFixed(6)},${loc.longitude.toFixed(6)}`;
+                  setLocationError("");
+                  setLocation(gpsLocation);
+                  loadWeather(gpsLocation);
+                }}
+                onError={(message) => setLocationError(message)}
+              />
+            </div>
+            {locationError && (
+              <div style={{ marginTop: 10, color: "#B91C1C", fontSize: 13, fontWeight: 600 }}>
+                {locationError}
+              </div>
+            )}
           </div>
 
           {loading ? (

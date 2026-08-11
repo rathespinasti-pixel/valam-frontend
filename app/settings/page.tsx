@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { AuthGuard } from "@/components/auth/AuthGuard";
+import { GpsLocationButton } from "@/components/location/GpsLocationButton";
 import { ValamAPI } from "@/lib/api";
 import type { ValamUser } from "@/lib/types";
 import { useLanguage } from "@/context/LanguageContext";
@@ -243,6 +244,17 @@ export default function SettingsPage() {
                     value={farmLocation}
                     onChange={(e) => setFarmLocation(e.target.value)}
                   />
+                  <div style={{ marginTop: 8 }}>
+                    <GpsLocationButton
+                      onLocation={(loc) => {
+                        setFarmLocation(loc.farmLocation);
+                        if (loc.district) setDistrict(loc.district);
+                        if (loc.dsDivision) setDsDivision(loc.dsDivision);
+                        setStatusMsg({ type: "ok", text: "GPS location added. Save settings to keep it." });
+                      }}
+                      onError={(message) => setStatusMsg({ type: "error", text: message })}
+                    />
+                  </div>
                 </div>
 
                 <div>
