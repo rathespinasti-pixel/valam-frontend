@@ -16,7 +16,7 @@ type Bubble = { role: "user" | "bot"; text: string };
 export function ChatbotPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const requestedTopic = searchParams.get("topic");
+  const requestedTopic = searchParams?.get("topic");
   const initialTopic = CHAT_TOPICS.some((t) => t.slug === requestedTopic) ? requestedTopic! : DEFAULT_CHAT_TOPIC;
 
   const [activeSlug, setActiveSlug] = useState(initialTopic);
@@ -43,7 +43,8 @@ export function ChatbotPageClient() {
     if (slug === activeSlug) return;
     setActiveSlug(slug);
     resetChat(slug);
-    const params = new URLSearchParams(Array.from(searchParams.entries()));
+    const entries = searchParams ? Array.from(searchParams.entries()) : [];
+    const params = new URLSearchParams(entries);
     params.set("topic", slug);
     router.replace(`/chatbot?${params.toString()}`, { scroll: false });
   }

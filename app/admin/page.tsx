@@ -1,9 +1,11 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AuthGuard } from "@/components/auth/AuthGuard";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
 import { ValamAPI } from "@/lib/api";
 import type {
   ValamUser,
@@ -135,13 +137,21 @@ const PRESET_BAN_REASONS = [
   "Suspicious account activity or unverified credentials",
 ];
 
-export default function AdminPage() {
+function AdminPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [user, setUser] = useState<ValamUser | null>(null);
   const [activeTab, setActiveTab] = useState<ControlPanelTab>("overview");
   const [loading, setLoading] = useState(true);
   const [statusMsg, setStatusMsg] = useState<{ type: "ok" | "error"; text: string } | null>(null);
+
+  useEffect(() => {
+    const tabParam = searchParams?.get("tab") as ControlPanelTab | null;
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   // Stats State
   const [stats, setStats] = useState<AdminOverviewStats | null>(null);
@@ -804,37 +814,32 @@ export default function AdminPage() {
 
   return (
     <AuthGuard>
-      {/* Admin Top Banner */}
-      <section className="page-hero" style={{ padding: "20px 0" }}>
+      <Navbar active="admin" pageTitle="Admin Portal" />
+
+      {/* Admin Hero Section */}
+      <section className="page-hero">
         <div className="container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
           <div>
             <div className="crumb" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span>Valam / Central Control Panel</span>
-              <span
-                style={{
-                  background: isSuperAdmin ? "#F59E0B" : "#10B981",
-                  color: "#FFF",
-                  padding: "3px 10px",
-                  borderRadius: 12,
-                  fontSize: 11,
-                  fontWeight: 700,
-                }}
-              >
-                {isSuperAdmin ? "👑 Super Admin" : "🛡️ Administrator"}: {user?.full_name}
-              </span>
+              <span>Valam Administration / Central Control Panel</span>
             </div>
-            <h1 style={{ fontSize: 26, marginTop: 4 }}>System Administration &amp; Control Dashboard</h1>
+            <h1>System Administration &amp; Control Dashboard</h1>
+            <p style={{ marginTop: 8, color: "#CFE3D5", maxWidth: 640 }}>
+              Manage users, crop guides, disease reports, notifications, user feedback, audit activity, and system settings.
+            </p>
           </div>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <button
-              onClick={handleAdminLogout}
-              className="btn btn-outline"
-              style={{ display: "flex", alignItems: "center", gap: 6, borderColor: "rgba(255,255,255,0.4)", color: "#FFF" }}
-            >
-              <LogOut size={16} /> Logout
-            </button>
-          </div>
+          <span
+            style={{
+              background: isSuperAdmin ? "#F59E0B" : "#10B981",
+              color: "#FFF",
+              padding: "6px 14px",
+              borderRadius: 20,
+              fontSize: 13,
+              fontWeight: 700,
+            }}
+          >
+            {isSuperAdmin ? "👑 Super Admin" : "🛡️ Administrator"}: {user?.full_name}
+          </span>
         </div>
       </section>
 
@@ -871,127 +876,8 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* Single-Page Layout: Static Sidebar + Isolated Main Content */}
-          <div className="admin-control-layout" style={{ display: "grid", gridTemplateColumns: "260px minmax(0, 1fr)", gap: 24, alignItems: "start" }}>
-            {/* Sidebar Navigation */}
-            <aside
-              style={{
-                background: "#FFFFFF",
-                borderRadius: 16,
-                padding: 12,
-                border: "1px solid #E2E8F0",
-                height: "fit-content",
-                position: "sticky",
-                top: 20,
-                boxShadow: "0 2px 10px rgba(0,0,0,0.02)",
-              }}
-            >
-              <div style={{ padding: "8px 12px", fontSize: 11, textTransform: "uppercase", letterSpacing: "1px", color: "#94A3B8", fontWeight: 700 }}>
-                Control Modules
-              </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("overview")}
-                  className={`admin-side-btn ${activeTab === "overview" ? "active" : ""}`}
-                >
-                  <BarChart3 size={18} /> Overview Stats
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("users")}
-                  className={`admin-side-btn ${activeTab === "users" ? "active" : ""}`}
-                >
-                  <Users size={18} /> User Management
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("crops")}
-                  className={`admin-side-btn ${activeTab === "crops" ? "active" : ""}`}
-                >
-                  <Sprout size={18} /> Crop Database
-                </button>
-              
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("diseases")}
-                  className={`admin-side-btn ${activeTab === "diseases" ? "active" : ""}`}
-                >
-                  <Bug size={18} /> Disease Catalog
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("reports")}
-                  className={`admin-side-btn ${activeTab === "reports" ? "active" : ""}`}
-                >
-                  <Stethoscope size={18} /> Farmer Reports
-                </button>
-                {isSuperAdmin && (
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("admins")}
-                    className={`admin-side-btn ${activeTab === "admins" ? "active" : ""}`}
-                  >
-                    <ShieldCheck size={18} /> Admin Accounts
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("notifications")}
-                  className={`admin-side-btn ${activeTab === "notifications" ? "active" : ""}`}
-                >
-                  <Bell size={18} /> Notifications
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("weather")}
-                  className={`admin-side-btn ${activeTab === "weather" ? "active" : ""}`}
-                >
-                  <CloudSun size={18} /> Weather Config
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("analytics")}
-                  className={`admin-side-btn ${activeTab === "analytics" ? "active" : ""}`}
-                >
-                  <FileSpreadsheet size={18} /> Reports &amp; Export
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("feedback")}
-                  className={`admin-side-btn ${activeTab === "feedback" ? "active" : ""}`}
-                >
-                  <MessageSquare size={18} /> User Feedback
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("faqs")}
-                  className={`admin-side-btn ${activeTab === "faqs" ? "active" : ""}`}
-                >
-                  <HelpCircle size={18} /> FAQ Knowledge
-                </button>
-                {isSuperAdmin && (
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("settings")}
-                    className={`admin-side-btn ${activeTab === "settings" ? "active" : ""}`}
-                  >
-                    <Settings size={18} /> System Settings
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("logs")}
-                  className={`admin-side-btn ${activeTab === "logs" ? "active" : ""}`}
-                >
-                  <History size={18} /> Audit Logs
-                </button>
-              </div>
-            </aside>
-
-            {/* Main Active Module Container */}
-            <main style={{ minHeight: 500 }}>
+          {/* Main Active Module Container */}
+          <main style={{ minHeight: 500 }}>
               {/* MODULE 1: REAL-TIME OVERVIEW DASHBOARD */}
               {activeTab === "overview" && stats && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -1741,9 +1627,9 @@ export default function AdminPage() {
                 </div>
               )}
             </main>
-          </div>
         </div>
       </section>
+      <Footer />
 
       {/* ========================================================= */}
       {/* MODALS SECTION */}
@@ -2485,5 +2371,19 @@ export default function AdminPage() {
         </div>
       )}
     </AuthGuard>
+  );
+}
+
+export default function AdminPage() {
+  return (
+    <Suspense
+      fallback={
+        <div style={{ display: "flex", minHeight: "100vh", alignItems: "center", justifyContent: "center", background: "#F1F5F9" }}>
+          <div style={{ color: "#475569", fontWeight: 600 }}>Loading Valam Administration System...</div>
+        </div>
+      }
+    >
+      <AdminPageContent />
+    </Suspense>
   );
 }

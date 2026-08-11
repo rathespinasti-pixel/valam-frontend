@@ -18,6 +18,11 @@ import {
   ChevronRight,
   ShieldCheck,
   Sprout,
+  BarChart3,
+  Bug,
+  HelpCircle,
+  History,
+  Bell,
 } from "lucide-react";
 import type { ValamUser } from "@/lib/types";
 import { useLanguage } from "@/context/LanguageContext";
@@ -35,12 +40,22 @@ export const MENU_ITEMS: NavMenuItem[] = [
   { key: "crops", transKey: "addCrop", href: "/crops", icon: Sprout },
   { key: "irrigation-solar", transKey: "irrigationSolar", href: "/irrigation-solar", icon: Sun },
   { key: "weather", transKey: "weatherForecast", href: "/weather", icon: CloudSun },
-  { key: "guides", transKey: "cropGuide", href: "/guides", icon: BookOpen },
   { key: "chatbot", transKey: "aiChatbot", href: "/chatbot", icon: Bot },
   { key: "diagnosis", transKey: "plantDiagnosis", href: "/diagnosis", icon: Stethoscope },
   { key: "marketplace", transKey: "marketplace", href: "/marketplace", icon: ShoppingBag },
   { key: "community", transKey: "community", href: "/community", icon: Users },
   { key: "settings", transKey: "settings", href: "/settings", icon: Settings },
+];
+
+export const ADMIN_MENU_ITEMS: NavMenuItem[] = [
+  { key: "admin-overview", transKey: "Overview & Stats", href: "/admin?tab=overview", icon: BarChart3 },
+  { key: "admin-users", transKey: "User Management", href: "/admin?tab=users", icon: Users },
+  { key: "admin-crops", transKey: "Crop Guides", href: "/admin?tab=crops", icon: Sprout },
+  { key: "admin-reports", transKey: "Farmer Reports", href: "/admin?tab=reports", icon: Stethoscope },
+  { key: "admin-notifications", transKey: "System Alerts", href: "/admin?tab=notifications", icon: Bell },
+  { key: "admin-feedback", transKey: "Feedback & FAQs", href: "/admin?tab=feedback", icon: HelpCircle },
+  { key: "admin-logs", transKey: "Audit Activity", href: "/admin?tab=logs", icon: History },
+  { key: "admin-settings", transKey: "System Settings", href: "/admin?tab=settings", icon: Settings },
 ];
 
 interface SidebarDrawerProps {
@@ -197,68 +212,43 @@ export function SidebarDrawer({ isOpen, onClose, user, onLogout, activeKey }: Si
             <LanguageSwitcher />
           </div>
 
-          {MENU_ITEMS.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeKey === item.key || pathname === item.href;
-            const labelText = t(item.transKey as any);
+          {(() => {
+            const isAdminUser = user?.role === "admin" || user?.role === "super_admin";
+            const itemsToRender = isAdminUser ? ADMIN_MENU_ITEMS : MENU_ITEMS;
+            return itemsToRender.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeKey === item.key || pathname === item.href;
+              const labelText = item.transKey.includes(" ") ? item.transKey : t(item.transKey as any);
 
-            return (
-              <Link
-                key={item.key}
-                href={item.href}
-                onClick={onClose}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "12px 14px",
-                  borderRadius: 10,
-                  textDecoration: "none",
-                  fontWeight: isActive ? 700 : 500,
-                  fontSize: 14,
-                  color: isActive ? "#FFFFFF" : "#E2E8F0",
-                  backgroundColor: isActive ? "#059669" : "transparent",
-                  boxShadow: isActive ? "0 4px 12px rgba(5, 150, 105, 0.4)" : "none",
-                  transition: "all 0.18s ease",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <Icon size={19} color={isActive ? "#FFFFFF" : "#A7F3D0"} />
-                  <span>{labelText}</span>
-                </div>
-                <ChevronRight size={16} color={isActive ? "#FFFFFF" : "#6EE7B7"} style={{ opacity: isActive ? 1 : 0.4 }} />
-              </Link>
-            );
-          })}
-
-          {/* Admin Portal Link for Admin Users & Super Admins */}
-          {(user?.role === "admin" || user?.role === "super_admin") && (
-            <Link
-              href="/admin"
-              onClick={onClose}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "12px 14px",
-                borderRadius: 10,
-                textDecoration: "none",
-                fontWeight: pathname === "/admin" ? 700 : 600,
-                fontSize: 14,
-                color: "#FDE68A",
-                backgroundColor: pathname === "/admin" ? "#D97706" : "rgba(217, 119, 6, 0.2)",
-                border: "1px solid #F59E0B",
-                marginTop: 6,
-                transition: "all 0.18s ease",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <ShieldCheck size={19} color="#FDE68A" />
-                <span>Admin Portal</span>
-              </div>
-              <ChevronRight size={16} color="#FDE68A" />
-            </Link>
-          )}
+              return (
+                <Link
+                  key={item.key}
+                  href={item.href}
+                  onClick={onClose}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "12px 14px",
+                    borderRadius: 10,
+                    textDecoration: "none",
+                    fontWeight: isActive ? 700 : 500,
+                    fontSize: 14,
+                    color: isActive ? "#FFFFFF" : "#E2E8F0",
+                    backgroundColor: isActive ? "#059669" : "transparent",
+                    boxShadow: isActive ? "0 4px 12px rgba(5, 150, 105, 0.4)" : "none",
+                    transition: "all 0.18s ease",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <Icon size={19} color={isActive ? "#FFFFFF" : "#A7F3D0"} />
+                    <span>{labelText}</span>
+                  </div>
+                  <ChevronRight size={16} color={isActive ? "#FFFFFF" : "#6EE7B7"} style={{ opacity: isActive ? 1 : 0.4 }} />
+                </Link>
+              );
+            });
+          })()}
         </div>
 
         {/* Fixed Footer with Logout Button */}

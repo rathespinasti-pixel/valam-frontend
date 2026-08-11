@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -21,6 +21,10 @@ import {
   ShieldCheck,
   LogOut,
   Sprout,
+  BarChart3,
+  Bug,
+  HelpCircle,
+  History,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { SidebarDrawer } from "./SidebarDrawer";
@@ -98,7 +102,7 @@ export function Navbar({ active, pageTitle }: NavbarProps) {
   function triggerLogoutConfirm() {
     confirmAction({
       title: "Confirm Logout",
-      message: "Are you sure you want to log out of your Valam farmer account?",
+      message: "Are you sure you want to log out of your Valam account?",
       confirmText: "Yes, Logout",
       onConfirm: async () => {
         await logout();
@@ -110,11 +114,10 @@ export function Navbar({ active, pageTitle }: NavbarProps) {
 
   const isAdminUser = user?.role === "admin" || user?.role === "super_admin";
 
-  const navItems = [
+  const farmerNavItems = [
     { key: "dashboard", href: "/dashboard", label: t("dashboard"), icon: LayoutDashboard },
     { key: "crops", href: "/crops", label: t("addCrop") || "Crops", icon: Sprout },
     { key: "irrigation-solar", href: "/irrigation-solar", label: t("irrigationSolar") || "Irrigation & Solar", icon: Sun },
-    { key: "guides", href: "/guides", label: t("cropGuide"), icon: BookOpen },
     { key: "weather", href: "/weather", label: t("weatherForecast"), icon: CloudSun },
     { key: "chatbot", href: "/chatbot", label: t("aiChatbot"), icon: Bot },
     { key: "diagnosis", href: "/diagnosis", label: t("plantDiagnosis"), icon: Stethoscope },
@@ -122,10 +125,26 @@ export function Navbar({ active, pageTitle }: NavbarProps) {
     { key: "community", href: "/community", label: t("community"), icon: Users },
   ];
 
+  const adminNavItems = [
+    { key: "admin-overview", href: "/admin?tab=overview", label: "Overview & Stats", icon: BarChart3 },
+    { key: "admin-users", href: "/admin?tab=users", label: "User Management", icon: Users },
+    { key: "admin-crops", href: "/admin?tab=crops", label: "Crop Guides", icon: Sprout },
+    { key: "admin-reports", href: "/admin?tab=reports", label: "Farmer Reports", icon: Stethoscope },
+    { key: "admin-notifications", href: "/admin?tab=notifications", label: "System Alerts", icon: Bell },
+    { key: "admin-feedback", href: "/admin?tab=feedback", label: "Feedback & FAQs", icon: HelpCircle },
+    { key: "admin-logs", href: "/admin?tab=logs", label: "Audit Activity", icon: History },
+  ];
+
+  const navItems = isAdminUser ? adminNavItems : farmerNavItems;
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/guides?search=${encodeURIComponent(searchQuery.trim())}`);
+      if (isAdminUser) {
+        router.push(`/admin?tab=users&search=${encodeURIComponent(searchQuery.trim())}`);
+      } else {
+        router.push(`/guides?search=${encodeURIComponent(searchQuery.trim())}`);
+      }
     }
   };
 
@@ -136,11 +155,11 @@ export function Navbar({ active, pageTitle }: NavbarProps) {
           {/* Persistent Left Side Navigation Bar (Desktop View) */}
           <aside className="sidebar-view-aside" aria-label="Application Navigation Sidebar">
             {/* Brand Logo & Title */}
-            <Link href="/dashboard" className="sidebar-brand">
+            <Link href={isAdminUser ? "/admin" : "/dashboard"} className="sidebar-brand">
               <Image src={logo} alt="Valam logo" width={42} height={42} priority />
               <div className="sidebar-brand-text">
                 <b>{t("appName")}</b>
-                <span>ENTERPRISE SUITE</span>
+                <span>{isAdminUser ? "ADMIN PORTAL" : "ENTERPRISE SUITE"}</span>
               </div>
             </Link>
 
@@ -162,13 +181,15 @@ export function Navbar({ active, pageTitle }: NavbarProps) {
               })}
             </nav>
 
-            {/* Action CTA Button (START HARVEST) */}
-            <div className="sidebar-cta-container">
-              <Link href="/crops" className="sidebar-harvest-btn">
-                <Sprout size={16} />
-                <span>START HARVEST</span>
-              </Link>
-            </div>
+            {/* Action CTA Button (START HARVEST - Farmers Only) */}
+            {!isAdminUser && (
+              <div className="sidebar-cta-container">
+                <Link href="/crops" className="sidebar-harvest-btn">
+                  <Sprout size={16} />
+                  <span>START HARVEST</span>
+                </Link>
+              </div>
+            )}
 
             {/* Bottom Menu Section */}
             <div className="sidebar-bottom-section">
