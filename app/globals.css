@@ -39,6 +39,26 @@
 *,*::before,*::after{ box-sizing:border-box; }
 html{ scroll-behavior:smooth; }
 
+.route-transition {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: #f8faf8;
+  color: #1b4d3e;
+  font-weight: 600;
+}
+.route-transition-spinner {
+  width: 22px;
+  height: 22px;
+  border: 3px solid rgba(5, 150, 105, 0.2);
+  border-top-color: #059669;
+  border-radius: 50%;
+  animation: route-transition-spin 0.7s linear infinite;
+}
+@keyframes route-transition-spin { to { transform: rotate(360deg); } }
+
 .dash-card {
   background: #ffffff;
   padding: 20px;
@@ -92,14 +112,14 @@ button{ font-family:inherit; cursor:pointer; }
   border:1px solid transparent; transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
 }
 .btn:active{ transform:scale(.97); }
-.btn-primary{ background:var(--leaf); color:#fff; box-shadow:var(--shadow-2); }
+.btn-primary{ background:var(--leaf); color:#310707; box-shadow:var(--shadow-2); }
 .btn-primary:hover{ background:#348750; }
-.btn-sun{ background:var(--sunrise); color:#fff; }
+.btn-sun{ background:var(--sunrise); color:#2c0707; }
 .btn-sun:hover{ background:#dd8236; }
-.btn-outline{ background:transparent; border-color:rgba(255,255,255,.35); color:#fff; }
+.btn-outline{ background:transparent; border-color:rgba(255,255,255,.35); color:#1e0b0b; }
 .btn-outline:hover{ background:rgba(255,255,255,.1); }
-.btn-outline-dark{ background:transparent; border-color:var(--mist); color:var(--forest); }
-.btn-outline-dark:hover{ background:var(--mist); }
+.btn-outline-dark{ background: var(--mist); color: var(--forest); border-color: var(--forest); }
+.btn-outline-dark:hover{ background: var(--mist); }
 .btn-block{ width:100%; }
 
 /* =========================================================
@@ -127,7 +147,7 @@ button{ font-family:inherit; cursor:pointer; }
 .nav-cta{ display:flex; align-items:center; gap:14px; }
 .nav-toggle{ display:none; background:none; border:0; color:var(--forest); font-size:1.4rem; }
 .nav-cta .btn-outline{ background:transparent; border-color:var(--forest); color:var(--forest); }
-.nav-cta .btn-outline:hover{ background:var(--forest); color:#fff; }
+.nav-cta .btn-outline:hover{ background:var(--forest); color:#250808; }
 
 .nav-auth{ display:flex; align-items:center; gap:16px; font-size:.9rem; white-space:nowrap; }
 .nav-auth a{ color:var(--ink-soft); font-weight:600; transition:color .15s ease, background .15s ease; }

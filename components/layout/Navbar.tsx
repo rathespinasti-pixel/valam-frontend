@@ -204,11 +204,15 @@ export function Navbar({ active, pageTitle }: NavbarProps) {
                 type="button"
                 className="topbar-icon-btn"
                 title="Notifications"
-                onClick={() => router.push("/dashboard")}
+                onClick={() => setShowNotifications((prev) => !prev)}
+                aria-expanded={showNotifications}
+                aria-controls="notification-dropdown"
               >
                 <Bell size={18} />
                 <span className="topbar-icon-badge" />
               </button>
+              {/* Notification Dropdown */}
+              {showNotifications && <NotificationDropdown onClose={() => setShowNotifications(false)} />}
 
               <button
                 type="button"

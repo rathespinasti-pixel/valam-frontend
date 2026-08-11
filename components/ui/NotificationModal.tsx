@@ -216,23 +216,12 @@ export function NotificationModal({
         >
           {isConfirm && (
             <button
-              type="button"
-              onClick={onClose}
-              disabled={loading}
-              style={{
-                flex: 1,
-                padding: "11px 18px",
-                borderRadius: 12,
-                border: "1px solid #CBD5E1",
-                background: "#F8FAFC",
-                color: "#475569",
-                fontWeight: 700,
-                fontSize: 14,
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-              }}
+                type="button"
+                onClick={onClose}
+                disabled={loading}
+                className="btn btn-outline-dark"
             >
-              {cancelText}
+                {cancelText}
             </button>
           )}
 

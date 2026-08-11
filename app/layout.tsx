@@ -5,6 +5,7 @@ import { ScrollRevealProvider } from "@/components/layout/ScrollRevealProvider";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { NotificationProvider } from "@/context/NotificationContext";
 import { FloatingChatbot } from "@/components/ui/FloatingChatbot";
+import { NavigationTransition } from "@/components/layout/NavigationTransition";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -47,10 +48,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <LanguageProvider>
           <NotificationProvider>
-            {children}
-            <FloatingChatbot />
-            <BackToTop />
-            <ScrollRevealProvider />
+            <NavigationTransition>
+              {children}
+              <FloatingChatbot />
+              <BackToTop />
+              <ScrollRevealProvider />
+            </NavigationTransition>
           </NotificationProvider>
         </LanguageProvider>
       </body>
