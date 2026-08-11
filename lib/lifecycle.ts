@@ -92,6 +92,7 @@ export function getCropSpecificFallbackImage(cropName: string, stageName: string
   const c = (cropName || "").toLowerCase();
   const s = (stageName || "").toLowerCase();
 
+  const isSeed = (s.includes("seed") && !s.includes("seedling")) || s.includes("germinat");
   const isSeedling = s.includes("seedling") || s.includes("nursery") || s.includes("transplant") || s.includes("1");
   const isVeg = s.includes("vegetative") || s.includes("growth") || s.includes("2") || s.includes("3");
   const isFlower = s.includes("flower") || s.includes("bloom") || s.includes("4");
@@ -99,6 +100,7 @@ export function getCropSpecificFallbackImage(cropName: string, stageName: string
   const isHarvest = s.includes("harvest") || s.includes("pick") || s.includes("6");
 
   if (c.includes("chilli") || c.includes("chili")) {
+    if (isSeed) return "https://images.unsplash.com/photo-1535241552843-26780355d026?auto=format&fit=crop&w=800&q=80";
     if (isSeedling) return "https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?auto=format&fit=crop&w=800&q=80";
     if (isVeg) return "https://images.unsplash.com/photo-1583857502409-728b7a66f4ef?auto=format&fit=crop&w=800&q=80";
     if (isFlower) return "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=800&q=80";
@@ -108,6 +110,7 @@ export function getCropSpecificFallbackImage(cropName: string, stageName: string
   }
 
   if (c.includes("brinjal") || c.includes("eggplant")) {
+    if (isSeed) return "https://images.unsplash.com/photo-1535241552843-26780355d026?auto=format&fit=crop&w=800&q=80";
     if (isSeedling) return "https://images.unsplash.com/photo-1622383563227-04401ab4e5ea?auto=format&fit=crop&w=800&q=80";
     if (isVeg) return "https://images.unsplash.com/photo-1592417817098-8f3d69a0a19e?auto=format&fit=crop&w=800&q=80";
     if (isFlower) return "https://images.unsplash.com/photo-1595855759920-86582396756a?auto=format&fit=crop&w=800&q=80";
@@ -116,12 +119,14 @@ export function getCropSpecificFallbackImage(cropName: string, stageName: string
   }
 
   if (c.includes("okra") || c.includes("ladies finger")) {
+    if (isSeed) return "https://images.unsplash.com/photo-1535241552843-26780355d026?auto=format&fit=crop&w=800&q=80";
     if (isSeedling || isVeg) return "https://images.unsplash.com/photo-1589927986089-35812388d1f4?auto=format&fit=crop&w=800&q=80";
     if (isFlower) return "https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=800&q=80";
     return "https://images.unsplash.com/photo-1628773822503-930a858340d2?auto=format&fit=crop&w=800&q=80";
   }
 
   if (c.includes("maize") || c.includes("corn")) {
+    if (isSeed) return "https://images.unsplash.com/photo-1568644396922-5c3bfae12521?auto=format&fit=crop&w=800&q=80";
     if (isSeedling) return "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=800&q=80";
     if (isVeg) return "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=800&q=80";
     if (isFlower) return "https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?auto=format&fit=crop&w=800&q=80";
@@ -131,6 +136,7 @@ export function getCropSpecificFallbackImage(cropName: string, stageName: string
   }
 
   if (c.includes("paddy") || c.includes("rice")) {
+    if (isSeed) return "https://images.unsplash.com/photo-1536657464919-892534f60d6e?auto=format&fit=crop&w=800&q=80";
     if (isSeedling) return "https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?auto=format&fit=crop&w=800&q=80";
     if (isVeg) return "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=800&q=80";
     if (isFlower || isFruit) return "https://images.unsplash.com/photo-1536657464919-892534f60d6e?auto=format&fit=crop&w=800&q=80";
@@ -138,10 +144,12 @@ export function getCropSpecificFallbackImage(cropName: string, stageName: string
   }
 
   if (c.includes("onion")) {
+    if (isSeed) return "https://images.unsplash.com/photo-1535241552843-26780355d026?auto=format&fit=crop&w=800&q=80";
     return "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=800&q=80";
   }
 
   if (c.includes("pumpkin")) {
+    if (isSeed) return "https://images.unsplash.com/photo-1535241552843-26780355d026?auto=format&fit=crop&w=800&q=80";
     if (isSeedling) return "https://images.unsplash.com/photo-1592417817098-8f3d69a0a19e?auto=format&fit=crop&w=800&q=80";
     if (isVeg) return "https://images.unsplash.com/photo-1570586435893-ab4e6b2885bb?auto=format&fit=crop&w=800&q=80";
     if (isFlower) return "https://images.unsplash.com/photo-1508747703725-719777637510?auto=format&fit=crop&w=800&q=80";
@@ -149,22 +157,32 @@ export function getCropSpecificFallbackImage(cropName: string, stageName: string
   }
 
   if (c.includes("cucumber")) {
+    if (isSeed) return "https://images.unsplash.com/photo-1535241552843-26780355d026?auto=format&fit=crop&w=800&q=80";
     if (isSeedling) return "https://images.unsplash.com/photo-1592417817098-8f3d69a0a19e?auto=format&fit=crop&w=800&q=80";
     if (isVeg) return "https://images.unsplash.com/photo-1592417817098-8f3d69a0a19e?auto=format&fit=crop&w=800&q=80";
     return "https://images.unsplash.com/photo-1604977042946-1eecc30f269e?auto=format&fit=crop&w=800&q=80";
   }
 
   if (c.includes("carrot")) {
+    if (isSeed) return "https://images.unsplash.com/photo-1535241552843-26780355d026?auto=format&fit=crop&w=800&q=80";
     if (isSeedling) return "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=800&q=80";
     return "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?auto=format&fit=crop&w=800&q=80";
   }
 
-  if (c.includes("beans")) {
+  if (c.includes("beans") || c.includes("gram") || c.includes("mung")) {
+    if (isSeed) return "https://images.unsplash.com/photo-1515543237350-b3eea1ec8082?auto=format&fit=crop&w=800&q=80";
     if (isSeedling) return "https://images.unsplash.com/photo-1592417817098-8f3d69a0a19e?auto=format&fit=crop&w=800&q=80";
     return "https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?auto=format&fit=crop&w=800&q=80";
   }
 
+  if (c.includes("peanut") || c.includes("groundnut")) {
+    if (isSeed) return "https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?auto=format&fit=crop&w=800&q=80";
+    if (isSeedling) return "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=800&q=80";
+    return "https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?auto=format&fit=crop&w=800&q=80";
+  }
+
   if (c.includes("tomato")) {
+    if (isSeed) return "https://images.unsplash.com/photo-1535241552843-26780355d026?auto=format&fit=crop&w=800&q=80";
     if (isSeedling) return "https://images.unsplash.com/photo-1592417817098-8f3d69a0a19e?auto=format&fit=crop&w=800&q=80";
     if (isVeg) return "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=800&q=80";
     if (isFlower) return "https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?auto=format&fit=crop&w=800&q=80";

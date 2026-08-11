@@ -160,6 +160,45 @@ export default function DashboardPage() {
     `Check irrigation emitters for uniform water flow.`,
   ];
 
+  const openCropAssistant = () => {
+    if (!activeCrop) return;
+
+    window.dispatchEvent(
+      new CustomEvent("valam:open-assistant", {
+        detail: {
+          source: "dashboard-overview",
+          focused_crop_id: activeCrop.id,
+          focused_crop: {
+            id: activeCrop.id,
+            crop_name: activeCrop.crop_name,
+            variety: activeCrop.variety,
+            planting_date: activeCrop.planting_date,
+            crop_age: daysSincePlanting,
+            current_stage: currentStageLabel,
+            stage_icon: currentStageIcon,
+            progress_percent: progressPercent,
+            days_until_harvest: daysUntilHarvest,
+            expected_harvest_date: lifecycleData?.expectedHarvestDate,
+            planting_method: activeCrop.planting_method,
+            irrigation_type: activeCrop.irrigation_type || user?.irrigation_preference,
+            fertilizer_preference: prefFert,
+            fertilizer_recommendation: fertAdvice,
+            water_requirement: lifecycleData?.currentStage?.water_requirement || wateringRule,
+            today_weather: {
+              temperature_c: currentTemp,
+              condition,
+              watering_recommendation: wateringRule,
+            },
+            daily_tasks: dailyTasks,
+            land_size: activeCrop.land_size,
+            land_size_unit: activeCrop.land_size_unit,
+            notes: activeCrop.notes,
+          },
+        },
+      })
+    );
+  };
+
   const toggleTask = (index: number) => {
     setTaskState((prev) => ({ ...prev, [index]: !prev[index] }));
   };
@@ -325,6 +364,31 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
+
+            {/* Card 8: Crop-aware AI Assistant */}
+            <button
+              type="button"
+              className="dash-card"
+              onClick={openCropAssistant}
+              disabled={!activeCrop}
+              title={activeCrop ? `Ask AI about ${activeCrop.crop_name}` : "Add a crop to use AI assistant"}
+              style={{
+                textAlign: "left",
+                border: "1px solid #BBF7D0",
+                background: activeCrop ? "#FFFFFF" : "#F8FAFC",
+                opacity: activeCrop ? 1 : 0.65,
+              }}
+            >
+              <div style={{ width: 44, height: 44, borderRadius: 10, background: "#DCFCE7", display: "flex", alignItems: "center", justifyContent: "center", color: "#047857" }}>
+                <Bot size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: 12, color: "#047857", fontWeight: 700 }}>AI Assistant</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#1E293B", lineHeight: 1.25 }}>
+                  Ask about {activeCrop ? activeCrop.crop_name : "your crop"}
+                </div>
+              </div>
+            </button>
           </div>
 
           {/* 2. CROP LIFECYCLE CARD & CURRENT STAGE IMAGE GRID */}

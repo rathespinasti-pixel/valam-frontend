@@ -13,6 +13,12 @@ interface Message {
   text: string;
 }
 
+interface AssistantContext {
+  source?: string;
+  focused_crop_id?: number;
+  focused_crop?: Record<string, any>;
+}
+
 export function FloatingChatbot() {
   const { t, language } = useLanguage();
   const pathname = usePathname();
@@ -20,6 +26,7 @@ export function FloatingChatbot() {
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [userCrops, setUserCrops] = useState<Crop[]>([]);
+  const [assistantContext, setAssistantContext] = useState<AssistantContext | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
@@ -34,6 +41,30 @@ export function FloatingChatbot() {
   ]);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleOpenAssistant(event: Event) {
+      const detail = (event as CustomEvent<AssistantContext>).detail || {};
+      const focusedCrop = detail.focused_crop || {};
+      const cropName = focusedCrop.crop_name || "this crop";
+      const cropStage = focusedCrop.current_stage || "the current stage";
+      const cropAge = focusedCrop.crop_age ? `Day ${focusedCrop.crop_age}` : "current day";
+
+      setAssistantContext(detail);
+      setIsOpen(true);
+      setMessages((prev) => [
+        ...prev.filter((m) => !m.id.startsWith("context-")),
+        {
+          id: `context-${Date.now()}`,
+          sender: "bot",
+          text: `I am ready to help with ${cropName}. I have its ${cropAge}, ${cropStage}, fertilizer, irrigation, weather, and task details from your dashboard.`,
+        },
+      ]);
+    }
+
+    window.addEventListener("valam:open-assistant", handleOpenAssistant);
+    return () => window.removeEventListener("valam:open-assistant", handleOpenAssistant);
+  }, []);
 
   useEffect(() => {
     if (isOpen && ValamAPI.isLoggedIn()) {
@@ -79,6 +110,7 @@ export function FloatingChatbot() {
     try {
       const pageContext = {
         pathname: pathname || "/",
+        ...assistantContext,
         active_crops: userCrops.map((c) => ({
           crop_name: c.crop_name,
           variety: c.variety,
@@ -182,7 +214,7 @@ export function FloatingChatbot() {
           </div>
 
           {/* Active Crops Context Banner */}
-          {userCrops.length > 0 && (
+          {(assistantContext?.focused_crop || userCrops.length > 0) && (
             <div
               style={{
                 background: "#ECFDF5",
@@ -198,7 +230,11 @@ export function FloatingChatbot() {
             >
               <Sprout size={13} color="#059669" />
               <span>
-                Active Crop Context: <strong>{userCrops.map((c) => c.crop_name).join(", ")}</strong>
+                Active Crop Context:{" "}
+                <strong>
+                  {assistantContext?.focused_crop?.crop_name ||
+                    userCrops.map((c) => c.crop_name).join(", ")}
+                </strong>
               </span>
             </div>
           )}
