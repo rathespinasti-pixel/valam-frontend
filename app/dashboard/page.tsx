@@ -89,7 +89,7 @@ export default function DashboardPage() {
     return crops.find((c) => c.id === selectedCropId) || crops[0] || null;
   }, [crops, selectedCropId]);
 
-  // Compute dynamic lifecycle metrics powered by planting date & DB guides
+  // Compute dynamic lifecycle metrics powered by planting date and DB guides.
   const lifecycleData: ComputedLifecycle | null = useMemo(() => {
     if (!activeCrop) return null;
     return computeLifecycle(activeCrop, guides, language);
