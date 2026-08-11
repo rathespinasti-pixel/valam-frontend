@@ -34,7 +34,7 @@ function CropLifecycleContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const cropIdParam = searchParams.get("crop_id");
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const [user, setUser] = useState<ValamUser | null>(null);
   const [crops, setCrops] = useState<Crop[]>([]);
@@ -103,8 +103,8 @@ function CropLifecycleContent() {
 
   const lifecycleData: ComputedLifecycle | null = useMemo(() => {
     if (!activeCrop) return null;
-    return computeLifecycle(activeCrop, guides);
-  }, [activeCrop, guides]);
+    return computeLifecycle(activeCrop, guides, language);
+  }, [activeCrop, guides, language]);
 
   useEffect(() => {
     if (lifecycleData) {
@@ -116,18 +116,20 @@ function CropLifecycleContent() {
         .catch((err) => console.error("Perenual info fetch error", err));
 
       const cropName = activeCrop.crop_name;
+      const cropVariety = activeCrop.variety;
       const cropId = activeCrop.id;
-      const cropAge = lifecycleData.cropAge;
 
       lifecycleData.allStages.forEach((st, idx) => {
         const stageName = st.stage_name || st.stage || `Stage ${idx + 1}`;
         const key = `${cropId}_${st.stage_id || idx + 1}`;
+        const stageMidAge = Math.round(((st.start_day || 1) + (st.end_day || 30)) / 2);
 
         ValamAPI.getCropLifecycleImage({
           crop_name: cropName,
+          variety: cropVariety,
           stage: stageName,
           crop_id: cropId,
-          crop_age: cropAge,
+          crop_age: stageMidAge,
         })
           .then((res) => {
             if (res && res.image_url) {
@@ -137,7 +139,7 @@ function CropLifecycleContent() {
           .catch((err) => console.error("Lifecycle image fetch error:", err));
       });
     }
-  }, [selectedCropId, activeCrop, lifecycleData?.currentStageIndex]);
+  }, [selectedCropId, activeCrop?.id, activeCrop?.crop_name, activeCrop?.variety, lifecycleData?.currentStageIndex]);
 
   if (loading) {
     return (
@@ -268,35 +270,45 @@ function CropLifecycleContent() {
           <div style={{ background: "#FFFFFF", borderRadius: 20, padding: 28, border: "1px solid #E2E8F0", boxShadow: "0 4px 20px rgba(0,0,0,0.04)", marginBottom: 32 }}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 20, marginBottom: 24 }}>
               <div>
-                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>CROP NAME</div>
+                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{t("cropName").toUpperCase()}</div>
                 <div style={{ fontSize: 20, fontWeight: 800, color: "#1E293B", marginTop: 4 }}>{activeCrop.crop_name}</div>
-                <div style={{ fontSize: 13, color: "#64748B" }}>{activeCrop.variety || "Standard Variety"}</div>
+                <div style={{ fontSize: 13, color: "#64748B" }}>{activeCrop.variety || (language === "ta" ? "வழக்கமான வகை" : language === "si" ? "සාමාන්‍ය ප්‍රභේදය" : "Standard Variety")}</div>
               </div>
 
               <div>
-                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>PLANTING DATE</div>
+                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{t("plantingDate").toUpperCase()}</div>
                 <div style={{ fontSize: 20, fontWeight: 800, color: "#1E293B", marginTop: 4 }}>{activeCrop.planting_date}</div>
-                <div style={{ fontSize: 13, color: "#166534", fontWeight: 600 }}>Method: {activeCrop.planting_method || "Transplanting"}</div>
+                <div style={{ fontSize: 13, color: "#166534", fontWeight: 600 }}>
+                  {t("plantingMethod")}: {activeCrop.planting_method || (language === "ta" ? "நடுவு செய்தல்" : language === "si" ? "පැළ සිටුවීම" : "Transplanting")}
+                </div>
               </div>
 
               <div>
-                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>CURRENT CROP AGE</div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: "#D97706", marginTop: 4 }}>{cropAge} Days</div>
-                <div style={{ fontSize: 13, color: "#64748B" }}>Target: {totalHarvestDays} Days</div>
+                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{t("daysSincePlanting").toUpperCase()}</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: "#D97706", marginTop: 4 }}>
+                  {cropAge} {language === "ta" ? "நாட்கள்" : language === "si" ? "දින" : "Days"}
+                </div>
+                <div style={{ fontSize: 13, color: "#64748B" }}>
+                  {language === "ta" ? "இலக்கு" : language === "si" ? "ඉලක්කය" : "Target"}: {totalHarvestDays} {language === "ta" ? "நாட்கள்" : language === "si" ? "දින" : "Days"}
+                </div>
               </div>
 
               <div>
-                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>CURRENT GROWTH STAGE</div>
+                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{t("currentGrowthStage").toUpperCase()}</div>
                 <div style={{ fontSize: 16, fontWeight: 800, color: "#166534", marginTop: 4, display: "flex", alignItems: "center", gap: 6 }}>
                   <span>{currentStage.icon}</span> {currentStage.stage_name}
                 </div>
-                <div style={{ fontSize: 12, color: "#10B981", fontWeight: 700, marginTop: 2 }}>Auto-Detected from Date</div>
+                <div style={{ fontSize: 12, color: "#10B981", fontWeight: 700, marginTop: 2 }}>
+                  {language === "ta" ? "தேதியிலிருந்து கண்டறியப்பட்டது" : language === "si" ? "දිනය අනුව ස්වයංක්‍රීයව හඳුනාගන්නා ලදී" : "Auto-Detected from Date"}
+                </div>
               </div>
 
               <div>
-                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>EXPECTED HARVEST</div>
+                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{t("harvestAlert").toUpperCase()}</div>
                 <div style={{ fontSize: 18, fontWeight: 800, color: "#9333EA", marginTop: 4 }}>{expectedHarvestDate}</div>
-                <div style={{ fontSize: 13, color: "#9333EA", fontWeight: 700 }}>{daysUntilHarvest} Days Remaining</div>
+                <div style={{ fontSize: 13, color: "#9333EA", fontWeight: 700 }}>
+                  {daysUntilHarvest} {language === "ta" ? "நாட்கள் மீதமுள்ளன" : language === "si" ? "දින ඉතිරිව ඇත" : "Days Remaining"}
+                </div>
               </div>
             </div>
 
@@ -304,10 +316,10 @@ function CropLifecycleContent() {
             <div style={{ background: "#F8FAFC", padding: 20, borderRadius: 14, border: "1px solid #E2E8F0" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                 <span style={{ fontSize: 14, fontWeight: 700, color: "#1E293B" }}>
-                  Overall Cultivation Progress
+                  {language === "ta" ? "முழுமையான பயிர் வளர்ச்சி முன்னேற்றம்" : language === "si" ? "සමස්ත වගා වර්ධන ප්‍රගතිය" : "Overall Cultivation Progress"}
                 </span>
                 <span style={{ fontSize: 16, fontWeight: 800, color: "#10B981" }}>
-                  {progressPercentage}% Completed
+                  {progressPercentage}% {language === "ta" ? "நிறைவடைந்தது" : language === "si" ? "සම්පූර්ණයි" : "Completed"}
                 </span>
               </div>
               <div style={{ width: "100%", height: 14, background: "#E2E8F0", borderRadius: 8, overflow: "hidden", position: "relative" }}>
@@ -322,9 +334,9 @@ function CropLifecycleContent() {
                 />
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, fontSize: 12, color: "#64748B", fontWeight: 600 }}>
-                <span>🌱 Planting (Day 1)</span>
-                <span>🔥 Day {cropAge} (Current)</span>
-                <span>🧺 Harvest (Day {totalHarvestDays})</span>
+                <span>🌱 {language === "ta" ? "நடுதல் (நாள் 1)" : language === "si" ? "සිටුවීම (දින 1)" : "Planting (Day 1)"}</span>
+                <span>🔥 {language === "ta" ? `நாள் ${cropAge} (தற்போதைய)` : language === "si" ? `දින ${cropAge} (වත්මන්)` : `Day ${cropAge} (Current)`}</span>
+                <span>🧺 {language === "ta" ? `அறுவடை (நாள் ${totalHarvestDays})` : language === "si" ? `අස්වැන්න (දින ${totalHarvestDays})` : `Harvest (Day ${totalHarvestDays})`}</span>
               </div>
             </div>
           </div>
@@ -332,10 +344,14 @@ function CropLifecycleContent() {
           {/* 2. Interactive Complete Lifecycle Timeline Stepper */}
           <div style={{ background: "#FFFFFF", borderRadius: 20, padding: 28, border: "1px solid #E2E8F0", marginBottom: 32 }}>
             <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1E293B", marginBottom: 6, display: "flex", alignItems: "center", gap: 10 }}>
-              <Layers size={24} color="#10B981" /> Interactive Growth Lifecycle Timeline
+              <Layers size={24} color="#10B981" /> {language === "ta" ? "ஊடாடும் பயிர் வளர்ச்சி காலக்கோடு" : language === "si" ? "අන්තර්ක්‍රියාකාරී වගා වර්ධන කාලරේඛාව" : "Interactive Growth Lifecycle Timeline"}
             </h2>
             <p style={{ color: "#64748B", fontSize: 14, marginBottom: 24 }}>
-              Click any stage below to inspect detailed plant appearance, tasks, irrigation advice, and nutrient guidelines.
+              {language === "ta"
+                ? "விவரமான தாவர தோற்றம், பணிகள், நீர்ப்பாசன ஆலோசனை மற்றும் உர வழிகாட்டுதல்களை ஆராய கீழே உள்ள நிலைகளில் ஏதேனும் ஒன்றைக் கிளிக் செய்யவும்."
+                : language === "si"
+                ? "සවිස්තරාත්මක ශාක පෙනුම, කාර්යයන්, ජලසම්පාදන උපදෙස් සහ පොහොර මාර්ගෝපදේශ පරීක්ෂා කිරීමට පහත ඕනෑම අවධියක් මත ක්ලික් කරන්න."
+                : "Click any stage below to inspect detailed plant appearance, tasks, irrigation advice, and nutrient guidelines."}
             </p>
 
             <div style={{ display: "grid", gridTemplateColumns: `repeat(${allStages.length}, 1fr)`, gap: 12, overflowX: "auto" }}>
@@ -347,7 +363,7 @@ function CropLifecycleContent() {
                 let cardBg = "#F8FAFC";
                 let borderColor = "#CBD5E1";
                 let textColor = "#475569";
-                let statusBadge = "Future";
+                let statusBadge = language === "ta" ? "எதிர்காலம்" : language === "si" ? "ඉදිරියට" : "Future";
                 let badgeBg = "#E2E8F0";
                 let badgeColor = "#64748B";
 
@@ -355,7 +371,7 @@ function CropLifecycleContent() {
                   cardBg = "#F0FDF4";
                   borderColor = "#A7F3D0";
                   textColor = "#166534";
-                  statusBadge = "Completed ✓";
+                  statusBadge = language === "ta" ? "முடிந்தது ✓" : language === "si" ? "සම්පූර්ණයි ✓" : "Completed ✓";
                   badgeBg = "#DCFCE7";
                   badgeColor = "#15803D";
                 }
@@ -364,7 +380,7 @@ function CropLifecycleContent() {
                   cardBg = "#ECFDF5";
                   borderColor = "#10B981";
                   textColor = "#065F46";
-                  statusBadge = "Current Stage 🔥";
+                  statusBadge = language === "ta" ? "தற்போதைய நிலை 🔥" : language === "si" ? "වත්මන් අවධිය 🔥" : "Current Stage 🔥";
                   badgeBg = "#10B981";
                   badgeColor = "#FFFFFF";
                 }
@@ -396,7 +412,7 @@ function CropLifecycleContent() {
                     </div>
 
                     <div style={{ fontSize: 12, fontWeight: 700, color: "#64748B" }}>
-                      Stage {idx + 1} (Day {st.start_day}–{st.end_day})
+                      {language === "ta" ? `நிலை ${idx + 1}` : language === "si" ? `අවධිය ${idx + 1}` : `Stage ${idx + 1}`} ({language === "ta" ? `நாள் ${st.start_day}–${st.end_day}` : language === "si" ? `දින ${st.start_day}–${st.end_day}` : `Day ${st.start_day}–${st.end_day}`})
                     </div>
                     <div style={{ fontSize: 15, fontWeight: 800, color: textColor, marginTop: 4, lineHeight: 1.2 }}>
                       {st.stage_name}
@@ -414,42 +430,49 @@ function CropLifecycleContent() {
                 <span style={{ fontSize: 28 }}>{inspectStage.icon}</span>
                 <div>
                   <h2 style={{ fontSize: 22, fontWeight: 800, color: "#1E293B", margin: 0 }}>
-                    Stage {activeStageTab! + 1}: {inspectStage.stage_name}
+                    {language === "ta" ? `நிலை ${activeStageTab! + 1}:` : language === "si" ? `අවධිය ${activeStageTab! + 1}:` : `Stage ${activeStageTab! + 1}:`} {inspectStage.stage_name}
                   </h2>
                   <div style={{ fontSize: 13, color: "#64748B", marginTop: 2 }}>
-                    Duration: Day {inspectStage.start_day} – {inspectStage.end_day}
+                    {language === "ta" ? "கால அளவு:" : language === "si" ? "කාල සීමාව:" : "Duration:"} {language === "ta" ? `நாள் ${inspectStage.start_day} – ${inspectStage.end_day}` : language === "si" ? `දින ${inspectStage.start_day} – ${inspectStage.end_day}` : `Day ${inspectStage.start_day} – ${inspectStage.end_day}`}
                   </div>
                 </div>
               </div>
 
-              <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                 {isInspectCurrent ? (
-                  <span style={{ background: "#10B981", color: "#FFF", padding: "6px 16px", borderRadius: 20, fontWeight: 700, fontSize: 13 }}>
-                    Current Active Stage
-                  </span>
-                ) : (inspectStage.end_day || 0) < cropAge ? (
-                  <span style={{ background: "#DCFCE7", color: "#166534", padding: "6px 16px", borderRadius: 20, fontWeight: 700, fontSize: 13 }}>
-                    Completed Stage Review
+                  <span style={{ background: "#10B981", color: "#FFF", padding: "6px 16px", borderRadius: 20, fontWeight: 700, fontSize: 13, display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    📍 {language === "ta" ? `தற்போதைய வளர்ச்சி நிலை (நாள் ${cropAge})` : language === "si" ? `වත්මන් සක්‍රිය වර්ධන අවධිය (දින ${cropAge})` : `Current Active Growth Stage (Day ${cropAge})`}
                   </span>
                 ) : (
-                  <span style={{ background: "#F1F5F9", color: "#475569", padding: "6px 16px", borderRadius: 20, fontWeight: 700, fontSize: 13 }}>
-                    Future Stage Preview
+                  <span style={{ background: "#EFF6FF", color: "#1E40AF", border: "1px solid #BFDBFE", padding: "6px 16px", borderRadius: 20, fontWeight: 700, fontSize: 13, display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    🔍 {language === "ta" ? `தேர்ந்தெடுக்கப்பட்ட நிலை முன்னோட்டம் (உண்மையான நிலை: ${currentStage.stage_name} · நாள் ${cropAge})` : language === "si" ? `තෝරාගත් අවධිය පෙරදසුන (වත්මන්: ${currentStage.stage_name} · දින ${cropAge})` : `Selected Stage Preview (Actual Current: ${currentStage.stage_name} · Day ${cropAge})`}
                   </span>
                 )}
               </div>
             </div>
 
+            {!isInspectCurrent && (
+              <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderLeft: "4px solid #3B82F6", borderRadius: 10, padding: "10px 16px", marginBottom: 20, fontSize: 13, color: "#475569" }}>
+                💡 <strong>{language === "ta" ? "தேர்ந்தெடுக்கப்பட்ட நிலையைப் பார்க்கிறீர்கள்:" : language === "si" ? "තෝරාගත් අවධිය පරීක්ෂා කරමින් සිටී:" : "Viewing Selected Stage:"}</strong> {language === "ta" ? `நீங்கள் ${inspectStage.stage_name} நிலைக்கான தகவல்களையும் படங்களையும் பார்க்கிறீர்கள். உங்கள் பயிரின் உண்மையான வளர்ச்சி நிலை நட்ட தேதியின்படி (${activeCrop.planting_date}) ${currentStage.stage_name} (நாள் ${cropAge}) ஆகவே இருக்கும்.` : language === "si" ? `ඔබ ${inspectStage.stage_name} අවධිය පිළිබඳ තොරතුරු නරඹයි. ඔබගේ වගාවේ සැබෑ ජීව විද්‍යාත්මක අවධිය සිටුවූ දිනයට (${activeCrop.planting_date}) අනුව ${currentStage.stage_name} (දින ${cropAge}) ලෙස පවතී.` : `You are inspecting information and the visual for ${inspectStage.stage_name}. Your crop's actual biological stage remains ${currentStage.stage_name} (Day ${cropAge}) calculated automatically from planting date (${activeCrop.planting_date}).`}
+              </div>
+            )}
+
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr", gap: 24, alignItems: "start" }}>
 
               {/* Stage Image Display */}
-              <div style={{ background: "#F8FAFC", borderRadius: 16, padding: 16, border: "1px solid #E2E8F0" }}>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#1E293B", marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
-                  <Sparkles size={18} color="#10B981" /> Expected Plant Appearance
+              <div style={{ background: "#F8FAFC", borderRadius: 16, padding: 16, border: "1px solid #E2E8F0", position: "relative" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: "#1E293B", display: "flex", alignItems: "center", gap: 8 }}>
+                    <Sparkles size={18} color="#10B981" /> {t("expectedAppearance")}
+                  </div>
+                  <span style={{ background: "rgba(16, 185, 129, 0.12)", color: "#065F46", padding: "2px 8px", borderRadius: 6, fontSize: 11, fontWeight: 700 }}>
+                    ✨ {activeCrop.crop_name}
+                  </span>
                 </div>
                 <img
                   src={(activeCrop && inspectStage) ? (dynamicImages[`${activeCrop.id}_${inspectStage.stage_id || (activeStageTab !== null ? activeStageTab + 1 : 1)}`] || inspectStage.image_url || currentStageImage) : currentStageImage}
-                  alt={`${activeCrop.crop_name} ${inspectStage.stage_name}`}
-                  style={{ width: "100%", height: 260, objectFit: "cover", borderRadius: 14, boxShadow: "0 4px 14px rgba(0,0,0,0.08)" }}
+                  alt={`${activeCrop.crop_name} (${activeCrop.variety || "Standard"}) ${inspectStage.stage_name}`}
+                  style={{ width: "100%", height: 260, objectFit: "cover", borderRadius: 14, boxShadow: "0 4px 14px rgba(0,0,0,0.08)", border: "1px solid #CBD5E1" }}
                 />
                 <p style={{ marginTop: 12, fontSize: 13, color: "#475569", lineHeight: 1.5, fontWeight: 500 }}>
                   {inspectStage.expected_appearance}
@@ -461,7 +484,7 @@ function CropLifecycleContent() {
 
                 <div style={{ background: "#F8FAFC", borderRadius: 14, padding: 18, border: "1px solid #E2E8F0" }}>
                   <div style={{ fontWeight: 700, fontSize: 15, color: "#1E293B", marginBottom: 6 }}>
-                    Stage Overview &amp; Development
+                    {language === "ta" ? "வளர்ச்சி நிலை கண்ணோட்டம் & வழிகாட்டல்" : language === "si" ? "වර්ධන අවධි විස්තරය සහ මාර්ගෝපදේශය" : "Stage Overview & Development"}
                   </div>
                   <p style={{ fontSize: 14, color: "#475569", lineHeight: 1.5, margin: 0 }}>
                     {inspectStage.description}
@@ -471,7 +494,7 @@ function CropLifecycleContent() {
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                   <div style={{ background: "#E0F2FE", borderRadius: 14, padding: 16, border: "1px solid #BAE6FD" }}>
                     <div style={{ fontWeight: 700, fontSize: 13, color: "#0369A1", display: "flex", alignItems: "center", gap: 6 }}>
-                      <Droplets size={18} /> Water Requirement
+                      <Droplets size={18} /> {t("waterRequirements")}
                     </div>
                     <div style={{ fontSize: 14, fontWeight: 700, color: "#0284C7", marginTop: 6 }}>
                       {inspectStage.water_requirement}
@@ -480,7 +503,7 @@ function CropLifecycleContent() {
 
                   <div style={{ background: "#DCFCE7", borderRadius: 14, padding: 16, border: "1px solid #A7F3D0" }}>
                     <div style={{ fontWeight: 700, fontSize: 13, color: "#166534", display: "flex", alignItems: "center", gap: 6 }}>
-                      <Sprout size={18} /> Fertilizer Advice
+                      <Sprout size={18} /> {t("fertilizerGuidance")}
                     </div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: "#15803D", marginTop: 6 }}>
                       {inspectStage.fertilizer_recommendation}
@@ -491,7 +514,7 @@ function CropLifecycleContent() {
                 {/* Stage Tasks List */}
                 <div style={{ background: "#FFFFFF", borderRadius: 14, padding: 18, border: "1px solid #E2E8F0" }}>
                   <div style={{ fontWeight: 700, fontSize: 15, color: "#1E293B", marginBottom: 10 }}>
-                    Recommended Activities for this Stage:
+                    {language === "ta" ? "இந்த நிலைக்கான பரிந்துரைக்கப்பட்ட செயல்பாடுகள்:" : language === "si" ? "මෙම අවධිය සඳහා නිර්දේශිත ක්‍රියාකාරකම්:" : "Recommended Activities for this Stage:"}
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {inspectStage.daily_tasks && inspectStage.daily_tasks.map((task, tIdx) => (
@@ -506,145 +529,6 @@ function CropLifecycleContent() {
               </div>
 
             </div>
-          </div>
-
-          {/* Botanical & Plant Profile Card (Perenual API Integration) */}
-          <div style={{ background: "#FFFFFF", borderRadius: 20, padding: 28, border: "1px solid #E2E8F0", boxShadow: "0 4px 16px rgba(0,0,0,0.03)", marginBottom: 32 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <BookOpen size={24} color="#16A34A" />
-                <div>
-                  <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1E293B", margin: 0 }}>
-                    Botanical &amp; Plant Profile
-                  </h2>
-                  <div style={{ fontSize: 13, color: "#64748B", marginTop: 2 }}>
-                    Verified plant information retrieved via Flask backend proxy &amp; local database cache
-                  </div>
-                </div>
-              </div>
-
-              <span style={{ background: "#DCFCE7", color: "#15803D", padding: "4px 12px", borderRadius: 14, fontSize: 12, fontWeight: 700, border: "1px solid #A7F3D0" }}>
-                🌐 Perenual Plant Database API
-              </span>
-            </div>
-
-            {perenualInfo ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-                
-                {/* Botanical Grid */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 }}>
-                  {perenualInfo.scientific_name && (
-                    <div style={{ background: "#F8FAFC", padding: 14, borderRadius: 12, border: "1px solid #E2E8F0" }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: "#64748B", textTransform: "uppercase" }}>Scientific Name</div>
-                      <div style={{ fontSize: 15, fontWeight: 800, color: "#1E293B", fontStyle: "italic", marginTop: 2 }}>
-                        {perenualInfo.scientific_name}
-                      </div>
-                    </div>
-                  )}
-
-                  {perenualInfo.family && (
-                    <div style={{ background: "#F8FAFC", padding: 14, borderRadius: 12, border: "1px solid #E2E8F0" }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: "#64748B", textTransform: "uppercase" }}>Family</div>
-                      <div style={{ fontSize: 15, fontWeight: 800, color: "#1E293B", marginTop: 2 }}>
-                        {perenualInfo.family}
-                      </div>
-                    </div>
-                  )}
-
-                  {perenualInfo.plant_type && (
-                    <div style={{ background: "#F8FAFC", padding: 14, borderRadius: 12, border: "1px solid #E2E8F0" }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: "#64748B", textTransform: "uppercase" }}>Plant Type</div>
-                      <div style={{ fontSize: 15, fontWeight: 800, color: "#1E293B", marginTop: 2 }}>
-                        {perenualInfo.plant_type}
-                      </div>
-                    </div>
-                  )}
-
-                  {perenualInfo.growth_habit && (
-                    <div style={{ background: "#F8FAFC", padding: 14, borderRadius: 12, border: "1px solid #E2E8F0" }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: "#64748B", textTransform: "uppercase" }}>Growth Habit</div>
-                      <div style={{ fontSize: 15, fontWeight: 800, color: "#1E293B", marginTop: 2 }}>
-                        {perenualInfo.growth_habit}
-                      </div>
-                    </div>
-                  )}
-
-                  {perenualInfo.sunlight_requirement && (
-                    <div style={{ background: "#FEF3C7", padding: 14, borderRadius: 12, border: "1px solid #FDE68A" }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: "#92400E", textTransform: "uppercase" }}>Sunlight Requirements</div>
-                      <div style={{ fontSize: 14, fontWeight: 800, color: "#B45309", marginTop: 2 }}>
-                        ☀️ {perenualInfo.sunlight_requirement}
-                      </div>
-                    </div>
-                  )}
-
-                  {perenualInfo.water_requirement && (
-                    <div style={{ background: "#E0F2FE", padding: 14, borderRadius: 12, border: "1px solid #BAE6FD" }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: "#0369A1", textTransform: "uppercase" }}>Water Requirements</div>
-                      <div style={{ fontSize: 14, fontWeight: 800, color: "#0284C7", marginTop: 2 }}>
-                        💧 {perenualInfo.water_requirement}
-                      </div>
-                    </div>
-                  )}
-
-                  {perenualInfo.maintenance_level && (
-                    <div style={{ background: "#F8FAFC", padding: 14, borderRadius: 12, border: "1px solid #E2E8F0" }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: "#64748B", textTransform: "uppercase" }}>Maintenance Level</div>
-                      <div style={{ fontSize: 14, fontWeight: 800, color: "#1E293B", marginTop: 2 }}>
-                        {perenualInfo.maintenance_level}
-                      </div>
-                    </div>
-                  )}
-
-                  {perenualInfo.soil_preference && (
-                    <div style={{ background: "#F8FAFC", padding: 14, borderRadius: 12, border: "1px solid #E2E8F0" }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: "#64748B", textTransform: "uppercase" }}>Soil Preference</div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "#334155", marginTop: 2 }}>
-                        🌱 {perenualInfo.soil_preference}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Plant Description */}
-                {perenualInfo.description && (
-                  <div style={{ background: "#F8FAFC", padding: 16, borderRadius: 14, border: "1px solid #E2E8F0" }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#1E293B", marginBottom: 4 }}>Botanical Description</div>
-                    <p style={{ fontSize: 14, color: "#475569", lineHeight: 1.6, margin: 0 }}>
-                      {perenualInfo.description}
-                    </p>
-                  </div>
-                )}
-
-                {/* Reference Images Gallery */}
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "#1E293B", marginBottom: 10 }}>
-                    Reference Plant Images
-                  </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12 }}>
-                    {perenualInfo.reference_images && perenualInfo.reference_images.length > 0 ? (
-                      perenualInfo.reference_images.map((imgUrl, idx) => (
-                        <img
-                          key={idx}
-                          src={imgUrl}
-                          alt={`${perenualInfo.crop_name} reference ${idx + 1}`}
-                          style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: 10, border: "1px solid #E2E8F0" }}
-                        />
-                      ))
-                    ) : (
-                      <div style={{ background: "#F1F5F9", padding: 16, borderRadius: 10, textAlign: "center", color: "#64748B", fontSize: 12 }}>
-                        📷 Local Reference Placeholder
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-              </div>
-            ) : (
-              <div style={{ padding: 20, textAlign: "center", color: "#64748B", background: "#F8FAFC", borderRadius: 12 }}>
-                Loading Perenual botanical plant info...
-              </div>
-            )}
           </div>
 
           {/* 4. Daily Progress & Today's Recommendations */}

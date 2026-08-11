@@ -21,9 +21,11 @@ export const CROP_NAME_TRANSLATIONS: Record<string, { ta: string; si: string; en
   eggplant: { en: "Eggplant (Brinjal)", ta: "கத்தரிக்காய்", si: "වම්බටු" },
   brinjal: { en: "Eggplant (Brinjal)", ta: "கத்தரிக்காய்", si: "වම්බටු" },
   "green chili": { en: "Green Chili", ta: "பச்சை மிளகாய்", si: "අමු මිරිස්" },
+  "green chilli": { en: "Green Chili", ta: "பச்சை மிளகாய்", si: "අමු මිරිස්" },
   chili: { en: "Green Chili", ta: "பச்சை மிளகாய்", si: "අමු මිරිස්" },
+  chilli: { en: "Green Chili", ta: "பச்சை மிளகாய்", si: "අමු මිරිස්" },
   okra: { en: "Okra (Ladies Finger)", ta: "வெண்டைக்காய்", si: "බණ්ඩක්කා" },
-  "ladies finger": { en: "Okra (Ladies Finger)", ta: "வெண்டைக்காய்", si: "බණ්ඩக்කා" },
+  "ladies finger": { en: "Okra (Ladies Finger)", ta: "வெண்டைக்காய்", si: "බණ්ඩක්කා" },
   "red onion": { en: "Red Onion", ta: "சின்ன வெங்காயம்", si: "රතු ළූණු" },
   onion: { en: "Red Onion", ta: "சின்ன வெங்காயம்", si: "රතු ළූණු" },
   paddy: { en: "Paddy (Rice)", ta: "நெல்", si: "වී වගාව" },
@@ -44,10 +46,12 @@ export function getLocalizedCropName(cropName: string, lang: "en" | "ta" | "si" 
 export const STAGE_NAME_TRANSLATIONS: Record<string, { ta: string; si: string; en: string }> = {
   "seedling": { en: "🌱 Seedling / Nursery", ta: "🌱 நாற்று / முளைப்பு நிலை", si: "🌱 පැළ / තවාන් අවස්ථාව" },
   "nursery": { en: "🌱 Seedling / Nursery", ta: "🌱 நாற்று / முளைப்பு நிலை", si: "🌱 පැළ / තවාන් අවස්ථාව" },
+  "transplanting": { en: "🌱 Transplanting", ta: "🌱 நடுதல் நிலை", si: "🌱 පැළ සිටුවීමේ අවස්ථාව" },
+  "transplant": { en: "🌱 Transplanting", ta: "🌱 நடுதல் நிலை", si: "🌱 පැළ සිටුවීමේ අවස්ථාව" },
   "vegetative": { en: "🌿 Vegetative Growth", ta: "🌿 வளர்ச்சி நிலை", si: "🌿 වර්ධන අවස්ථාව" },
   "flowering": { en: "🌸 Flowering Phase", ta: "🌸 பூக்கும் நிலை", si: "🌸 මල් පිපීමේ අවස්ථාව" },
   "fruiting": { en: "🍅 Fruiting & Maturation", ta: "🍅 காய் / கனி காய்க்கும் நிலை", si: "🍅 ඵල හටගැනීමේ අවස්ථාව" },
-  "harvest": { en: "🧺 Harvesting & Picking", ta: "🧺 அறுவடை நிலை", si: "🧺 අස්වැන්න நෙලීම" },
+  "harvest": { en: "🧺 Harvesting & Picking", ta: "🧺 அறுவடை நிலை", si: "🧺 අස්වැන්න නෙලීම" },
 };
 
 export function getLocalizedStageName(stageName: string, lang: "en" | "ta" | "si" = "en"): string {
@@ -61,11 +65,6 @@ export function getLocalizedStageName(stageName: string, lang: "en" | "ta" | "si
   return stageName;
 }
 
-// Self-contained, crop-labelled placeholder used only when a crop has no
-// curated stock photo below (e.g. an unrecognised crop name). Never falls
-// back to a *different* crop's photo (e.g. tomato) - that misrepresents the
-// plant. Colour is derived deterministically from the crop name so distinct
-// crops still look visually distinct from one another.
 function genericPlaceholderImage(cropName: string, stageName: string): string {
   let hash = 0;
   const seed = `${(cropName || "crop").toLowerCase()}::${(stageName || "").toLowerCase()}`;
@@ -89,18 +88,15 @@ function genericPlaceholderImage(cropName: string, stageName: string): string {
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
-// Crop-specific dynamic visual fallbacks ensuring distinct identity per crop & stage.
-// This is only the CLIENT-SIDE placeholder shown before the backend's
-// AI-generated / cached image (see ValamAPI.getCropLifecycleImage) loads.
 export function getCropSpecificFallbackImage(cropName: string, stageName: string): string {
   const c = (cropName || "").toLowerCase();
   const s = (stageName || "").toLowerCase();
 
-  const isSeedling = s.includes("seedling") || s.includes("nursery") || s.includes("1");
-  const isVeg = s.includes("vegetative") || s.includes("growth") || s.includes("2");
-  const isFlower = s.includes("flower") || s.includes("bloom") || s.includes("3");
-  const isFruit = s.includes("fruit") || s.includes("pod") || s.includes("matur") || s.includes("4");
-  const isHarvest = s.includes("harvest") || s.includes("pick") || s.includes("5");
+  const isSeedling = s.includes("seedling") || s.includes("nursery") || s.includes("transplant") || s.includes("1");
+  const isVeg = s.includes("vegetative") || s.includes("growth") || s.includes("2") || s.includes("3");
+  const isFlower = s.includes("flower") || s.includes("bloom") || s.includes("4");
+  const isFruit = s.includes("fruit") || s.includes("pod") || s.includes("matur") || s.includes("5");
+  const isHarvest = s.includes("harvest") || s.includes("pick") || s.includes("6");
 
   if (c.includes("chilli") || c.includes("chili")) {
     if (isSeedling) return "https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?auto=format&fit=crop&w=800&q=80";
@@ -125,8 +121,17 @@ export function getCropSpecificFallbackImage(cropName: string, stageName: string
     return "https://images.unsplash.com/photo-1628773822503-930a858340d2?auto=format&fit=crop&w=800&q=80";
   }
 
+  if (c.includes("maize") || c.includes("corn")) {
+    if (isSeedling) return "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=800&q=80";
+    if (isVeg) return "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=800&q=80";
+    if (isFlower) return "https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?auto=format&fit=crop&w=800&q=80";
+    if (isFruit) return "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=800&q=80";
+    if (isHarvest) return "https://images.unsplash.com/photo-1568644396922-5c3bfae12521?auto=format&fit=crop&w=800&q=80";
+    return "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=800&q=80";
+  }
+
   if (c.includes("paddy") || c.includes("rice")) {
-    if (isSeedling) return "https://images.unsplash.com/photo-1530595467537-0b5996c41f2d?auto=format&fit=crop&w=800&q=80";
+    if (isSeedling) return "https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?auto=format&fit=crop&w=800&q=80";
     if (isVeg) return "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=800&q=80";
     if (isFlower || isFruit) return "https://images.unsplash.com/photo-1536657464919-892534f60d6e?auto=format&fit=crop&w=800&q=80";
     return "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=800&q=80";
@@ -134,6 +139,29 @@ export function getCropSpecificFallbackImage(cropName: string, stageName: string
 
   if (c.includes("onion")) {
     return "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=800&q=80";
+  }
+
+  if (c.includes("pumpkin")) {
+    if (isSeedling) return "https://images.unsplash.com/photo-1592417817098-8f3d69a0a19e?auto=format&fit=crop&w=800&q=80";
+    if (isVeg) return "https://images.unsplash.com/photo-1570586435893-ab4e6b2885bb?auto=format&fit=crop&w=800&q=80";
+    if (isFlower) return "https://images.unsplash.com/photo-1508747703725-719777637510?auto=format&fit=crop&w=800&q=80";
+    return "https://images.unsplash.com/photo-1506917728037-b6fb01c7ae52?auto=format&fit=crop&w=800&q=80";
+  }
+
+  if (c.includes("cucumber")) {
+    if (isSeedling) return "https://images.unsplash.com/photo-1592417817098-8f3d69a0a19e?auto=format&fit=crop&w=800&q=80";
+    if (isVeg) return "https://images.unsplash.com/photo-1592417817098-8f3d69a0a19e?auto=format&fit=crop&w=800&q=80";
+    return "https://images.unsplash.com/photo-1604977042946-1eecc30f269e?auto=format&fit=crop&w=800&q=80";
+  }
+
+  if (c.includes("carrot")) {
+    if (isSeedling) return "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=800&q=80";
+    return "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?auto=format&fit=crop&w=800&q=80";
+  }
+
+  if (c.includes("beans")) {
+    if (isSeedling) return "https://images.unsplash.com/photo-1592417817098-8f3d69a0a19e?auto=format&fit=crop&w=800&q=80";
+    return "https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?auto=format&fit=crop&w=800&q=80";
   }
 
   if (c.includes("tomato")) {
@@ -144,13 +172,9 @@ export function getCropSpecificFallbackImage(cropName: string, stageName: string
     return "https://images.unsplash.com/photo-1561136594-7f68413baa99?auto=format&fit=crop&w=800&q=80";
   }
 
-  // Crop not recognised above - do NOT default to tomato's photos, show a
-  // neutral, crop-labelled placeholder instead until the backend's
-  // AI-generated image loads.
-  return genericPlaceholderImage(cropName, stageName);
+  return "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=800&q=80";
 }
 
-// Stages generator for crops
 export function getDefaultStagesForCrop(cropName: string, lang: "en" | "ta" | "si" = "en"): CropStageAdvice[] {
   const isTa = lang === "ta";
   const isSi = lang === "si";
@@ -166,71 +190,144 @@ export function getDefaultStagesForCrop(cropName: string, lang: "en" | "ta" | "s
         ? `${cropName} பயிரின் ஆரம்ப நாற்று வளர்ப்பு மற்றும் முளைப்பு நிலை.`
         : isSi
         ? `${cropName} වගාවේ ආරම්භක තවාන් සහ ප්‍රරෝහන අවස්ථාව.`
-        : `Initial nursery prep and germination phase for ${cropName}.`,
+        : `Initial nursery preparation and tender seedling germination phase for ${cropName}.`,
       expected_appearance: isTa
         ? "மென்மையான பச்சை முளைகள் மற்றும் முதல் இலைகள் தோன்றுதல்."
         : isSi
         ? "ළපටි කොළ පැළ සහ මුල් පත්‍ර හටගැනීම."
-        : "Tender young green shoots with initial true leaves.",
+        : "Tender young green shoots with initial true leaves emergence.",
       daily_tasks: isTa
         ? ["காலை வேளையில் மிதமான நீர் தெளிக்கவும்", "நண்பகல் கடும் வெயிலில் இருந்து பாதுகாக்கவும்", "பூஞ்சை தாக்குதலை கண்காணிக்கவும்"]
         : isSi
-        ? ["උදෑසන කාලයේදී මෘදු ලෙස ජලය ඉසින්ன", "දහவල් තද අව්වෙන් ආරක්ෂா කරන්න", "දිලීර රෝග තිබේදැයි පරීක්ෂා කරන්න"]
-        : ["Water early morning with gentle spray", "Shield from harsh midday sun", "Inspect seedlings for fungal rot"],
-      water_requirement: isTa ? "தினசரி 1.0 - 1.5 L/m²" : isSi ? "දිනපතා 1.0 - 1.5 L/m²" : "1.0 - 1.5 L/m² daily",
-      fertilizer_recommendation: isTa ? "இயற்கை மட்கிய உரம் மற்றும் திரவ உரம்" : isSi ? "කොම්පෝස්ට් පොහොර සහ දියර පොහොර" : "Basal organic compost & light liquid fertilizer",
+        ? ["උදෑසන කාලයේදී මෘදු ලෙස ජලය ඉසින්න", "දහවල් තද අව්වෙන් ආරක්ෂා කරන්න", "දිලීර රෝග තිබේදැයි පරීක්ෂා කරන්න"]
+        : ["Water early morning with gentle spray", "Shield from harsh midday sun", "Inspect seedlings for damping-off"],
+      water_requirement: isTa ? "1.0 - 1.5 L/m² தினசரி" : isSi ? "දිනකට 1.0 - 1.5 L/m²" : "1.0 - 1.5 L/m² daily",
+      fertilizer_recommendation: isTa ? "அடிப்படை இயற்கை மண்புழு உரம் & உலர் சாணம்" : isSi ? "මූලික කාබනික කොම්පෝස්ට් සහ දියර පොහොර" : "Basal organic compost & light liquid vermiwash",
       image_url: getCropSpecificFallbackImage(cropName, "Seedling"),
     },
     {
       stage_id: 2,
-      stage_name: isTa ? "🌿 வளர்ச்சி நிலை" : isSi ? "🌿 වර්ධන අවස්ථාව" : "🌿 Vegetative Growth",
-      icon: "🌿",
+      stage_name: isTa ? "🌱 நடுதல் நிலை" : isSi ? "🌱 පැළ සිටුවීමේ අවස්ථාව" : "🌱 Transplanting",
+      icon: "🌱",
       start_day: 21,
-      end_day: 45,
-      description: `Rapid stem, foliar, and root development for ${cropName}.`,
-      expected_appearance: "Sturdy green foliage with strong branching and thick canopy.",
-      daily_tasks: ["Weed root zone", "Support stems with stakes if needed", "Apply organic mulch around stem base"],
-      water_requirement: "2.5 - 3.0 L/m² daily",
-      fertilizer_recommendation: "Nitrogen-rich top dressing (Urea / Compost slurry)",
-      image_url: getCropSpecificFallbackImage(cropName, "Vegetative Growth"),
+      end_day: 21,
+      description: isTa
+        ? `வளர்ந்த நாற்றுகளை சரியான இடைவெளியில் பிரதான பாத்திகளில் நடுதல்.`
+        : isSi
+        ? `තවානෙන් ගලවා ගත් පැළ නියමිත පරතරයකින් ප්‍රධාන ක්ෂේත්‍රයේ සිටුවීම.`
+        : `Transplanting hardened seedlings into main field beds with optimal spacing for ${cropName}.`,
+      expected_appearance: isTa
+        ? "நன்கு வேரூன்றிய ஆரோக்கியமான 3-4 இலை நாற்றுகள் பாத்திகளில் நடப்படுதல்."
+        : isSi
+        ? "නිරෝගී පත්‍ර 3-4 ක් සහිත පැළ පාත්තිවල ස්ථාවරව සිටුවීම."
+        : "Healthy 3-4 leaf seedlings transferred into well-prepared raised beds with basal compost.",
+      daily_tasks: isTa
+        ? ["மாலையில் குளிர்ந்த வேளையில் நடுதல்", "வேர்ப் பகுதியில் உடனடியாக மிதமான நீர் பாய்ச்சுதல்", "நாற்றுகள் சாயாமல் பாதுகாத்தல்"]
+        : isSi
+        ? ["සවස් කාලයේ පැළ සිටුවන්න", "මුල් ප්‍රදේශයට වහාම ජලය යොදන්න", "පැළ කෙලින් සිටුවීමට ආධාරක සපයන්න"]
+        : ["Transplant in cool late afternoon", "Immediate spot watering at root zone", "Apply root booster solution"],
+      water_requirement: isTa ? "2.0 L/m² நட்டவுடன் உடனடியாக" : isSi ? "සිටවූ විගස 2.0 L/m²" : "2.0 L/m² immediate",
+      fertilizer_recommendation: isTa ? "நன்கு மக்கிய தொழு உரம் / நடுவு குழியில் இயற்கை உரம்" : isSi ? "හොඳින් දිරූ ගව පොහොර / මූලික කාබනික මිශ්‍රණය" : "Well-decomposed cattle manure / Basal organic blend in planting holes",
+      image_url: getCropSpecificFallbackImage(cropName, "Seedling"),
     },
     {
       stage_id: 3,
-      stage_name: "Flowering",
-      icon: "🌸",
-      start_day: 46,
-      end_day: 70,
-      description: `Flower bud opening and pollination phase for ${cropName}.`,
-      expected_appearance: "Abundant flower buds and blossoms opening across main branches.",
-      daily_tasks: ["Maintain steady moisture to prevent flower drop", "Inspect leaf undersides for thrips & whiteflies", "Apply micronutrient foliar spray"],
-      water_requirement: "3.5 L/m² daily",
-      fertilizer_recommendation: "High Potassium & Phosphorus top dressing (MOP / Ash)",
-      image_url: getCropSpecificFallbackImage(cropName, "Flowering"),
+      stage_name: isTa ? "🌿 வளர்ச்சி நிலை" : isSi ? "🌿 වර්ධන අවස්ථාව" : "🌿 Vegetative Growth",
+      icon: "🌿",
+      start_day: 22,
+      end_day: 45,
+      description: isTa
+        ? `தண்டு வளர்ச்சி, கிளை பரவுதல் மற்றும் அடர்த்தியான இலைகள் உருவாதல்.`
+        : isSi
+        ? `කඳ ශක්තිමත් වීම, අතු විහිදීම සහ පත්‍ර වර්ධනය වේගවත්ව සිදුවීම.`
+        : `Rapid stem, foliar canopy, and root expansion for ${cropName}.`,
+      expected_appearance: isTa
+        ? "அடர்ந்த பச்சை இலைகள், தடித்த தண்டுகள் மற்றும் ஆரோக்கியமான கிளைகள்."
+        : isSi
+        ? "ශක්තිමත් කඳන් සහ සශ්‍රීක කොළ පැහැති පත්‍ර වියනක් නිර්මාණය වීම."
+        : "Vigorous lush green branching, thick stems, and healthy leaf canopy.",
+      daily_tasks: isTa
+        ? ["களைகளை அகற்றி மண் அணைத்தல்", "தேவைப்பட்டால் செடிகளுக்கு முட்டுக்கொடுத்தல்", "தண்டு பகுதியில் உலர் புல் கொண்டு மூடாக்கிடுதல்"]
+        : isSi
+        ? ["වල් පැළෑටි ඉවත් කර පස් බුරුල් කරන්න", "උස පැළ සඳහා ආධාරක කූරු සවි කරන්න", "මුල් වටා වසුන් යොදන්න"]
+        : ["Weed root zone carefully", "Provide staking support if climbing or tall", "Apply organic mulch layer around stem base"],
+      water_requirement: isTa ? "2.5 - 3.0 L/m² தினசரி" : isSi ? "දිනකට 2.5 - 3.0 L/m²" : "2.5 - 3.0 L/m² daily",
+      fertilizer_recommendation: isTa ? "நைட்ரஜன் நிறைந்த இயற்கை உரம் / சாண எரு கரைசல் / யூரியா மேலுரம்" : isSi ? "නයිට්‍රජන් බහුල කොම්පෝස්ට් දියර / ජීවාමෘත / යූරියා" : "Nitrogen-rich top dressing (Compost slurry / Organic fish emulsion / Urea)",
+      image_url: getCropSpecificFallbackImage(cropName, "Vegetative Growth"),
     },
     {
       stage_id: 4,
-      stage_name: "Fruiting",
-      icon: "🍅",
-      start_day: 71,
-      end_day: 95,
-      description: `Fruit/pod development and size expansion for ${cropName}.`,
-      expected_appearance: "Plump green fruits expanding in size and weight.",
-      daily_tasks: ["Monitor for fruit borer caterpillars", "Ensure uniform drip watering", "Support heavy fruit branches"],
-      water_requirement: "4.0 L/m² daily",
-      fertilizer_recommendation: "Calcium & Potassium foliar feed",
-      image_url: getCropSpecificFallbackImage(cropName, "Fruiting"),
+      stage_name: isTa ? "🌸 பூக்கும் நிலை" : isSi ? "🌸 මල් පිපීමේ අවස්ථාව" : "🌸 Flowering",
+      icon: "🌸",
+      start_day: 46,
+      end_day: 70,
+      description: isTa
+        ? `பூ மொட்டுகள் தோன்றுதல், மலர்தல் மற்றும் மகரந்தச் சேர்க்கை நிலை.`
+        : isSi
+        ? `මල් පොහොට්ටු හටගැනීම, මල් පිපීම සහ පරාගනය සක්‍රියව සිදුවීම.`
+        : `Flower bud initiation, blossom opening, and active pollination for ${cropName}.`,
+      expected_appearance: isTa
+        ? "கிளைகளில் பிரகாசமான பூக்கள் கூட்டமாக மலர்ந்து காட்சி அளித்தல்."
+        : isSi
+        ? "ප්‍රධාන අතුවල දීප්තිමත් මල් පොකුරු විකසිත වී තිබීම."
+        : "Abundant vibrant flower clusters blooming across main branches.",
+      daily_tasks: isTa
+        ? ["பூ உதிர்வை தடுக்க சீரான ஈரப்பதம் பேணவும்", "இலை அடியில் பூச்சிகள் உள்ளதா என பரிசோதிக்கவும்", "நுண்ணூட்டச்சத்து தெளிக்கவும்"]
+        : isSi
+        ? ["මල් හැලීම වැළැක්වීමට ස්ථාවර තෙතමනයක් තබා ගන්න", "පත්‍ර යට පළිබෝධකයන් පරීක්ෂා කරන්න", "ක්ෂුද්‍ර පෝෂක දියර ඉසින්න"]
+        : ["Maintain steady soil moisture to prevent blossom drop", "Inspect leaf undersides for thrips & whiteflies", "Apply boron/micronutrient foliar spray"],
+      water_requirement: isTa ? "3.5 L/m² தினசரி" : isSi ? "දිනකට 3.5 L/m²" : "3.5 L/m² daily",
+      fertilizer_recommendation: isTa ? "பொட்டாசியம் மற்றும் பாஸ்பரஸ் நிறைந்த உரம் (சாம்பல் உரம் / MOP)" : isSi ? "පොටෑසියම් සහ පොස්පරස් බහුල පොහොර (අළු / MOP)" : "High Potassium & Phosphorus top dressing (MOP / Ash / Bone meal)",
+      image_url: getCropSpecificFallbackImage(cropName, "Flowering"),
     },
     {
       stage_id: 5,
-      stage_name: "Harvest",
+      stage_name: isTa ? "🍅 காய்க்கும் நிலை" : isSi ? "🍅 ඵල හටගැනීම" : "🍅 Fruiting",
+      icon: "🍅",
+      start_day: 71,
+      end_day: 95,
+      description: isTa
+        ? `காய்கள் தோன்றி பருத்து முதிர்ச்சி அடையும் நிலை.`
+        : isSi
+        ? `ගෙඩි හටගැනීම, ප්‍රමාණයෙන් විශාල වීම සහ පැසීම ආරම්භ වීම.`
+        : `Fruit and pod development, enlargement, and maturation for ${cropName}.`,
+      expected_appearance: isTa
+        ? "பச்சை காய்கள் திரண்டு உருப்பெற்று படிப்படியாக நிறம் மாறுதல்."
+        : isSi
+        ? "නිරෝගී කොළ පැහැති ගෙඩි විශාල වෙමින් ස්වභාවික වර්ණයට හැරීම."
+        : "Firm green fruits enlarging in size and beginning uniform color development.",
+      daily_tasks: isTa
+        ? ["காய் துளைப்பான் புழுக்களை கண்காணிக்கவும்", "சொட்டுநீர் பாசனத்தை சீராக பராமரிக்கவும்", "கனமான காய்களுக்கு முட்டுக்கொடுக்கவும்"]
+        : isSi
+        ? ["ගෙඩි විදින පණුවන් පරීක්ෂා කරන්න", "බිංදු ජලසම්පාදනය නියමිත පරිදි පවත්වා ගන්න", "බර ගෙඩි සහිත අතු ආධාරක මගින් රඳවන්න"]
+        : ["Monitor for fruit borer caterpillars", "Maintain uniform drip irrigation schedule", "Support heavy fruit clusters with stakes"],
+      water_requirement: isTa ? "4.0 L/m² தினசரி" : isSi ? "දිනකට 4.0 L/m²" : "4.0 L/m² daily",
+      fertilizer_recommendation: isTa ? "காய் உறுதிக்கும் அழுகலை தடுக்கவும் கால்சியம் & பொட்டாசியம் உரம்" : isSi ? "ගෙඩිවල ශක්තියට සහ කුණුවීම වැළැක්වීමට කැල්සියම් හා පොටෑෂ්" : "Calcium & Potassium foliar feed for fruit firmness and blossom-end rot prevention",
+      image_url: getCropSpecificFallbackImage(cropName, "Fruiting"),
+    },
+    {
+      stage_id: 6,
+      stage_name: isTa ? "🧺 அறுவடை நிலை" : isSi ? "🧺 අස්වැන්න නෙලීම" : "🧺 Harvest",
       icon: "🧺",
       start_day: 96,
       end_day: 120,
-      description: `Final maturation and systematically harvesting ${cropName}.`,
-      expected_appearance: "Mature, vibrant harvest-ready produce.",
-      daily_tasks: ["Harvest in early morning hours", "Sort and grade produce into crates", "Store in cool shaded area"],
-      water_requirement: "Reduce watering to 1.5 L/m² daily",
-      fertilizer_recommendation: "No further fertilizer needed",
+      description: isTa
+        ? `பயிர் முழு முதிர்ச்சி அடைந்து விளைச்சலை அறுவடை செய்யும் உச்ச நிலை.`
+        : isSi
+        ? `වගාව සම්පූර්ණයෙන්ම පරිණත වී අස්වැන්න නෙලීමට සුදුසු අවස්ථාව.`
+        : `Peak maturity and systematic hand-picking of harvest-ready ${cropName}.`,
+      expected_appearance: isTa
+        ? "அறுவடைக்கு தயாரான பளபளப்பான திரண்ட பழங்கள் மற்றும் விளைச்சல்."
+        : isSi
+        ? "නෙලීමට සුදුසු උපරිම ගුණාත්මකභාවයෙන් යුතු පරිණත අස්වැන්න."
+        : "Fully mature, vibrant harvest-ready produce with optimal gloss and firmness.",
+      daily_tasks: isTa
+        ? ["காலை குளிர்ந்த வேளையில் அறுவடை செய்யவும்", "தரம்பிரித்து காற்றோட்டமான கூடைகளில் சேமிக்கவும்", "நேரடி வெயிலில் வைப்பதை தவிர்க்கவும்"]
+        : isSi
+        ? ["උදෑසන සිසිල් වේලාවේ අස්වැන්න නෙලන්න", "තත්ත්වය අනුව වර්ග කර සෙවණ ඇති ස්ථානයක අසුරන්න", "අව්වෙන් ආරක්ෂා කරන්න"]
+        : ["Harvest in early morning cool hours", "Grade and sort produce into harvest crates", "Store in shaded, ventilated area"],
+      water_requirement: isTa ? "1.5 L/m² ஆக குறைக்கவும்" : isSi ? "දිනකට 1.5 L/m² දක්වා අඩු කරන්න" : "Reduce watering to 1.5 L/m² daily",
+      fertilizer_recommendation: isTa ? "அறுவடைக்கு முன் உரம் தேவையில்லை" : isSi ? "අස්වැන්න නෙලීමට පෙර අමතර පොහොර අවශ්‍ය නොවේ" : "No further fertilizer needed prior to harvest",
       image_url: getCropSpecificFallbackImage(cropName, "Harvest"),
     },
   ];
@@ -255,6 +352,7 @@ export function formatDateString(dateObj: Date): string {
 export function computeLifecycle(
   crop: Crop,
   guides: CropGuide[] = [],
+  lang: "en" | "ta" | "si" = "en",
   todayDate: Date = new Date()
 ): ComputedLifecycle {
   const age = calculateCropAge(crop.planting_date, todayDate);
@@ -266,7 +364,7 @@ export function computeLifecycle(
 
   let rawStages: CropStageAdvice[] = guide?.growth_stages || [];
   if (!rawStages || rawStages.length === 0) {
-    rawStages = getDefaultStagesForCrop(crop.crop_name);
+    rawStages = getDefaultStagesForCrop(crop.crop_name, lang);
   }
 
   // Normalize stages to standard structure
@@ -275,7 +373,7 @@ export function computeLifecycle(
     const name = st.stage_name || st.stage || `Stage ${sId}`;
     const start = st.start_day || (idx === 0 ? 1 : idx * 25 + 1);
     const end = st.end_day || (idx === 0 ? 20 : (idx + 1) * 25);
-    const icon = st.icon || (idx === 0 ? "🌱" : idx === 1 ? "🌿" : idx === 2 ? "🌸" : idx === 3 ? "🍅" : "🧺");
+    const icon = st.icon || (idx === 0 ? "🌱" : idx === 1 ? "🌱" : idx === 2 ? "🌿" : idx === 3 ? "🌸" : idx === 4 ? "🍅" : "🧺");
     const desc = st.description || st.advice || "Follow daily guidance for optimal yield.";
     const app = st.expected_appearance || "Healthy plant growth.";
     const tasks = st.daily_tasks || (st.advice ? [st.advice] : ["Water early morning", "Inspect foliage"]);
@@ -298,7 +396,7 @@ export function computeLifecycle(
     };
   });
 
-  // Determine current stage
+  // Determine current stage based strictly on planting date age
   let currentStageIndex = allStages.findIndex(
     (st) => age >= (st.start_day || 1) && age <= (st.end_day || 999)
   );

@@ -57,6 +57,11 @@ function setSession({ access_token, refresh_token, user }: AuthSession) {
   localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(user));
 }
 
+function getRefreshToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(STORAGE_KEYS.refresh);
+}
+
 function updateStoredUser(user: ValamUser) {
   localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(user));
 }
@@ -65,6 +70,56 @@ function clearSession() {
   localStorage.removeItem(STORAGE_KEYS.access);
   localStorage.removeItem(STORAGE_KEYS.refresh);
   localStorage.removeItem(STORAGE_KEYS.user);
+}
+
+let isRefreshing = false;
+let refreshPromise: Promise<string | null> | null = null;
+
+async function attemptTokenRefresh(): Promise<string | null> {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) return null;
+
+  if (isRefreshing && refreshPromise) {
+    return refreshPromise;
+  }
+
+  isRefreshing = true;
+  refreshPromise = (async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${refreshToken}`,
+        },
+      });
+
+      if (!res.ok) {
+        clearSession();
+        return null;
+      }
+
+      const json = await res.json();
+      const newToken = json?.data?.access_token;
+      if (newToken) {
+        localStorage.setItem(STORAGE_KEYS.access, newToken);
+        if (json.data.user) {
+          localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(json.data.user));
+        }
+        return newToken;
+      }
+      clearSession();
+      return null;
+    } catch {
+      clearSession();
+      return null;
+    } finally {
+      isRefreshing = false;
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
 }
 
 interface ApiRequestOptions {
@@ -96,7 +151,27 @@ async function apiRequest<T>(
     );
   }
 
-  let payload: { message?: string; data?: T } | null = null;
+  // Handle 401 Token Expiration with Automatic Refresh
+  if (res.status === 401 && auth && path !== "/auth/login" && path !== "/auth/refresh") {
+    const newToken = await attemptTokenRefresh();
+    if (newToken) {
+      // Retry request with fresh access token
+      headers["Authorization"] = `Bearer ${newToken}`;
+      try {
+        res = await fetch(`${API_BASE_URL}${path}`, {
+          method,
+          headers,
+          body: body !== undefined ? JSON.stringify(body) : undefined,
+        });
+      } catch {
+        throw new Error(
+          `Could not reach the Valam API on retry. Make sure the backend server is running.`
+        );
+      }
+    }
+  }
+
+  let payload: { message?: string; data?: T; msg?: string } | null = null;
   try {
     payload = await res.json();
   } catch {
@@ -104,7 +179,11 @@ async function apiRequest<T>(
   }
 
   if (!res.ok) {
-    throw new Error(payload?.message || `Request failed (${res.status})`);
+    const errMsg = payload?.message || payload?.msg || `Request failed (${res.status})`;
+    if (res.status === 401 && auth) {
+      clearSession();
+    }
+    throw new Error(errMsg);
   }
 
   return payload?.data as T;
@@ -254,6 +333,33 @@ export const ValamAPI = {
   async getPerenualPlantInfo(cropName: string): Promise<PerenualPlantInfo> {
     const params = new URLSearchParams({ crop_name: cropName });
     return apiRequest<PerenualPlantInfo>(`/crops/plant-info?${params.toString()}`);
+  },
+
+  async getCropLifecycleImage(data: {
+    crop_name: string;
+    stage: string;
+    variety?: string;
+    crop_id?: number;
+    crop_age?: number;
+  }): Promise<{
+    id?: number;
+    crop_name: string;
+    stage: string;
+    image_url: string;
+    prompt_used?: string;
+    source?: string;
+  }> {
+    return apiRequest<{
+      id?: number;
+      crop_name: string;
+      stage: string;
+      image_url: string;
+      prompt_used?: string;
+      source?: string;
+    }>("/crops/lifecycle-image", {
+      method: "POST",
+      body: data,
+    });
   },
 
   // Admin Management Endpoints
@@ -640,18 +746,6 @@ export const ValamAPI = {
       method: "POST",
       auth: true,
       body: params,
-    });
-  },
-
-  async getCropLifecycleImage(data: {
-    crop_name: string;
-    stage: string;
-    crop_id?: number;
-    crop_age?: number;
-  }): Promise<{ image_url: string; crop_name: string; stage: string }> {
-    return apiRequest<{ image_url: string; crop_name: string; stage: string }>("/crops/lifecycle-image", {
-      method: "POST",
-      body: data,
     });
   },
 };

@@ -29,7 +29,7 @@ import {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const [user, setUser] = useState<ValamUser | null>(null);
   const [crops, setCrops] = useState<Crop[]>([]);
@@ -92,13 +92,14 @@ export default function DashboardPage() {
   // Compute dynamic lifecycle metrics powered by planting date & DB guides
   const lifecycleData: ComputedLifecycle | null = useMemo(() => {
     if (!activeCrop) return null;
-    return computeLifecycle(activeCrop, guides);
-  }, [activeCrop, guides]);
+    return computeLifecycle(activeCrop, guides, language);
+  }, [activeCrop, guides, language]);
 
   useEffect(() => {
     if (activeCrop && lifecycleData) {
       ValamAPI.getCropLifecycleImage({
         crop_name: activeCrop.crop_name,
+        variety: activeCrop.variety,
         stage: lifecycleData.currentStage.stage_name || lifecycleData.currentStage.stage || "Stage 1",
         crop_id: activeCrop.id,
         crop_age: lifecycleData.cropAge,
@@ -110,7 +111,7 @@ export default function DashboardPage() {
         })
         .catch((err) => console.error("Dashboard crop image fetch error:", err));
     }
-  }, [activeCrop?.id, lifecycleData?.currentStageIndex]);
+  }, [activeCrop?.id, activeCrop?.crop_name, activeCrop?.variety, lifecycleData?.currentStageIndex]);
 
   if (loading) {
     return (
