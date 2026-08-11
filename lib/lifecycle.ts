@@ -32,7 +32,7 @@ export const CROP_NAME_TRANSLATIONS: Record<string, { ta: string; si: string; en
   rice: { en: "Paddy (Rice)", ta: "நெல்", si: "වී වගාව" },
 };
 
-export function getLocalizedCropName(cropName: string, lang: "en" | "ta" | "si" = "en"): string {
+export function getLocalizedCropName(cropName?: string | null, lang: "en" | "ta" | "si" = "en"): string {
   if (!cropName) return "";
   const key = cropName.toLowerCase().trim();
   for (const k in CROP_NAME_TRANSLATIONS) {
@@ -54,7 +54,7 @@ export const STAGE_NAME_TRANSLATIONS: Record<string, { ta: string; si: string; e
   "harvest": { en: "🧺 Harvesting & Picking", ta: "🧺 அறுவடை நிலை", si: "🧺 අස්වැන්න නෙලීම" },
 };
 
-export function getLocalizedStageName(stageName: string, lang: "en" | "ta" | "si" = "en"): string {
+export function getLocalizedStageName(stageName?: string | null, lang: "en" | "ta" | "si" = "en"): string {
   if (!stageName) return "";
   const key = stageName.toLowerCase().trim();
   for (const k in STAGE_NAME_TRANSLATIONS) {
@@ -63,6 +63,88 @@ export function getLocalizedStageName(stageName: string, lang: "en" | "ta" | "si
     }
   }
   return stageName;
+}
+
+export function getLocalizedDistrict(districtName?: string, lang: "en" | "ta" | "si" = "en"): string {
+  if (!districtName) return lang === "ta" ? "வவுனியா" : lang === "si" ? "වවුනියාව" : "Vavuniya";
+  const d = districtName.toLowerCase().trim();
+  const map: Record<string, { en: string; ta: string; si: string }> = {
+    vavuniya: { en: "Vavuniya", ta: "வவுனியா", si: "වවුනියාව" },
+    jaffna: { en: "Jaffna", ta: "யாழ்ப்பாணம்", si: "යාපනය" },
+    kilinochchi: { en: "Kilinochchi", ta: "கிளிநொச்சி", si: "කිලිනොච්චිය" },
+    mannar: { en: "Mannar", ta: "மன்னார்", si: "මන්නාරම" },
+    mullaitivu: { en: "Mullaitivu", ta: "முல்லைத்தீவு", si: "මුලතිව්" },
+    anuradhapura: { en: "Anuradhapura", ta: "அனுராதபுரம்", si: "අනුරාධපුරය" },
+    polonnaruwa: { en: "Polonnaruwa", ta: "பொலன்னறுவை", si: "පොළොන්නරුව" },
+    trincomalee: { en: "Trincomalee", ta: "திருகோணமலை", si: "ත්‍රිකුණාමලය" },
+    batticaloa: { en: "Batticaloa", ta: "மட்டக்களப்பு", si: "මඩකලපුව" },
+  };
+  for (const k in map) {
+    if (d.includes(k)) return map[k][lang] || districtName;
+  }
+  return districtName;
+}
+
+export function getLocalizedFarmingCategory(cat?: string, lang: "en" | "ta" | "si" = "en"): string {
+  if (!cat) return lang === "ta" ? "விவசாயி" : lang === "si" ? "ගොවියා" : "Farmer";
+  const c = cat.toLowerCase().trim();
+  if (c.includes("home") || c.includes("வீட்டு") || c.includes("ගෙවතු")) {
+    return lang === "ta" ? "வீட்டுத் தோட்டம்" : lang === "si" ? "ගෙවතු වගාව" : "Home Gardener";
+  }
+  if (c.includes("terrace") || c.includes("மாடி") || c.includes("බැල්කනි")) {
+    return lang === "ta" ? "மாடித் தோட்டம்" : lang === "si" ? "බැල්කනි/වහල වගාව" : "Terrace Gardener";
+  }
+  if (c.includes("commercial") || c.includes("வணிக") || c.includes("වාණිජ")) {
+    return lang === "ta" ? "வணிக விவசாயி" : lang === "si" ? "වාණිජ ගොවියා" : "Commercial Farmer";
+  }
+  if (c.includes("beginner") || c.includes("ஆரம்ப") || c.includes("ආරම්භක")) {
+    return lang === "ta" ? "ஆரம்ப விவசாயி" : lang === "si" ? "ආරම්භක වගාකරු" : "Beginner";
+  }
+  return lang === "ta" ? "விவசாயி" : lang === "si" ? "ගොවියා" : "Farmer";
+}
+
+export function getLocalizedLandUnit(unit?: string, lang: "en" | "ta" | "si" = "en"): string {
+  if (!unit) return lang === "ta" ? "ஏக்கர்" : lang === "si" ? "අක්කර" : "Acres";
+  const u = unit.toLowerCase().trim();
+  if (u.includes("acre")) return lang === "ta" ? "ஏக்கர்" : lang === "si" ? "අක්කර" : "Acres";
+  if (u.includes("perch")) return lang === "ta" ? "பேர்ச்" : lang === "si" ? "පර්චස්" : "Perches";
+  if (u.includes("hectare")) return lang === "ta" ? "ஹெக்டேயர்" : lang === "si" ? "හෙක්ටයාර" : "Hectares";
+  if (u.includes("sq") || u.includes("feet")) return lang === "ta" ? "சதுர அடி" : lang === "si" ? "වර්ග අඩි" : "Sq Ft";
+  return unit;
+}
+
+export function getLocalizedWeatherCondition(condition?: string, lang: "en" | "ta" | "si" = "en"): string {
+  if (!condition) return "";
+  if (lang === "en") return condition;
+  const c = condition.toLowerCase();
+  if (c.includes("thunder") || c.includes("storm")) {
+    return lang === "ta" ? "இடியுடன் கூடிய மழை" : "ගිගුරුම් සහිත වැසි";
+  }
+  if (c.includes("heavy rain")) {
+    return lang === "ta" ? "கனமழை" : "තද වැසි";
+  }
+  if (c.includes("patchy rain") || c.includes("light rain") || c.includes("drizzle") || c.includes("shower")) {
+    return lang === "ta" ? "லேசான மழை / தூறல்" : "සිහින් වැසි / වැසි වාර";
+  }
+  if (c.includes("rain")) {
+    return lang === "ta" ? "மழை" : "වැසි";
+  }
+  if (c.includes("partly cloudy") || c.includes("scattered")) {
+    return lang === "ta" ? "பகுதி மேகமூட்டம்" : "අර්ධ වශයෙන් වළාකුළු";
+  }
+  if (c.includes("cloud") || c.includes("overcast")) {
+    return lang === "ta" ? "மேகமூட்டம்" : "වළාකුළු සහිත";
+  }
+  if (c.includes("clear")) {
+    return lang === "ta" ? "தெளிவான வானம்" : "පැහැදිලි අහස";
+  }
+  if (c.includes("sun")) {
+    return lang === "ta" ? "பிரகாசமான வெயில்" : "දීප්තිමත් හිරු එළිය";
+  }
+  if (c.includes("mist") || c.includes("fog") || c.includes("haze")) {
+    return lang === "ta" ? "பனிமூட்டம்" : "මීදුම සහිත";
+  }
+  return condition;
 }
 
 function genericPlaceholderImage(cropName: string, stageName: string): string {
@@ -380,24 +462,45 @@ export function computeLifecycle(
     (g) => g.crop_name.toLowerCase().trim() === crop.crop_name.toLowerCase().trim()
   );
 
+  const defaultLocalizedStages = getDefaultStagesForCrop(crop.crop_name, lang);
+
   let rawStages: CropStageAdvice[] = guide?.growth_stages || [];
   if (!rawStages || rawStages.length === 0) {
-    rawStages = getDefaultStagesForCrop(crop.crop_name, lang);
+    rawStages = defaultLocalizedStages;
   }
 
-  // Normalize stages to standard structure
+  // Normalize stages to standard structure & localize
   const allStages: CropStageAdvice[] = rawStages.map((st, idx) => {
     const sId = st.stage_id || idx + 1;
-    const name = st.stage_name || st.stage || `Stage ${sId}`;
+    const rawName = st.stage_name || st.stage || `Stage ${sId}`;
+    const name = getLocalizedStageName(rawName, lang);
     const start = st.start_day || (idx === 0 ? 1 : idx * 25 + 1);
     const end = st.end_day || (idx === 0 ? 20 : (idx + 1) * 25);
     const icon = st.icon || (idx === 0 ? "🌱" : idx === 1 ? "🌱" : idx === 2 ? "🌿" : idx === 3 ? "🌸" : idx === 4 ? "🍅" : "🧺");
-    const desc = st.description || st.advice || "Follow daily guidance for optimal yield.";
-    const app = st.expected_appearance || "Healthy plant growth.";
-    const tasks = st.daily_tasks || (st.advice ? [st.advice] : ["Water early morning", "Inspect foliage"]);
-    const water = st.water_requirement || "2.5 L/m² daily";
-    const fert = st.fertilizer_recommendation || "Apply recommended organic compost";
-    const img = getCropSpecificFallbackImage(crop.crop_name, name);
+
+    const defStage = defaultLocalizedStages[idx] || defaultLocalizedStages[defaultLocalizedStages.length - 1];
+
+    const desc = lang !== "en" && defStage?.description
+      ? defStage.description
+      : st.description || st.advice || "Follow daily guidance for optimal yield.";
+
+    const app = lang !== "en" && defStage?.expected_appearance
+      ? defStage.expected_appearance
+      : st.expected_appearance || "Healthy plant growth.";
+
+    const tasks = lang !== "en" && defStage?.daily_tasks && defStage.daily_tasks.length > 0
+      ? defStage.daily_tasks
+      : st.daily_tasks || (st.advice ? [st.advice] : ["Water early morning", "Inspect foliage"]);
+
+    const water = lang !== "en" && defStage?.water_requirement
+      ? defStage.water_requirement
+      : st.water_requirement || "2.5 L/m² daily";
+
+    const fert = lang !== "en" && defStage?.fertilizer_recommendation
+      ? defStage.fertilizer_recommendation
+      : st.fertilizer_recommendation || "Apply recommended organic compost";
+
+    const img = st.image_url || getCropSpecificFallbackImage(crop.crop_name, rawName);
 
     return {
       stage_id: sId,

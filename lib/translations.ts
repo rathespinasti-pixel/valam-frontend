@@ -245,6 +245,42 @@ export interface TranslationDictionary {
   saveGuide: string;
   deletePostConfirm: string;
 
+  // Additional Dashboard Keys
+  farmerPortalSub: string;
+  welcomeFarmer: string;
+  selectActiveCrop: string;
+  varietyLocal: string;
+  noCrop: string;
+  cropAge: string;
+  days: string;
+  daysUntilHarvest: string;
+  skipRainToday: string;
+  waterEarlyMorning: string;
+  aiAssistant: string;
+  askAboutCrop: string;
+  lifecycleGrowthTracker: string;
+  plantedOn: string;
+  currentDay: string;
+  of: string;
+  exploreCompleteLifecycle: string;
+  day: string;
+  activeBadge: string;
+  stageProgress: string;
+  visual: string;
+  clickForDetails: string;
+  stage: string;
+  done: string;
+  autoStageAlerts: string;
+  currentStageAlert: string;
+  activeStageLabel: string;
+  fertilizerSchedule: string;
+  defaultInspectTask: string;
+  defaultCheckIrrigationTask: string;
+  fertilizerReminderPrefix: string;
+  loadingAssistant: string;
+  askAiAbout: string;
+  addCropToUseAi: string;
+
   // Error Pages
   pageNotFoundTitle: string;
   pageNotFoundDesc: string;
@@ -486,6 +522,41 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
     saveGuide: "Save Guide",
     deletePostConfirm: "Are you sure you want to delete this community post for moderation?",
 
+    farmerPortalSub: "Northern Province Farmer Portal / Daily Assistant",
+    welcomeFarmer: "Welcome",
+    selectActiveCrop: "Select Active Crop:",
+    varietyLocal: "Local",
+    noCrop: "No Crop",
+    cropAge: "Crop Age",
+    days: "Days",
+    daysUntilHarvest: "Until Harvest",
+    skipRainToday: "Skip Rain Today",
+    waterEarlyMorning: "Water Early Morning",
+    aiAssistant: "AI Assistant",
+    askAboutCrop: "Ask about",
+    lifecycleGrowthTracker: "Lifecycle Growth Tracker",
+    plantedOn: "Planted on",
+    currentDay: "Current Day",
+    of: "of",
+    exploreCompleteLifecycle: "Explore Complete Lifecycle",
+    day: "Day",
+    activeBadge: "Active",
+    stageProgress: "Stage Progress",
+    visual: "Visual",
+    clickForDetails: "Click for details →",
+    stage: "Stage",
+    done: "Done",
+    autoStageAlerts: "Automatic Stage Alerts & Notifications",
+    currentStageAlert: "Current Stage Alert",
+    activeStageLabel: "Active stage",
+    fertilizerSchedule: "Fertilizer Schedule",
+    defaultInspectTask: "Inspect leaves for pests and diseases.",
+    defaultCheckIrrigationTask: "Check irrigation emitters and drippers for uniform water flow.",
+    fertilizerReminderPrefix: "Fertilizer Reminder",
+    loadingAssistant: "Loading farmer daily assistant...",
+    askAiAbout: "Ask about",
+    addCropToUseAi: "Add a crop to use AI assistant",
+
     pageNotFoundTitle: "404 - Page Not Found",
     pageNotFoundDesc: "The page you are looking for does not exist or has been moved.",
   },
@@ -725,6 +796,41 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
     saveGuide: "வழிகாட்டியைச் சேமிக்க",
     deletePostConfirm: "இந்த மன்றப் பதிவை நீக்க உறுதியாக இருக்கிறீர்களா?",
 
+    farmerPortalSub: "வட மாகாண விவசாய போர்டல் / தினசரி விவசாய வழிகாட்டி",
+    welcomeFarmer: "வணக்கம்",
+    selectActiveCrop: "செயலில் உள்ள பயிரைத் தேர்ந்தெடுக்கவும்:",
+    varietyLocal: "உள்ளூர் ரகம்",
+    noCrop: "பயிர் எதுவும் இல்லை",
+    cropAge: "பயிர் வயது",
+    days: "நாட்கள்",
+    daysUntilHarvest: "அறுவடை வரை",
+    skipRainToday: "மழை — நீர்ப்பாசனத்தை தவிர்க்கவும்",
+    waterEarlyMorning: "அதிகாலை நீர் பாய்ச்சவும்",
+    aiAssistant: "AI உதவியாளர்",
+    askAboutCrop: "பற்றி கேளுங்கள்",
+    lifecycleGrowthTracker: "வளர்ச்சி சுழற்சி கண்காணிப்பாளர்",
+    plantedOn: "நடப்பட்ட திகதி:",
+    currentDay: "தற்போதைய நாள்",
+    of: "/",
+    exploreCompleteLifecycle: "முழு வளர்ச்சி சுழற்சியைக் காண்க",
+    day: "நாள்",
+    activeBadge: "செயலில்",
+    stageProgress: "நிலை முன்னேற்றம்",
+    visual: "தோற்றம்",
+    clickForDetails: "விவரங்களுக்கு கிளிக் செய்க →",
+    stage: "நிலை",
+    done: "முடிந்தது",
+    autoStageAlerts: "தானியங்கி பயிர் நிலை எச்சரிக்கைகள் & அறிவிப்புகள்",
+    currentStageAlert: "தற்போதைய நிலை எச்சரிக்கை",
+    activeStageLabel: "செயலில் உள்ள நிலை",
+    fertilizerSchedule: "உர அட்டவணை",
+    defaultInspectTask: "இலைகளில் பூச்சிகள் அல்லது நோய் அறிகுறிகள் உள்ளதா என கண்காணிக்கவும்.",
+    defaultCheckIrrigationTask: "சொட்டுநீர் பாசன குழாய்களில் சீரான நீர் விநியோகத்தை சரிபார்க்கவும்.",
+    fertilizerReminderPrefix: "உர நினைவூட்டல்",
+    loadingAssistant: "தினசரி விவசாய உதவியாளர் ஏற்றப்படுகிறது...",
+    askAiAbout: "பற்றி கேளுங்கள்:",
+    addCropToUseAi: "AI உதவியாளரைப் பயன்படுத்த பயிரைச் சேர்க்கவும்",
+
     pageNotFoundTitle: "404 - பக்கம் காணப்படவில்லை",
     pageNotFoundDesc: "நீங்கள் தேடும் பக்கம் இல்லை அல்லது நகர்த்தப்பட்டுவிட்டது.",
   },
@@ -963,6 +1069,41 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
     basicSolutions: "මූලික විසඳුම්",
     saveGuide: "මාර්ගෝපදේශය සුරකින්න",
     deletePostConfirm: "මෙම සටහන මකා දැමීමට ඔබට විශ්වාසද?",
+
+    farmerPortalSub: "උතුරු පළාත් ගොවි පෝටලය / දෛනික ගොවිතැන් සහකාර",
+    welcomeFarmer: "ආයුබෝවන්",
+    selectActiveCrop: "ක්‍රියාකාරී වගාව තෝරන්න:",
+    varietyLocal: "දේශීය ප්‍රභේදය",
+    noCrop: "වගාවක් නැත",
+    cropAge: "වගාවේ වයස",
+    days: "දින",
+    daysUntilHarvest: "අස්වැන්න දක්වා",
+    skipRainToday: "අද වැසි — ජලය දැමීමෙන් වළකින්න",
+    waterEarlyMorning: "උදෑසන ජලය දමන්න",
+    aiAssistant: "AI සහකාර",
+    askAboutCrop: "පිළිබඳව අසන්න",
+    lifecycleGrowthTracker: "වර්ධන චක්‍ර ලුහුබැඳීම",
+    plantedOn: "සිටවූ දිනය:",
+    currentDay: "වත්මන් දිනය",
+    of: "න්",
+    exploreCompleteLifecycle: "සම්පූර්ණ වර්ධන චක්‍රය බලන්න",
+    day: "දින",
+    activeBadge: "සක්‍රියයි",
+    stageProgress: "අවස්ථා ප්‍රගතිය",
+    visual: "දසුන",
+    clickForDetails: "විස්තර සඳහා ක්ලික් කරන්න →",
+    stage: "අවස්ථාව",
+    done: "අවසන්",
+    autoStageAlerts: "ස්වයංක්‍රීය වගා අවස්ථා දැනුම්දීම්",
+    currentStageAlert: "වත්මන් අවස්ථා දැනුම්දීම",
+    activeStageLabel: "ක්‍රියාකාරී අවස්ථාව",
+    fertilizerSchedule: "පොහොර කාලසටහන",
+    defaultInspectTask: "පත්‍රවල පළිබෝධ හෝ රෝග ඇත්දැයි පරීක්ෂා කරන්න.",
+    defaultCheckIrrigationTask: "බිංදු ජලසම්පාදන බටවලින් ඒකාකාරව ජලය ගලා එන්නේදැයි පරීක්ෂා කරන්න.",
+    fertilizerReminderPrefix: "පොහොර මතක් කිරීම",
+    loadingAssistant: "දෛනික ගොවිතැන් සහකාර පූරණය වෙමින් පවතී...",
+    askAiAbout: "පිළිබඳව අසන්න:",
+    addCropToUseAi: "AI සහකාර භාවිතා කිරීමට වගාවක් එක් කරන්න",
 
     pageNotFoundTitle: "404 - පිටුව හමු නොවීය",
     pageNotFoundDesc: "ඔබ සොයන පිටුව පවතින්නේ නැත නැතහොත් වෙනත් ස්ථානයකට ගෙන ගොස් ඇත.",

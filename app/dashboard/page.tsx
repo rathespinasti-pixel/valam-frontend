@@ -8,7 +8,16 @@ import { Footer } from "@/components/layout/Footer";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { ValamAPI } from "@/lib/api";
 import type { ValamUser, Crop, CropGuide, WeatherAdvisoryResponse } from "@/lib/types";
-import { computeLifecycle, ComputedLifecycle, getLocalizedCropName, getLocalizedStageName } from "@/lib/lifecycle";
+import {
+  computeLifecycle,
+  ComputedLifecycle,
+  getLocalizedCropName,
+  getLocalizedStageName,
+  getLocalizedDistrict,
+  getLocalizedFarmingCategory,
+  getLocalizedLandUnit,
+  getLocalizedWeatherCondition,
+} from "@/lib/lifecycle";
 import { useLanguage } from "@/context/LanguageContext";
 import {
   Sprout,
@@ -21,10 +30,7 @@ import {
   Zap,
   Layers,
   ArrowRight,
-  BookOpen,
   Bot,
-  Stethoscope,
-  ShoppingBag,
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -89,7 +95,7 @@ export default function DashboardPage() {
     return crops.find((c) => c.id === selectedCropId) || crops[0] || null;
   }, [crops, selectedCropId]);
 
-  // Compute dynamic lifecycle metrics powered by planting date and DB guides.
+  // Compute dynamic lifecycle metrics powered by planting date, DB guides, and active language
   const lifecycleData: ComputedLifecycle | null = useMemo(() => {
     if (!activeCrop) return null;
     return computeLifecycle(activeCrop, guides, language);
@@ -118,7 +124,7 @@ export default function DashboardPage() {
       <AuthGuard>
         <Navbar active="dashboard" />
         <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ fontSize: 18, color: "#1B4D3E", fontWeight: 600 }}>Loading farmer daily assistant...</div>
+          <div style={{ fontSize: 18, color: "#1B4D3E", fontWeight: 600 }}>{t("loadingAssistant")}</div>
         </div>
         <Footer />
       </AuthGuard>
@@ -127,15 +133,22 @@ export default function DashboardPage() {
 
   // Days since planting & metrics
   const daysSincePlanting = lifecycleData?.cropAge ?? 1;
-  const currentStageLabel = lifecycleData?.currentStage?.stage_name ?? "Seedling / Nursery";
+  const currentStageLabel = lifecycleData?.currentStage?.stage_name ?? (language === "ta" ? "நாற்று / முளைப்பு நிலை" : language === "si" ? "පැළ / තවාන් අවස්ථාව" : "Seedling / Nursery");
   const currentStageIcon = lifecycleData?.currentStage?.icon ?? "🌱";
   const progressPercent = lifecycleData?.progressPercentage ?? 0;
   const daysUntilHarvest = lifecycleData?.daysUntilHarvest ?? 90;
   const currentStageImage = lifecycleData?.currentStageImage ?? "https://images.unsplash.com/photo-1592841200221-a6898f307baa?auto=format&fit=crop&w=600&q=80";
 
+  // Localized User Details & Crops
+  const localizedCropName = activeCrop ? getLocalizedCropName(activeCrop.crop_name, language) : "";
+  const localizedDistrict = getLocalizedDistrict(user?.district, language);
+  const localizedCategory = getLocalizedFarmingCategory(user?.farming_category, language);
+  const localizedLandUnit = getLocalizedLandUnit(user?.land_size_unit, language);
+
   // Weather rules
   const currentTemp = weatherAdvisory?.current?.temperature_c ?? 31.0;
   const condition = weatherAdvisory?.current?.condition ?? "Sunny";
+  const localizedCondition = getLocalizedWeatherCondition(condition, language);
   const isRaining = condition.toLowerCase().includes("rain") || condition.toLowerCase().includes("shower");
   const isHighTemp = currentTemp >= 32.0;
 
@@ -150,15 +163,39 @@ export default function DashboardPage() {
   const prefFert = user?.fertilizer_preference || activeCrop?.fertilizer_preference || "Organic";
   const fertAdvice = lifecycleData?.currentStage?.fertilizer_recommendation ||
     (prefFert === "Organic"
-      ? "Apply 2kg Compost / Vermicompost & top-dress at root base."
-      : "Apply Urea & MOP top dressing. Irrigate immediately after application.");
+      ? (language === "ta"
+          ? "2 கிலோ மண்புழு உரம் / இயற்கை உரம் வேர் பகுதியில் இடவும்."
+          : language === "si"
+          ? "කාබනික කොම්පෝස්ට් 2kg ක් මුල් ප්‍රදේශයට යොදන්න."
+          : "Apply 2kg Compost / Vermicompost & top-dress at root base.")
+      : (language === "ta"
+          ? "யூரியா மற்றும் MOP மேலுரமாக இட்டு உடனடியாக நீர் பாய்ச்சவும்."
+          : language === "si"
+          ? "යූරියා සහ MOP යොදා වහාම ජලය යොදන්න."
+          : "Apply Urea & MOP top dressing. Irrigate immediately after application."));
 
-  const dailyTasks = lifecycleData?.currentStage?.daily_tasks || [
-    `Inspect ${activeCrop ? activeCrop.crop_name : "crop"} leaves for pests.`,
-    wateringRule,
-    `Fertilizer Reminder: ${fertAdvice}`,
-    `Check irrigation emitters for uniform water flow.`,
-  ];
+  const defaultTask1 = language === "ta"
+    ? `${localizedCropName || "பயிர்"} இலைகளில் பூச்சிகள் அல்லது நோய் அறிகுறிகள் உள்ளதா என ஆய்வு செய்யவும்.`
+    : language === "si"
+    ? `${localizedCropName || "වගාවේ"} පත්‍රවල පළිබෝධ හෝ රෝග ඇත්දැයි පරීක්ෂා කරන්න.`
+    : `Inspect ${localizedCropName || "crop"} leaves for pests and diseases.`;
+
+  const defaultTask4 = language === "ta"
+    ? "சொட்டுநீர் பாசன குழாய்களில் சீரான நீர் விநியோகத்தை சரிபார்க்கவும்."
+    : language === "si"
+    ? "බිංදු ජලසම්පාදන බටවලින් ඒකාකාරව ජලය ගලා එන්නේදැයි පරීක්ෂා කරන්න."
+    : "Check irrigation emitters for uniform water flow.";
+
+  const fertPrefix = t("fertilizerReminderPrefix") || (language === "ta" ? "உர நினைவூட்டல்" : language === "si" ? "පොහොර මතක් කිරීම" : "Fertilizer Reminder");
+
+  const dailyTasks = lifecycleData?.currentStage?.daily_tasks && lifecycleData.currentStage.daily_tasks.length > 0
+    ? lifecycleData.currentStage.daily_tasks
+    : [
+        defaultTask1,
+        wateringRule,
+        `${fertPrefix}: ${fertAdvice}`,
+        defaultTask4,
+      ];
 
   const openCropAssistant = () => {
     if (!activeCrop) return;
@@ -186,7 +223,7 @@ export default function DashboardPage() {
             water_requirement: lifecycleData?.currentStage?.water_requirement || wateringRule,
             today_weather: {
               temperature_c: currentTemp,
-              condition,
+              condition: localizedCondition,
               watering_recommendation: wateringRule,
             },
             daily_tasks: dailyTasks,
@@ -211,13 +248,13 @@ export default function DashboardPage() {
       <section className="page-hero" style={{ padding: "32px 0" }}>
         <div className="container">
           <div className="crumb" style={{ fontSize: "clamp(0.75rem, 1.8vw, 0.85rem)" }}>
-            Northern Province Farmer Portal / Daily Assistant
+            {t("farmerPortalSub")}
           </div>
           <h1 style={{ fontSize: "clamp(1.5rem, 3.5vw, 2.2rem)", lineHeight: 1.2, marginTop: 4 }}>
-            Ayubowan / Vanakkam, {user?.full_name || "Farmer"}!
+            {t("welcomeFarmer")}, {user?.full_name || (language === "ta" ? "விவசாயி" : language === "si" ? "ගොවියා" : "Farmer")}!
           </h1>
           <p style={{ marginTop: 8, color: "#CFE3D5", fontSize: "clamp(0.88rem, 2vw, 1rem)", lineHeight: 1.4 }}>
-            📍 {user?.district || "Vavuniya"} · {user?.ds_division || "Vavuniya Town"} · {user?.farming_category || "Farmer"} ({user?.land_size || 1} {user?.land_size_unit || "Acres"})
+            📍 {localizedDistrict} · {user?.ds_division || (language === "ta" ? "வவுனியா நகரம்" : language === "si" ? "වවුනියාව නගරය" : "Vavuniya Town")} · {localizedCategory} ({user?.land_size || 1} {localizedLandUnit})
           </p>
         </div>
       </section>
@@ -243,7 +280,7 @@ export default function DashboardPage() {
               }}
             >
               <span style={{ fontWeight: 700, fontSize: 14, color: "#1B4D3E", whiteSpace: "nowrap", flexShrink: 0 }}>
-                Select Active Crop:
+                {t("selectActiveCrop")}
               </span>
               <div style={{ display: "flex", gap: 10, overflowX: "auto", flexWrap: "nowrap" }}>
                 {crops.map((c) => (
@@ -264,14 +301,14 @@ export default function DashboardPage() {
                       transition: "all 0.15s ease",
                     }}
                   >
-                    🌱 {c.crop_name} ({c.variety || "Local"})
+                    🌱 {getLocalizedCropName(c.crop_name, language)} ({c.variety || t("varietyLocal")})
                   </button>
                 ))}
               </div>
             </div>
           )}
 
-          {/* 1. Daily Assistant Main Tracker Cards (7 Summary Cards) */}
+          {/* 1. Daily Assistant Main Tracker Cards (8 Summary Cards) */}
           <div
             style={{
               display: "grid",
@@ -288,7 +325,7 @@ export default function DashboardPage() {
               <div>
                 <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{t("currentCrop")}</div>
                 <div style={{ fontSize: 18, fontWeight: 700, color: "#1E293B" }}>
-                  {activeCrop ? activeCrop.crop_name : "No Crop"}
+                  {activeCrop ? getLocalizedCropName(activeCrop.crop_name, language) : t("noCrop")}
                 </div>
               </div>
             </div>
@@ -299,9 +336,9 @@ export default function DashboardPage() {
                 <Calendar size={24} />
               </div>
               <div>
-                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>Crop Age</div>
+                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{t("cropAge")}</div>
                 <div style={{ fontSize: 20, fontWeight: 700, color: "#1E293B" }}>
-                  {daysSincePlanting} Days
+                  {daysSincePlanting} {t("days")}
                 </div>
               </div>
             </div>
@@ -312,9 +349,9 @@ export default function DashboardPage() {
                 <Zap size={24} />
               </div>
               <div>
-                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>Current Stage</div>
+                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{t("currentGrowthStage")}</div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#166534", lineHeight: 1.2 }}>
-                  {currentStageIcon} {currentStageLabel}
+                  {currentStageIcon} {getLocalizedStageName(currentStageLabel, language)}
                 </div>
               </div>
             </div>
@@ -325,7 +362,7 @@ export default function DashboardPage() {
                 <Clock size={24} />
               </div>
               <div>
-                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>Progress</div>
+                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{t("progressPercentage")}</div>
                 <div style={{ fontSize: 20, fontWeight: 700, color: "#9333EA" }}>{progressPercent}%</div>
               </div>
             </div>
@@ -336,8 +373,8 @@ export default function DashboardPage() {
                 <Calendar size={24} />
               </div>
               <div>
-                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>Until Harvest</div>
-                <div style={{ fontSize: 20, fontWeight: 700, color: "#B45309" }}>{daysUntilHarvest} Days</div>
+                <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{t("daysUntilHarvest")}</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: "#B45309" }}>{daysUntilHarvest} {t("days")}</div>
               </div>
             </div>
 
@@ -360,7 +397,7 @@ export default function DashboardPage() {
               <div>
                 <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{t("irrigationStatus")}</div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: isRaining ? "#D97706" : "#0369A1" }}>
-                  {isRaining ? "Skip Rain Today" : "Water Early Morning"}
+                  {isRaining ? t("skipRainToday") : t("waterEarlyMorning")}
                 </div>
               </div>
             </div>
@@ -371,7 +408,7 @@ export default function DashboardPage() {
               className="dash-card"
               onClick={openCropAssistant}
               disabled={!activeCrop}
-              title={activeCrop ? `Ask AI about ${activeCrop.crop_name}` : "Add a crop to use AI assistant"}
+              title={activeCrop ? `${t("askAiAbout")} ${localizedCropName}` : t("addCropToUseAi")}
               style={{
                 textAlign: "left",
                 border: "1px solid #BBF7D0",
@@ -383,9 +420,9 @@ export default function DashboardPage() {
                 <Bot size={24} />
               </div>
               <div>
-                <div style={{ fontSize: 12, color: "#047857", fontWeight: 700 }}>AI Assistant</div>
+                <div style={{ fontSize: 12, color: "#047857", fontWeight: 700 }}>{t("aiAssistant")}</div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#1E293B", lineHeight: 1.25 }}>
-                  Ask about {activeCrop ? activeCrop.crop_name : "your crop"}
+                  {t("askAboutCrop")} {localizedCropName || (language === "ta" ? "உங்கள் பயிர்" : language === "si" ? "ඔබේ වගාව" : "your crop")}
                 </div>
               </div>
             </button>
@@ -406,10 +443,10 @@ export default function DashboardPage() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
                 <div>
                   <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1E293B", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
-                    <Layers size={22} color="#10B981" /> {activeCrop.crop_name} Lifecycle Growth Tracker
+                    <Layers size={22} color="#10B981" /> {localizedCropName} {t("lifecycleGrowthTracker")}
                   </h2>
                   <div style={{ fontSize: 13, color: "#64748B", marginTop: 2 }}>
-                    Planted on {activeCrop.planting_date} · Current Day {daysSincePlanting} of {lifecycleData.totalHarvestDays}
+                    {t("plantedOn")} {activeCrop.planting_date} · {t("currentDay")} {daysSincePlanting} {t("of")} {lifecycleData.totalHarvestDays}
                   </div>
                 </div>
 
@@ -429,7 +466,7 @@ export default function DashboardPage() {
                     textDecoration: "none",
                   }}
                 >
-                  Explore Complete Lifecycle <ArrowRight size={16} />
+                  {t("exploreCompleteLifecycle")} <ArrowRight size={16} />
                 </Link>
               </div>
 
@@ -478,13 +515,13 @@ export default function DashboardPage() {
                         >
                           <span style={{ fontSize: 20 }}>{st.icon}</span>
                           <span style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.2 }}>
-                            {st.stage_name}
+                            {getLocalizedStageName(st.stage_name, language)}
                           </span>
                           <span style={{ fontSize: 9, opacity: 0.9 }}>
-                            Day {st.start_day}–{st.end_day}
+                            {t("day")} {st.start_day}–{st.end_day}
                           </span>
                           {isCompleted && <span style={{ fontSize: 10, fontWeight: 800 }}>✓</span>}
-                          {isCurrent && <span style={{ fontSize: 9, fontWeight: 800, background: "rgba(255,255,255,0.25)", padding: "1px 6px", borderRadius: 8 }}>Active</span>}
+                          {isCurrent && <span style={{ fontSize: 9, fontWeight: 800, background: "rgba(255,255,255,0.25)", padding: "1px 6px", borderRadius: 8 }}>{t("activeBadge")}</span>}
                         </Link>
                       );
                     })}
@@ -493,7 +530,7 @@ export default function DashboardPage() {
                   {/* Progress Line */}
                   <div style={{ background: "#F1F5F9", borderRadius: 10, padding: 14 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 6 }}>
-                      <span>Stage Progress: {lifecycleData.currentStage.stage_name}</span>
+                      <span>{t("stageProgress")}: {getLocalizedStageName(lifecycleData.currentStage.stage_name, language)}</span>
                       <span>{progressPercent}%</span>
                     </div>
                     <div style={{ width: "100%", height: 10, background: "#CBD5E1", borderRadius: 6, overflow: "hidden" }}>
@@ -518,18 +555,18 @@ export default function DashboardPage() {
                     }}
                   >
                     <div style={{ position: "absolute", top: 20, left: 20, background: "rgba(0,0,0,0.7)", color: "#FFF", padding: "4px 12px", borderRadius: 14, fontSize: 12, fontWeight: 700, backdropFilter: "blur(4px)" }}>
-                      {currentStageIcon} Day {daysSincePlanting} Visual
+                      {currentStageIcon} {t("day")} {daysSincePlanting} {t("visual")}
                     </div>
 
                     <img
                       src={dynamicStageImage || currentStageImage}
-                      alt={`${activeCrop.crop_name} ${currentStageLabel}`}
+                      alt={`${localizedCropName} ${getLocalizedStageName(currentStageLabel, language)}`}
                       style={{ width: "100%", height: 180, objectFit: "cover", borderRadius: 12 }}
                     />
 
                     <div style={{ marginTop: 10, fontSize: 13, fontWeight: 700, color: "#1E293B", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span>Expected Appearance</span>
-                      <span style={{ fontSize: 12, color: "#10B981" }}>Click for details →</span>
+                      <span>{t("expectedAppearance")}</span>
+                      <span style={{ fontSize: 12, color: "#10B981" }}>{t("clickForDetails")}</span>
                     </div>
                   </div>
                 </Link>
@@ -545,10 +582,10 @@ export default function DashboardPage() {
             <div style={{ background: "#FFFFFF", borderRadius: 18, padding: 24, border: "1px solid #E2E8F0", boxShadow: "0 2px 10px rgba(0,0,0,0.03)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                 <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "#1E293B", display: "flex", alignItems: "center", gap: 8 }}>
-                  <CheckCircle2 size={22} color="#10B981" /> {t("todaysTasks")} (Stage {lifecycleData?.currentStageIndex! + 1})
+                  <CheckCircle2 size={22} color="#10B981" /> {t("todaysTasks")} ({t("stage")} {lifecycleData?.currentStageIndex! + 1})
                 </h2>
                 <span style={{ fontSize: 13, color: "#64748B", fontWeight: 600 }}>
-                  {Object.values(taskState).filter(Boolean).length} / {dailyTasks.length} Done
+                  {Object.values(taskState).filter(Boolean).length} / {dailyTasks.length} {t("done")}
                 </span>
               </div>
 
@@ -593,7 +630,7 @@ export default function DashboardPage() {
                   <CloudSun size={22} color="#0284C7" /> {t("weatherSummary")}
                 </h2>
                 <span style={{ fontSize: 12, color: "#0284C7", fontWeight: 700, background: "#E0F2FE", padding: "2px 10px", borderRadius: 12 }}>
-                  {user?.district || "Vavuniya"}
+                  {localizedDistrict}
                 </span>
               </div>
 
@@ -601,13 +638,13 @@ export default function DashboardPage() {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
                     <div style={{ fontSize: 32, fontWeight: 800 }}>{currentTemp}°C</div>
-                    <div style={{ fontSize: 14, opacity: 0.9 }}>{condition}</div>
+                    <div style={{ fontSize: 14, opacity: 0.9 }}>{localizedCondition}</div>
                   </div>
                   <CloudSun size={48} style={{ opacity: 0.9 }} />
                 </div>
                 <div style={{ borderTop: "1px solid rgba(255,255,255,0.2)", marginTop: 12, paddingTop: 10, display: "flex", justifyContent: "space-between", fontSize: 12 }}>
-                  <span>💧 Humidity: {weatherAdvisory?.current?.humidity_percent ?? 68}%</span>
-                  <span>💨 Wind: {weatherAdvisory?.current?.wind_kmh ?? 12} km/h</span>
+                  <span>💧 {t("humidity")}: {weatherAdvisory?.current?.humidity_percent ?? 68}%</span>
+                  <span>💨 {t("windSpeed")}: {weatherAdvisory?.current?.wind_kmh ?? 12} km/h</span>
                 </div>
               </div>
 
@@ -628,7 +665,7 @@ export default function DashboardPage() {
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
               <BellRing size={22} color="#D97706" />
               <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "#1E293B" }}>
-                Automatic Stage Alerts &amp; Notifications
+                {t("autoStageAlerts")}
               </h2>
             </div>
 
@@ -636,15 +673,15 @@ export default function DashboardPage() {
               <div style={{ padding: 14, borderRadius: 12, background: "#F0FDF4", border: "1px solid #DCFCE7", display: "flex", gap: 12, alignItems: "center" }}>
                 <Zap size={24} color="#16A34A" />
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: "#166534" }}>Current Stage Alert</div>
-                  <div style={{ fontSize: 12, color: "#475569" }}>Active stage: {currentStageLabel} (Day {daysSincePlanting})</div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: "#166534" }}>{t("currentStageAlert")}</div>
+                  <div style={{ fontSize: 12, color: "#475569" }}>{t("activeStageLabel")}: {getLocalizedStageName(currentStageLabel, language)} ({t("day")} {daysSincePlanting})</div>
                 </div>
               </div>
 
               <div style={{ padding: 14, borderRadius: 12, background: "#FEF3C7", border: "1px solid #FDE68A", display: "flex", gap: 12, alignItems: "center" }}>
                 <Sprout size={24} color="#D97706" />
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: "#92400E" }}>Fertilizer Schedule</div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: "#92400E" }}>{t("fertilizerSchedule")}</div>
                   <div style={{ fontSize: 12, color: "#475569" }}>{fertAdvice}</div>
                 </div>
               </div>
@@ -652,7 +689,7 @@ export default function DashboardPage() {
               <div style={{ padding: 14, borderRadius: 12, background: "#EFF6FF", border: "1px solid #BFDBFE", display: "flex", gap: 12, alignItems: "center" }}>
                 <Droplets size={24} color="#2563EB" />
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: "#1E40AF" }}>Irrigation Recommendation</div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: "#1E40AF" }}>{t("wateringRecommendation")}</div>
                   <div style={{ fontSize: 12, color: "#475569" }}>{lifecycleData?.currentStage?.water_requirement || wateringRule}</div>
                 </div>
               </div>
