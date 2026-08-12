@@ -33,8 +33,30 @@ import type {
   MarketNotification,
 } from "./types";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
+export function normalizeApiBaseUrl(value: string): string {
+  const cleaned = value.trim().replace(/[.\s]+$/, "");
+
+  try {
+    const url = new URL(cleaned);
+    url.hostname = url.hostname.replace(/\.+$/, "");
+    url.pathname = url.pathname.replace(/\/+$/, "");
+    if (!url.pathname) url.pathname = "/api";
+    return url.toString().replace(/\/$/, "");
+  } catch {
+    return cleaned.replace(/\/+$/, "");
+  }
+}
+
+const configuredApiBaseUrl =
+  process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL;
+
+// NEXT_PUBLIC_* variables are embedded in the browser bundle during build.
+// Never silently send a production user's requests to their own localhost.
+export const API_BASE_URL = configuredApiBaseUrl
+  ? normalizeApiBaseUrl(configuredApiBaseUrl)
+  : process.env.NODE_ENV === "development"
+    ? "http://localhost:5000/api"
+    : "";
 
 const STORAGE_KEYS = {
   access: "valam_access_token",
@@ -138,6 +160,12 @@ async function apiRequest<T>(
   path: string,
   { method = "GET", body, auth = false }: ApiRequestOptions = {}
 ): Promise<T> {
+  if (!API_BASE_URL) {
+    throw new Error(
+      "The Valam API URL is not configured. Set NEXT_PUBLIC_API_BASE_URL in Vercel and redeploy."
+    );
+  }
+
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (auth) {
     const token = getToken();
@@ -151,9 +179,10 @@ async function apiRequest<T>(
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
-  } catch {
+  } catch (error) {
+    const details = error instanceof Error ? ` (${error.message})` : "";
     throw new Error(
-      `Could not reach the Valam API. Make sure the backend server is running on ${API_BASE_URL}.`
+      `Could not reach the Valam API at ${API_BASE_URL}. Check the Vercel API URL and Railway CORS settings.${details}`
     );
   }
 

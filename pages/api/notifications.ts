@@ -1,5 +1,6 @@
 // pages/api/notifications.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { API_BASE_URL, normalizeApiBaseUrl } from '../../lib/api';
 
 /**
  * Proxy endpoint for fetching system notifications for the logged‑in user.
@@ -9,7 +10,9 @@ import type { NextApiRequest, NextApiResponse } from 'next';
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { method, query } = req;
-  const backendUrl = process.env.BACKEND_URL ?? "http://localhost:5000";
+  const backendUrl = normalizeApiBaseUrl(
+    process.env.BACKEND_URL || API_BASE_URL || "http://localhost:5000/api"
+  );
   const target = `${backendUrl}/admin/notifications`;
 
   // Preserve pagination parameters if present
@@ -23,6 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       headers: {
         // Forward any cookies (e.g., JWT) from the client to the backend
         cookie: req.headers.cookie ?? "",
+        authorization: req.headers.authorization ?? "",
       },
       credentials: "include",
     });

@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { ValamAPI } from "@/lib/api";
+import { API_BASE_URL, ValamAPI } from "@/lib/api";
 import type {
   ValamUser,
   CropGuide,
@@ -1503,7 +1503,7 @@ function AdminPageContent() {
                   <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1E293B", marginBottom: 16 }}>Reports &amp; One-Click CSV Exports</h2>
                   <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 20 }}>
                     <a
-                      href={`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api"}/admin/export/users`}
+                      href={`${API_BASE_URL}/admin/export/users`}
                       download
                       className="btn btn-sun"
                       style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}
@@ -1511,7 +1511,7 @@ function AdminPageContent() {
                       <Download size={18} /> Export Users CSV
                     </a>
                     <a
-                      href={`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api"}/admin/export/crops`}
+                      href={`${API_BASE_URL}/admin/export/crops`}
                       download
                       className="btn btn-outline"
                       style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}
