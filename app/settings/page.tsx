@@ -246,11 +246,12 @@ export default function SettingsPage() {
                   />
                   <div style={{ marginTop: 8 }}>
                     <GpsLocationButton
+                      lang={preferredLang}
                       onLocation={(loc) => {
                         setFarmLocation(loc.farmLocation);
                         if (loc.district) setDistrict(loc.district);
                         if (loc.dsDivision) setDsDivision(loc.dsDivision);
-                        setStatusMsg({ type: "ok", text: "GPS location added. Save settings to keep it." });
+                        setStatusMsg({ type: "ok", text: t("gpsAddedSuccess") });
                       }}
                       onError={(message) => setStatusMsg({ type: "error", text: message })}
                     />

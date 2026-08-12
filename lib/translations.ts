@@ -38,6 +38,19 @@ export interface TranslationDictionary {
   dsDivision: string;
   gnDivision: string;
 
+  // GPS Location & Form Status
+  useGps: string;
+  locating: string;
+  gpsAddedSuccess: string;
+  gpsNotSupported: string;
+  gpsPermissionDenied: string;
+  gpsTimeout: string;
+  gpsReadError: string;
+  gpsPlaceNameError: string;
+  fillMandatoryFields: string;
+  accountCreatedRedirecting: string;
+  registrationFailed: string;
+
   // Land Details
   landDetails: string;
   landSize: string;
@@ -418,6 +431,18 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
     dsDivision: "DS Division",
     gnDivision: "GN Division (Optional)",
 
+    useGps: "Use GPS",
+    locating: "Locating...",
+    gpsAddedSuccess: "GPS location added to your farm profile.",
+    gpsNotSupported: "GPS is not available in this browser.",
+    gpsPermissionDenied: "Location permission was denied.",
+    gpsTimeout: "GPS request timed out. Please try again.",
+    gpsReadError: "Could not read your GPS location.",
+    gpsPlaceNameError: "Could not identify the place name.",
+    fillMandatoryFields: "Please fill in all mandatory fields.",
+    accountCreatedRedirecting: "Account created — redirecting...",
+    registrationFailed: "Registration failed.",
+
     landDetails: "Land Details",
     landSize: "Land Size",
     landUnit: "Unit",
@@ -787,6 +812,18 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
     dsDivision: "பிராந்திய செயலகப் பிரிவு (DS Division)",
     gnDivision: "கிராம நிலாதாரி பிரிவு (விருப்பமான)",
 
+    useGps: "GPS பயன்படுத்துக",
+    locating: "கண்டறிகிறது...",
+    gpsAddedSuccess: "உங்கள் பண்ணை சுயவிவரத்தில் GPS அமைவிடம் சேர்க்கப்பட்டது.",
+    gpsNotSupported: "இந்த உலாவியில் GPS வசதி இல்லை.",
+    gpsPermissionDenied: "இருப்பிட அனுமதி மறுக்கப்பட்டது.",
+    gpsTimeout: "GPS கோரிக்கை நேரம் முடிந்தது. மீண்டும் முயற்சிக்கவும்.",
+    gpsReadError: "உங்கள் GPS இருப்பிடத்தைப் படிக்க முடியவில்லை.",
+    gpsPlaceNameError: "இடத்தின் பெயரைக் கண்டறிய முடியவில்லை.",
+    fillMandatoryFields: "தயவுசெய்து அனைத்து கட்டாய புலங்களையும் நிரப்பவும்.",
+    accountCreatedRedirecting: "கணக்கு உருவாக்கப்பட்டது — திருப்பி விடப்படுகிறது...",
+    registrationFailed: "பதிவு செய்ய முடியவில்லை.",
+
     landDetails: "நில விவரங்கள்",
     landSize: "நில அளவு",
     landUnit: "அலகு",
@@ -1155,6 +1192,18 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
     district: "දිස්ත්‍රික්කය (උතුරු පළාත)",
     dsDivision: "ප්‍රාදේශීය ලේකම් කොට්ඨාසය",
     gnDivision: "ග්‍රාම නිලධාරී වසම (අත්‍යවශ්‍ය නොවේ)",
+
+    useGps: "GPS භාවිතා කරන්න",
+    locating: "ස්ථානය සොයමින්...",
+    gpsAddedSuccess: "ඔබගේ ගොවිපළ පැතිකඩට GPS ස්ථානය එකතු කරන ලදී.",
+    gpsNotSupported: "මෙම බ්‍රවුසරයේ GPS පහසුකම නොමැත.",
+    gpsPermissionDenied: "ස්ථාන අවසරය ප්‍රතික්ෂේප විය.",
+    gpsTimeout: "GPS ඉල්ලීමේ කාලය ඉක්මවා ගියේය. නැවත උත්සාහ කරන්න.",
+    gpsReadError: "ඔබගේ GPS ස්ථානය ලබා ගැනීමට නොහැකි විය.",
+    gpsPlaceNameError: "ස්ථානයේ නම හඳුනා ගැනීමට නොහැකි විය.",
+    fillMandatoryFields: "කරුණාකර සියලුම අනිවාර්ය ක්ෂේත්‍ර පුරවන්න.",
+    accountCreatedRedirecting: "ගිණුම සාදන ලදී — යොමු කරමින්...",
+    registrationFailed: "ලියාපදිංචි වීම අසාර්ථක විය.",
 
     landDetails: "ඉඩම් විස්තර",
     landSize: "ඉඩමේ ප්‍රමාණය",

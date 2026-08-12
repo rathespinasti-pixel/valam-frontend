@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { Loader2, MapPin } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
+import type { Language } from "@/lib/translations";
 
 export interface GpsLocationResult {
   latitude: number;
@@ -17,11 +19,22 @@ interface GpsLocationButtonProps {
   onLocation: (location: GpsLocationResult) => void;
   onError?: (message: string) => void;
   label?: string;
+  lang?: Language;
 }
 
-const NORTHERN_DISTRICTS = ["Vavuniya", "Jaffna", "Kilinochchi", "Mannar", "Mullaitivu"];
+const DISTRICT_MAP: { id: string; names: string[] }[] = [
+  { id: "Vavuniya", names: ["vavuniya", "வவுனியா", "வவுனியா", "වවුනියාව"] },
+  { id: "Jaffna", names: ["jaffna", "யாழ்ப்பாணம்", "யாழ்பாணம்", "யாழ்ப்பாணம்", "යාපනය"] },
+  { id: "Kilinochchi", names: ["kilinochchi", "கிளிநொச்சி", "கிளிநொச்சி", "කිලිනොච්චිය"] },
+  { id: "Mannar", names: ["mannar", "மன்னார்", "மன்னார்", "මන්නාරම"] },
+  { id: "Mullaitivu", names: ["mullaitivu", "முல்லைத்தீவு", "முல்லைத்தீவு", "මුලතිව්"] },
+  { id: "Anuradhapura", names: ["anuradhapura", "அனுராதபுரம்", "அனுராதபுரம்", "අනුරාධපුරය"] },
+  { id: "Colombo", names: ["colombo", "கொழும்பு", "கொழும்பு", "කොළඹ"] },
+  { id: "Kandy", names: ["kandy", "கண்டி", "கண்டி", "මහනුවර"] },
+  { id: "Galle", names: ["galle", "காலி", "காலி", "ගාල්ල"] },
+];
 
-function pickDistrict(address: Record<string, string> = {}) {
+function pickDistrict(address: Record<string, string> = {}): string | undefined {
   const values = [
     address.county,
     address.state_district,
@@ -32,9 +45,13 @@ function pickDistrict(address: Record<string, string> = {}) {
     address.state,
   ].filter(Boolean);
 
-  return NORTHERN_DISTRICTS.find((district) =>
-    values.some((value) => value.toLowerCase().includes(district.toLowerCase()))
-  );
+  for (const item of DISTRICT_MAP) {
+    const matched = values.some((val) =>
+      item.names.some((name) => val.toLowerCase().includes(name.toLowerCase()))
+    );
+    if (matched) return item.id;
+  }
+  return undefined;
 }
 
 function pickDsDivision(address: Record<string, string> = {}) {
@@ -53,16 +70,21 @@ function pickGnDivision(address: Record<string, string> = {}) {
   return address.suburb || address.neighbourhood || address.hamlet || address.quarter || "";
 }
 
-async function reverseGeocode(latitude: number, longitude: number) {
+async function reverseGeocode(latitude: number, longitude: number, lang: string = "en") {
   const params = new URLSearchParams({
     format: "jsonv2",
     lat: String(latitude),
     lon: String(longitude),
     addressdetails: "1",
+    "accept-language": lang,
   });
 
   const response = await fetch(`https://nominatim.openstreetmap.org/reverse?${params.toString()}`, {
-    headers: { Accept: "application/json" },
+    headers: {
+      Accept: "application/json",
+      "Accept-Language": lang,
+      "User-Agent": "ValamApp/1.0",
+    },
   });
 
   if (!response.ok) {
@@ -75,12 +97,20 @@ async function reverseGeocode(latitude: number, longitude: number) {
   }>;
 }
 
-export function GpsLocationButton({ onLocation, onError, label = "Use GPS" }: GpsLocationButtonProps) {
+export function GpsLocationButton({ onLocation, onError, label, lang }: GpsLocationButtonProps) {
   const [loading, setLoading] = useState(false);
+  const { language: contextLang, t } = useLanguage();
+  const activeLang = lang || contextLang || "en";
+
+  const buttonText = loading
+    ? t("locating")
+    : label && label !== "Use GPS"
+      ? label
+      : t("useGps");
 
   function handleClick() {
     if (!("geolocation" in navigator)) {
-      onError?.("GPS is not available in this browser.");
+      onError?.(t("gpsNotSupported"));
       return;
     }
 
@@ -91,18 +121,19 @@ export function GpsLocationButton({ onLocation, onError, label = "Use GPS" }: Gp
         const coordText = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
 
         try {
-          const geo = await reverseGeocode(latitude, longitude);
+          const geo = await reverseGeocode(latitude, longitude, activeLang);
           const address = geo.address || {};
           const district = pickDistrict(address);
           const dsDivision = pickDsDivision(address);
           const gnDivision = pickGnDivision(address);
-          const placeLabel = geo.display_name || `${dsDivision || "GPS Location"} (${coordText})`;
+          const rawDisplayName = geo.display_name || `${dsDivision || "GPS Location"} (${coordText})`;
+          const cleanedDisplayName = rawDisplayName.replace(/\s*\([^)]*\)/g, "");
 
           onLocation({
             latitude,
             longitude,
             accuracy,
-            farmLocation: `${placeLabel} | GPS: ${coordText}`,
+            farmLocation: `${cleanedDisplayName} | GPS: ${coordText}`,
             district,
             dsDivision,
             gnDivision,
@@ -122,10 +153,10 @@ export function GpsLocationButton({ onLocation, onError, label = "Use GPS" }: Gp
         setLoading(false);
         const message =
           error.code === error.PERMISSION_DENIED
-            ? "Location permission was denied."
+            ? t("gpsPermissionDenied")
             : error.code === error.TIMEOUT
-              ? "GPS request timed out. Please try again."
-              : "Could not read your GPS location.";
+              ? t("gpsTimeout")
+              : t("gpsReadError");
         onError?.(message);
       },
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
@@ -137,7 +168,7 @@ export function GpsLocationButton({ onLocation, onError, label = "Use GPS" }: Gp
       type="button"
       onClick={handleClick}
       disabled={loading}
-      title="Use current GPS location"
+      title={buttonText}
       style={{
         display: "inline-flex",
         alignItems: "center",
@@ -156,7 +187,8 @@ export function GpsLocationButton({ onLocation, onError, label = "Use GPS" }: Gp
       }}
     >
       {loading ? <Loader2 size={15} className="spin" /> : <MapPin size={15} />}
-      <span>{loading ? "Locating..." : label}</span>
+      <span>{buttonText}</span>
     </button>
   );
 }
+

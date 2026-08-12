@@ -43,7 +43,7 @@ export function RegisterForm() {
     setStatus(null);
 
     if (!fullName.trim() || !email.trim() || !password || !phone.trim() || !district) {
-      setStatus({ type: "error", text: "Please fill in all mandatory fields." });
+      setStatus({ type: "error", text: t("fillMandatoryFields") });
       setSubmitting(false);
       return;
     }
@@ -70,7 +70,7 @@ export function RegisterForm() {
         farm_size_acres: role === "farmer" ? (typeof landSize === "number" && landUnit === "Acres" ? landSize : 1.0) : 0,
       });
 
-      setStatus({ type: "ok", text: "Account created — redirecting..." });
+      setStatus({ type: "ok", text: t("accountCreatedRedirecting") });
       setTimeout(() => {
         if (role === "consumer") {
           router.push("/consumer");
@@ -79,7 +79,7 @@ export function RegisterForm() {
         }
       }, 600);
     } catch (err) {
-      setStatus({ type: "error", text: err instanceof Error ? err.message : "Registration failed." });
+      setStatus({ type: "error", text: err instanceof Error ? err.message : t("registrationFailed") });
       setSubmitting(false);
     }
   }
@@ -320,12 +320,13 @@ export function RegisterForm() {
                 />
               </div>
               <GpsLocationButton
+                lang={prefLang}
                 onLocation={(loc) => {
                   setFarmLocation(loc.farmLocation);
                   if (loc.district) setDistrict(loc.district);
                   if (loc.dsDivision) setDsDivision(loc.dsDivision);
                   if (loc.gnDivision) setGnDivision(loc.gnDivision);
-                  setStatus({ type: "ok", text: "GPS location added to your farm profile." });
+                  setStatus({ type: "ok", text: t("gpsAddedSuccess") });
                 }}
                 onError={(message) => setStatus({ type: "error", text: message })}
               />

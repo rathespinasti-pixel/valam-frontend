@@ -300,7 +300,7 @@ function ChatContent() {
               </div>
 
               <div style={{ display: "flex", gap: 8 }}>
-                {activePartner?.phone && (
+                {/* {activePartner?.phone && (
                   <a
                     href={`tel:${activePartner.phone}`}
                     style={{
@@ -319,7 +319,7 @@ function ChatContent() {
                   >
                     <Phone size={14} color="#10B981" /> Call
                   </a>
-                )}
+                )} */}
                 <button
                   type="button"
                   onClick={() => loadMessages(activePartnerId)}

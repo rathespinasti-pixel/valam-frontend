@@ -88,7 +88,8 @@ export default function WeatherPage() {
                 <option value="Omanthai,LK">Omanthai</option>
               </select>
               <GpsLocationButton
-                label="Current GPS"
+                lang={language}
+                label={t("useGps")}
                 onLocation={(loc) => {
                   const gpsLocation = `${loc.latitude.toFixed(6)},${loc.longitude.toFixed(6)}`;
                   setLocationError("");

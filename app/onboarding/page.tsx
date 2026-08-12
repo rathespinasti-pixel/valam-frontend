@@ -229,6 +229,7 @@ export default function OnboardingPage() {
                     onChange={(e) => setFarmLocation(e.target.value)}
                   />
                   <GpsLocationButton
+                    lang={prefLang as any}
                     onLocation={(loc) => {
                       setFarmLocation(loc.farmLocation);
                       if (loc.district) setDistrict(loc.district);
