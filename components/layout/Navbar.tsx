@@ -31,6 +31,7 @@ import { SidebarDrawer } from "./SidebarDrawer";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { useLanguage } from "@/context/LanguageContext";
 import { useNotification } from "@/context/NotificationContext";
+import { ValamAPI } from "@/lib/api";
 import logo from "@/public/images/logo.png";
 import NotificationDropdown from "./NotificationDropdown";
 
@@ -51,7 +52,9 @@ type NavKey =
   | "irrigation-solar"
   | "profile"
   | "settings"
-  | "admin";
+  | "admin"
+  | "chat"
+  | "consumer";
 
 interface NavbarProps {
   active?: NavKey;
@@ -98,6 +101,15 @@ export function Navbar({ active, pageTitle }: NavbarProps) {
   }, []);
 
   const { confirmAction } = useNotification();
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      ValamAPI.getUserNotifications(10)
+        .then((res) => setUnreadNotifCount(res.unread_count || 0))
+        .catch(() => {});
+    }
+  }, [isLoggedIn, pathname]);
 
   function triggerLogoutConfirm() {
     confirmAction({
@@ -113,15 +125,24 @@ export function Navbar({ active, pageTitle }: NavbarProps) {
   }
 
   const isAdminUser = user?.role === "admin" || user?.role === "super_admin";
+  const isConsumer = user?.role === "consumer";
+
+  const consumerNavItems = [
+    { key: "consumer", href: "/consumer", label: t("marketplace") || "Buy Fresh", icon: ShoppingBag },
+    { key: "bargains", href: "/consumer?tab=bargains", label: t("myBargains") || "My Bargains", icon: Sprout },
+    { key: "chat", href: "/chat", label: t("chatHub") || "Direct Chat", icon: MessageSquare },
+    { key: "community", href: "/community", label: t("community"), icon: Users },
+  ];
 
   const farmerNavItems = [
     { key: "dashboard", href: "/dashboard", label: t("dashboard"), icon: LayoutDashboard },
     { key: "crops", href: "/crops", label: t("addCrop") || "Crops", icon: Sprout },
+    { key: "marketplace", href: "/marketplace", label: t("cloudMarketTitle") || "Marketplace & Offers", icon: ShoppingBag },
+    { key: "chat", href: "/chat", label: t("chatHub") || "Direct Chat", icon: MessageSquare },
     { key: "irrigation-solar", href: "/irrigation-solar", label: t("irrigationSolar") || "Irrigation & Solar", icon: Sun },
     { key: "weather", href: "/weather", label: t("weatherForecast"), icon: CloudSun },
     { key: "chatbot", href: "/chatbot", label: t("aiChatbot"), icon: Bot },
     { key: "diagnosis", href: "/diagnosis", label: t("plantDiagnosis"), icon: Stethoscope },
-    { key: "marketplace", href: "/marketplace", label: t("marketplace"), icon: ShoppingBag },
     { key: "community", href: "/community", label: t("community"), icon: Users },
   ];
 
@@ -129,13 +150,14 @@ export function Navbar({ active, pageTitle }: NavbarProps) {
     { key: "admin-overview", href: "/admin?tab=overview", label: "Overview & Stats", icon: BarChart3 },
     { key: "admin-users", href: "/admin?tab=users", label: "User Management", icon: Users },
     { key: "admin-crops", href: "/admin?tab=crops", label: "Crop Guides", icon: Sprout },
+    { key: "marketplace", href: "/marketplace", label: "Marketplace Hub", icon: ShoppingBag },
+    { key: "chat", href: "/chat", label: "Direct Chat", icon: MessageSquare },
     { key: "admin-reports", href: "/admin?tab=reports", label: "Farmer Reports", icon: Stethoscope },
     { key: "admin-notifications", href: "/admin?tab=notifications", label: "System Alerts", icon: Bell },
-    { key: "admin-feedback", href: "/admin?tab=feedback", label: "Feedback & FAQs", icon: HelpCircle },
     { key: "admin-logs", href: "/admin?tab=logs", label: "Audit Activity", icon: History },
   ];
 
-  const navItems = isAdminUser ? adminNavItems : farmerNavItems;
+  const navItems = isAdminUser ? adminNavItems : (isConsumer ? consumerNavItems : farmerNavItems);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -243,27 +265,44 @@ export function Navbar({ active, pageTitle }: NavbarProps) {
               <button
                 type="button"
                 className="topbar-icon-btn"
-                title="Notifications"
+                title={t("notifications") || "Notifications"}
                 onClick={() => setShowNotifications((prev) => !prev)}
                 aria-expanded={showNotifications}
                 aria-controls="notification-dropdown"
                 ref={notificationBtnRef}
+                style={{ position: "relative" }}
               >
                 <Bell size={18} />
-                <span className="topbar-icon-badge" />
+                {unreadNotifCount > 0 && (
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: 4,
+                      right: 4,
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      background: "#EF4444",
+                      border: "1.5px solid #FFFFFF",
+                    }}
+                  />
+                )}
               </button>
               {/* Notification Dropdown */}
               {showNotifications && (
                 <div ref={dropdownRef}>
-                    <NotificationDropdown onClose={() => setShowNotifications(false)} />
+                  <NotificationDropdown
+                    onClose={() => setShowNotifications(false)}
+                    onUpdateCount={(c) => setUnreadNotifCount(c)}
+                  />
                 </div>
               )}
 
               <button
                 type="button"
                 className="topbar-icon-btn"
-                title="AI Assistant Chat"
-                onClick={() => router.push("/chatbot")}
+                title={t("chatHub") || "Direct Messages"}
+                onClick={() => router.push("/chat")}
               >
                 <MessageSquare size={18} />
               </button>

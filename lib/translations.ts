@@ -281,6 +281,76 @@ export interface TranslationDictionary {
   askAiAbout: string;
   addCropToUseAi: string;
 
+  // Roles & Registration
+  accountType: string;
+  farmerOption: string;
+  farmerOptionDesc: string;
+  consumerOption: string;
+  consumerOptionDesc: string;
+  deliveryAddress: string;
+  deliveryAddressPlaceholder: string;
+
+  // Cloud Marketplace & Bargaining
+  cloudMarketTitle: string;
+  cloudMarketSub: string;
+  consumerPortalTitle: string;
+  consumerPortalSub: string;
+  welcomeConsumer: string;
+  postProduce: string;
+  postProduceDesc: string;
+  produceName: string;
+  freshProduce: string;
+  availableKg: string;
+  totalKg: string;
+  askingPricePerKg: string;
+  minFairPrice: string;
+  organicCertified: string;
+  harvestDate: string;
+  makeBargainOffer: string;
+  offerYourPrice: string;
+  offeredPricePerKg: string;
+  desiredQuantityKg: string;
+  calculatedTotal: string;
+  fairSavings: string;
+  submitBargain: string;
+  offerNotePlaceholder: string;
+  sellerFarmer: string;
+  buyerConsumer: string;
+  directChatWithFarmer: string;
+  directChatWithBuyer: string;
+  chatHub: string;
+  typeMessagePlaceholder: string;
+  sendMessage: string;
+  activeBargains: string;
+  incomingOffers: string;
+  myBargains: string;
+  myDeals: string;
+  acceptOffer: string;
+  counterOffer: string;
+  rejectOffer: string;
+  counterPricePerKg: string;
+  counterMessagePlaceholder: string;
+  sendCounterOffer: string;
+  acceptCounter: string;
+  dealConfirmed: string;
+  dealConfirmedDesc: string;
+  pendingOfferStatus: string;
+  acceptedStatus: string;
+  rejectedStatus: string;
+  counteredStatus: string;
+  noListingsFound: string;
+  noBargainsFound: string;
+  noConversationsFound: string;
+  selectConversation: string;
+  notifications: string;
+  markAllRead: string;
+  noNotifications: string;
+  allDistricts: string;
+  filterByCrop: string;
+  maxPriceRs: string;
+  organicOnly: string;
+  listedBy: string;
+
   // Error Pages
   pageNotFoundTitle: string;
   pageNotFoundDesc: string;
@@ -557,6 +627,76 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
     askAiAbout: "Ask about",
     addCropToUseAi: "Add a crop to use AI assistant",
 
+    // Roles & Registration
+    accountType: "Account Type",
+    farmerOption: "Farmer / Grower",
+    farmerOptionDesc: "Sell harvest, manage crops, track lifecycle, and negotiate fair prices.",
+    consumerOption: "Consumer / Buyer",
+    consumerOptionDesc: "Discover fresh vegetables directly from farmers and bargain at fair prices.",
+    deliveryAddress: "Delivery Address / Location",
+    deliveryAddressPlaceholder: "e.g., No. 45, Main Street, Vavuniya",
+
+    // Cloud Marketplace & Bargaining
+    cloudMarketTitle: "Farmers' Cloud Marketplace",
+    cloudMarketSub: "Direct bargaining hub between local farmers and consumers",
+    consumerPortalTitle: "Fresh Farm Produce Portal",
+    consumerPortalSub: "Directly buy vegetables and fresh harvest from local farmers",
+    welcomeConsumer: "Welcome to Valam Market",
+    postProduce: "Post Harvest Produce for Sale",
+    postProduceDesc: "List your available kilos and market price. Buyers can make fair offers.",
+    produceName: "Produce / Vegetable Name",
+    freshProduce: "Fresh Produce",
+    availableKg: "Available",
+    totalKg: "Total Stock",
+    askingPricePerKg: "Asking Price (per kg)",
+    minFairPrice: "Min Fair Price (per kg)",
+    organicCertified: "Organic Cultivation",
+    harvestDate: "Harvest / Ready Date",
+    makeBargainOffer: "Bargain / Make Offer",
+    offerYourPrice: "Propose Your Fair Price",
+    offeredPricePerKg: "Your Offer Price (Rs./kg)",
+    desiredQuantityKg: "Quantity Needed (kg)",
+    calculatedTotal: "Total Amount",
+    fairSavings: "Fair Savings",
+    submitBargain: "Submit Bargain Offer",
+    offerNotePlaceholder: "Optional note for farmer (e.g. pickup time, bulk order)",
+    sellerFarmer: "Grower / Farmer",
+    buyerConsumer: "Buyer / Consumer",
+    directChatWithFarmer: "Chat with Farmer",
+    directChatWithBuyer: "Chat with Buyer",
+    chatHub: "Messages & Direct Chat",
+    typeMessagePlaceholder: "Type your message here...",
+    sendMessage: "Send",
+    activeBargains: "My Active Bargains",
+    incomingOffers: "Incoming Buyer Offers",
+    myBargains: "My Bargains",
+    myDeals: "Confirmed Deals",
+    acceptOffer: "Accept Offer",
+    counterOffer: "Counter-Offer",
+    rejectOffer: "Decline",
+    counterPricePerKg: "Counter Price (Rs./kg)",
+    counterMessagePlaceholder: "Explain your counter-offer to the buyer...",
+    sendCounterOffer: "Send Counter-Offer",
+    acceptCounter: "Accept Counter-Offer",
+    dealConfirmed: "Deal Confirmed!",
+    dealConfirmedDesc: "Price agreed. Contact the seller to arrange pickup or delivery.",
+    pendingOfferStatus: "Pending Farmer Review",
+    acceptedStatus: "Deal Accepted",
+    rejectedStatus: "Declined",
+    counteredStatus: "Counter-Offer Received",
+    noListingsFound: "No produce listings found matching your search.",
+    noBargainsFound: "No active bargain offers yet.",
+    noConversationsFound: "No conversations yet. Start chatting on any produce listing!",
+    selectConversation: "Select a conversation to start chatting",
+    notifications: "Notifications",
+    markAllRead: "Mark all as read",
+    noNotifications: "No new notifications",
+    allDistricts: "All Districts",
+    filterByCrop: "Filter by Vegetable",
+    maxPriceRs: "Max Price (Rs./kg)",
+    organicOnly: "Organic Only",
+    listedBy: "Listed by",
+
     pageNotFoundTitle: "404 - Page Not Found",
     pageNotFoundDesc: "The page you are looking for does not exist or has been moved.",
   },
@@ -831,6 +971,76 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
     askAiAbout: "பற்றி கேளுங்கள்:",
     addCropToUseAi: "AI உதவியாளரைப் பயன்படுத்த பயிரைச் சேர்க்கவும்",
 
+    // Roles & Registration
+    accountType: "கணக்கு வகை",
+    farmerOption: "விவசாயி / உற்பத்தியாளர்",
+    farmerOptionDesc: "விளைச்சலை விற்க, பயிர் சுழற்சியை கண்காணிக்க மற்றும் நியாயமான விலைக்கு பேரம் பேச.",
+    consumerOption: "நுகர்வோர் / வாங்குபவர்",
+    consumerOptionDesc: "விவசாயிகளிடமிருந்து நேரடியாக புதிய காய்கறிகளை நியாயமான விலையில் பேரம் பேசி வாங்க.",
+    deliveryAddress: "விநியோக முகவரி / இருப்பிடம்",
+    deliveryAddressPlaceholder: "எ.கா: இல. 45, பிரதான வீதி, வவுனியா",
+
+    // Cloud Marketplace & Bargaining
+    cloudMarketTitle: "விவசாயிகளின் கிளவுட் சந்தை",
+    cloudMarketSub: "விவசாயிகளுக்கும் நுகர்வோருக்குமான நேரடி விலை பேரம் பேசும் மையம்",
+    consumerPortalTitle: "புதிய பண்ணை விளைச்சல் தளம்",
+    consumerPortalSub: "விவசாயிகளிடமிருந்து நேரடியாக காய்கறிகள் மற்றும் விளைபொருட்களை வாங்குங்கள்",
+    welcomeConsumer: "வளம் சந்தைக்கு நல்வரவு",
+    postProduce: "விற்பனைக்கு விளைச்சலை பதிவேற்றவும்",
+    postProduceDesc: "உங்கள் கத்தரிக்காய் அல்லது காய்கறி கிலோ மற்றும் சந்தை விலையை பதிவிடவும். வாங்குபவர்கள் பேரம் பேசலாம்.",
+    produceName: "விளைபொருள் / காய்கறி பெயர்",
+    freshProduce: "புதிய விளைபொருள்",
+    availableKg: "இருப்பில் உள்ள அளவு",
+    totalKg: "மொத்த அளவு",
+    askingPricePerKg: "விற்பனை விலை (கிலோவுக்கு)",
+    minFairPrice: "குறைந்தபட்ச நியாய விலை (கிலோவுக்கு)",
+    organicCertified: "இயற்கை விவசாயம்",
+    harvestDate: "அறுவடை / கிடைக்கும் திகதி",
+    makeBargainOffer: "பேரம் பேசு / விலையை முன்மொழியவும்",
+    offerYourPrice: "உங்கள் நியாயமான விலையை அளியுங்கள்",
+    offeredPricePerKg: "உங்கள் முன்மொழிவு விலை (ரூ./கிலோ)",
+    desiredQuantityKg: "தேவையான அளவு (கிலோ)",
+    calculatedTotal: "மொத்த தொகை",
+    fairSavings: "நியாயமான சேமிப்பு",
+    submitBargain: "பேர முன்மொழிவை சமர்ப்பிக்கவும்",
+    offerNotePlaceholder: "விவசாயிக்கான குறிப்பு (எ.கா. எடுக்கும் நேரம், மொத்த முன்பதிவு)",
+    sellerFarmer: "விவசாயி / உற்பத்தியாளர்",
+    buyerConsumer: "வாங்குபவர் / நுகர்வோர்",
+    directChatWithFarmer: "விவசாயியுடன் அரட்டையடிக்கவும்",
+    directChatWithBuyer: "வாங்குபவருடன் அரட்டையடிக்கவும்",
+    chatHub: "செய்திகள் & நேரடி அரட்டை",
+    typeMessagePlaceholder: "உங்கள் செய்தியை இங்கே தட்டச்சு செய்யவும்...",
+    sendMessage: "அனுப்பு",
+    activeBargains: "எனது தீவிர பேரங்கள்",
+    incomingOffers: "வந்திருக்கும் பேர முன்மொழிவுகள்",
+    myBargains: "எனது பேரங்கள்",
+    myDeals: "உறுதி செய்யப்பட்ட ஒப்பந்தங்கள்",
+    acceptOffer: "ஒப்பந்தத்தை ஏற்கவும்",
+    counterOffer: "எதிர் விலை முன்மொழிவு",
+    rejectOffer: "நிராகரி",
+    counterPricePerKg: "எதிர் விலை (ரூ./கிலோ)",
+    counterMessagePlaceholder: "வாங்குபவருக்கு உங்கள் எதிர் விலையை விளக்குங்கள்...",
+    sendCounterOffer: "எதிர் விலையை அனுப்பவும்",
+    acceptCounter: "எதிர் விலையை ஏற்கவும்",
+    dealConfirmed: "ஒப்பந்தம் உறுதியானது!",
+    dealConfirmedDesc: "விலை ஒப்புக்கொள்ளப்பட்டது. பெற்றுக்கொள்ள அல்லது விநியோகத்தை ஒழுங்கு செய்ய விற்பனையாளரை தொடர்பு கொள்ளவும்.",
+    pendingOfferStatus: "விவசாயியின் பரிசீலனையில்",
+    acceptedStatus: "ஒப்பந்தம் ஏற்கப்பட்டது",
+    rejectedStatus: "நிராகரிக்கப்பட்டது",
+    counteredStatus: "எதிர் விலை வந்துள்ளது",
+    noListingsFound: "தேடலுக்குரிய விளைபொருட்கள் எதுவும் காணப்படவில்லை.",
+    noBargainsFound: "செயலில் உள்ள பேரங்கள் எதுவும் இல்லை.",
+    noConversationsFound: "உரையாடல்கள் எதுவும் இல்லை. எந்த விளைபொருளிலும் அரட்டையைத் தொடங்குங்கள்!",
+    selectConversation: "அரட்டையைத் தொடங்க ஒரு உரையாடலைத் தேர்ந்தெடுக்கவும்",
+    notifications: "அறிவிப்புகள்",
+    markAllRead: "அனைத்தையும் படித்ததாகக் குறிக்கவும்",
+    noNotifications: "புதிய அறிவிப்புகள் எதுவும் இல்லை",
+    allDistricts: "அனைத்து மாவட்டங்களும்",
+    filterByCrop: "காய்கறி வாரியாக வடிகட்டவும்",
+    maxPriceRs: "அதிகபட்ச விலை (ரூ./கிலோ)",
+    organicOnly: "இயற்கை விளைச்சல் மட்டும்",
+    listedBy: "விற்பனையாளர்:",
+
     pageNotFoundTitle: "404 - பக்கம் காணப்படவில்லை",
     pageNotFoundDesc: "நீங்கள் தேடும் பக்கம் இல்லை அல்லது நகர்த்தப்பட்டுவிட்டது.",
   },
@@ -1104,6 +1314,76 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
     loadingAssistant: "දෛනික ගොවිතැන් සහකාර පූරණය වෙමින් පවතී...",
     askAiAbout: "පිළිබඳව අසන්න:",
     addCropToUseAi: "AI සහකාර භාවිතා කිරීමට වගාවක් එක් කරන්න",
+
+    // Roles & Registration
+    accountType: "ගිණුම් වර්ගය",
+    farmerOption: "ගොවියා / වගාකරු",
+    farmerOptionDesc: "අස්වැන්න විකිණීමට, වගා චක්‍රය නිරීක්ෂණයට සහ සාධාරණ මිලකට සාකච්ඡා කිරීමට.",
+    consumerOption: "පාරිභෝගිකයා / ගැනුම්කරු",
+    consumerOptionDesc: "ගොවීන්ගෙන් සෘජුවම නැවුම් එළවළු සාධාරණ මිලකට සාකච්ඡා කර මිලදී ගැනීමට.",
+    deliveryAddress: "බෙදාහැරීමේ ලිපිනය / ස්ථානය",
+    deliveryAddressPlaceholder: "උදා: අංක 45, ප්‍රධාන වීදිය, වවුනියාව",
+
+    // Cloud Marketplace & Bargaining
+    cloudMarketTitle: "ගොවීන්ගේ ක්ලවුඩ් වෙළඳපොළ",
+    cloudMarketSub: "දේශීය ගොවීන් සහ පාරිභෝගිකයන් අතර සෘජු මිල සාකච්ඡා වේදිකාව",
+    consumerPortalTitle: "නැවුම් ගොවිපළ අස්වැන්න ද්වාරය",
+    consumerPortalSub: "දේශීය ගොවීන්ගෙන් සෘජුවම එළවළු සහ නැවුම් අස්වැන්න මිලදී ගන්න",
+    welcomeConsumer: "වළම් වෙළඳපොළට සාදරයෙන් පිළිගනිමු",
+    postProduce: "අස්වැන්න විකිණීමට පළ කරන්න",
+    postProduceDesc: "ඔබේ බටු හෝ එළවළු කිලෝ ප්‍රමාණය සහ වෙළඳපොළ මිල ඇතුළත් කරන්න. ගැනුම්කරුවන්ට මිල සාකච්ඡා කළ හැක.",
+    produceName: "අස්වැන්න / එළවළු නම",
+    freshProduce: "නැවුම් අස්වැන්න",
+    availableKg: "ලබාගත හැකි ප්‍රමාණය",
+    totalKg: "මුළු ප්‍රමාණය",
+    askingPricePerKg: "විකුණුම් මිල (කිලෝවකට)",
+    minFairPrice: "අවම සාධාරණ මිල (කිලෝවකට)",
+    organicCertified: "කාබනික වගාව",
+    harvestDate: "අස්වැන්න නෙලූ / ලබාගත හැකි දිනය",
+    makeBargainOffer: "මිල සාකච්ඡා කරන්න / යෝජනා කරන්න",
+    offerYourPrice: "ඔබේ සාධාරණ මිල යෝජනා කරන්න",
+    offeredPricePerKg: "ඔබේ යෝජිත මිල (රු./කිලෝ)",
+    desiredQuantityKg: "අවශ්‍ය ප්‍රමාණය (කිලෝ)",
+    calculatedTotal: "මුළු මුදල",
+    fairSavings: "සාධාරණ ඉතිරිය",
+    submitBargain: "මිල යෝජනාව ඉදිරිපත් කරන්න",
+    offerNotePlaceholder: "ගොවියාට කෙටි සටහනක් (උදා: ලබාගන්නා වේලාව, තොග ඇණවුම)",
+    sellerFarmer: "ගොවියා / වගාකරු",
+    buyerConsumer: "ගැණුම්කරු / පාරිභෝගිකයා",
+    directChatWithFarmer: "ගොවියා සමඟ කතාබස් කරන්න",
+    directChatWithBuyer: "ගැනුම්කරු සමඟ කතාබස් කරන්න",
+    chatHub: "පණිවිඩ සහ සෘජු කතාබස්",
+    typeMessagePlaceholder: "ඔබේ පණිවිඩය මෙහි ටයිප් කරන්න...",
+    sendMessage: "යවන්න",
+    activeBargains: "මගේ ක්‍රියාකාරී මිල සාකච්ඡා",
+    incomingOffers: "ලැබුණු මිල යෝජනා",
+    myBargains: "මගේ මිල සාකච්ඡා",
+    myDeals: "තහවුරු වූ ගනුදෙනු",
+    acceptOffer: "යෝජනාව පිළිගන්න",
+    counterOffer: "ප්‍රති-මිල යෝජනාව",
+    rejectOffer: "ප්‍රතික්ෂේප කරන්න",
+    counterPricePerKg: "ප්‍රති-මිල (රු./කිලෝ)",
+    counterMessagePlaceholder: "ගැනුම්කරුට ඔබේ ප්‍රති-මිල පැහැදිලි කරන්න...",
+    sendCounterOffer: "ප්‍රති-මිල යෝජනාව යවන්න",
+    acceptCounter: "ප්‍රති-මිල පිළිගන්න",
+    dealConfirmed: "ගනුදෙනුව තහවුරු විය!",
+    dealConfirmedDesc: "මිල එකඟ විය. භාණ්ඩ ලබාගැනීම හෝ බෙදාහැරීම සඳහා විකුණුම්කරු අමතන්න.",
+    pendingOfferStatus: "ගොවියාගේ සමාලෝචනය අපේක්ෂාවෙන්",
+    acceptedStatus: "ගනුදෙනුව පිළිගන්නා ලදී",
+    rejectedStatus: "ප්‍රතික්ෂේප විය",
+    counteredStatus: "ප්‍රති-මිලක් ලැබී ඇත",
+    noListingsFound: "ඔබගේ සෙවුමට ගැලපෙන අස්වැන්නක් හමු නොවීය.",
+    noBargainsFound: "තවමත් ක්‍රියාකාරී මිල සාකච්ඡා නොමැත.",
+    noConversationsFound: "තවමත් සංවාද නොමැත. ඕනෑම අස්වැන්නක් සඳහා කතාබස් ආරම්භ කරන්න!",
+    selectConversation: "කතාබස් කිරීමට සංවාදයක් තෝරන්න",
+    notifications: "දැනුම්දීම්",
+    markAllRead: "සියල්ල කියවූ ලෙස සලකුණු කරන්න",
+    noNotifications: "නව දැනුම්දීම් නොමැත",
+    allDistricts: "සියලුම දිස්ත්‍රික්ක",
+    filterByCrop: "එළවළු වර්ගය අනුව",
+    maxPriceRs: "උපරිම මිල (රු./කිලෝ)",
+    organicOnly: "කාබනික පමණි",
+    listedBy: "විකුණුම්කරු:",
 
     pageNotFoundTitle: "404 - පිටුව හමු නොවීය",
     pageNotFoundDesc: "ඔබ සොයන පිටුව පවතින්නේ නැත නැතහොත් වෙනත් ස්ථානයකට ගෙන ගොස් ඇත.",

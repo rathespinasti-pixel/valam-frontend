@@ -26,6 +26,11 @@ import type {
   ValamUser,
   WeatherAdvisoryResponse,
   ManagedCropItem,
+  ProduceListing,
+  BargainOffer,
+  DirectMessage,
+  ChatConversation,
+  MarketNotification,
 } from "./types";
 
 const API_BASE_URL =
@@ -755,6 +760,158 @@ export const ValamAPI = {
       method: "POST",
       auth: true,
       body: params,
+    });
+  },
+
+  // ==========================================
+  // Cloud Marketplace & Farmers' Bargaining
+  // ==========================================
+  async getProduceListings(params: {
+    search?: string;
+    crop_name?: string;
+    district?: string;
+    max_price?: number;
+    is_organic?: boolean;
+    farmer_id?: number;
+    status?: string;
+    page?: number;
+    per_page?: number;
+  } = {}): Promise<{ items: ProduceListing[]; total: number; page: number; per_page: number; pages: number }> {
+    const qp = new URLSearchParams();
+    if (params.search) qp.set("search", params.search);
+    if (params.crop_name) qp.set("crop_name", params.crop_name);
+    if (params.district) qp.set("district", params.district);
+    if (params.max_price !== undefined) qp.set("max_price", String(params.max_price));
+    if (params.is_organic !== undefined) qp.set("is_organic", String(params.is_organic));
+    if (params.farmer_id) qp.set("farmer_id", String(params.farmer_id));
+    if (params.status) qp.set("status", params.status);
+    if (params.page) qp.set("page", String(params.page));
+    if (params.per_page) qp.set("per_page", String(params.per_page));
+    return apiRequest(`/market/listings?${qp.toString()}`);
+  },
+
+  async getProduceListing(id: number): Promise<ProduceListing> {
+    return apiRequest<ProduceListing>(`/market/listings/${id}`);
+  },
+
+  async createProduceListing(data: {
+    crop_name: string;
+    variety?: string;
+    total_quantity_kg: number;
+    asking_price_per_kg: number;
+    min_acceptable_price_per_kg?: number;
+    district?: string;
+    location?: string;
+    harvest_date?: string;
+    is_organic?: boolean;
+    is_negotiable?: boolean;
+    description?: string;
+    image_url?: string;
+    crop_id?: number;
+  }): Promise<ProduceListing> {
+    return apiRequest<ProduceListing>("/market/listings", {
+      method: "POST",
+      auth: true,
+      body: data,
+    });
+  },
+
+  async updateProduceListing(id: number, data: Partial<ProduceListing>): Promise<ProduceListing> {
+    return apiRequest<ProduceListing>(`/market/listings/${id}`, {
+      method: "PUT",
+      auth: true,
+      body: data,
+    });
+  },
+
+  async deleteProduceListing(id: number): Promise<void> {
+    return apiRequest<void>(`/market/listings/${id}`, {
+      method: "DELETE",
+      auth: true,
+    });
+  },
+
+  async createBargainOffer(listingId: number, data: {
+    quantity_kg: number;
+    offered_price_per_kg: number;
+    buyer_message?: string;
+  }): Promise<BargainOffer> {
+    return apiRequest<BargainOffer>(`/market/listings/${listingId}/offers`, {
+      method: "POST",
+      auth: true,
+      body: data,
+    });
+  },
+
+  async getMyBargainOffers(): Promise<BargainOffer[]> {
+    return apiRequest<BargainOffer[]>("/market/offers/my-offers", { auth: true });
+  },
+
+  async getIncomingBargainOffers(): Promise<BargainOffer[]> {
+    return apiRequest<BargainOffer[]>("/market/offers/incoming", { auth: true });
+  },
+
+  async respondToBargainOffer(offerId: number, data: {
+    action: "accept" | "reject" | "counter";
+    counter_price_per_kg?: number;
+    counter_message?: string;
+    reason?: string;
+  }): Promise<BargainOffer> {
+    return apiRequest<BargainOffer>(`/market/offers/${offerId}/respond`, {
+      method: "PUT",
+      auth: true,
+      body: data,
+    });
+  },
+
+  async acceptCounterOffer(offerId: number): Promise<BargainOffer> {
+    return apiRequest<BargainOffer>(`/market/offers/${offerId}/accept-counter`, {
+      method: "PUT",
+      auth: true,
+    });
+  },
+
+  // ==========================================
+  // Direct Cross-User Chat
+  // ==========================================
+  async getChatConversations(): Promise<ChatConversation[]> {
+    return apiRequest<ChatConversation[]>("/chat/conversations", { auth: true });
+  },
+
+  async getChatMessages(otherUserId: number): Promise<{ partner: any; messages: DirectMessage[] }> {
+    return apiRequest<{ partner: any; messages: DirectMessage[] }>(`/chat/messages/${otherUserId}`, { auth: true });
+  },
+
+  async sendChatMessage(data: {
+    receiver_id: number;
+    message: string;
+    listing_id?: number;
+  }): Promise<DirectMessage> {
+    return apiRequest<DirectMessage>("/chat/send", {
+      method: "POST",
+      auth: true,
+      body: data,
+    });
+  },
+
+  // ==========================================
+  // User Notifications
+  // ==========================================
+  async getUserNotifications(limit: number = 30): Promise<{ items: MarketNotification[]; unread_count: number }> {
+    return apiRequest<{ items: MarketNotification[]; unread_count: number }>(`/user-notifications?limit=${limit}`, { auth: true });
+  },
+
+  async markNotificationRead(notifId: number): Promise<MarketNotification> {
+    return apiRequest<MarketNotification>(`/user-notifications/${notifId}/read`, {
+      method: "PUT",
+      auth: true,
+    });
+  },
+
+  async markAllNotificationsRead(): Promise<void> {
+    return apiRequest<void>("/user-notifications/read-all", {
+      method: "PUT",
+      auth: true,
     });
   },
 };

@@ -28,6 +28,8 @@ import type { ValamUser } from "@/lib/types";
 import { useLanguage } from "@/context/LanguageContext";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 
+import { MessageSquare } from "lucide-react";
+
 export interface NavMenuItem {
   key: string;
   transKey: string;
@@ -35,14 +37,23 @@ export interface NavMenuItem {
   icon: React.ElementType;
 }
 
+export const CONSUMER_MENU_ITEMS: NavMenuItem[] = [
+  { key: "consumer", transKey: "marketplace", href: "/consumer", icon: ShoppingBag },
+  { key: "bargains", transKey: "myBargains", href: "/consumer?tab=bargains", icon: Sprout },
+  { key: "chat", transKey: "chatHub", href: "/chat", icon: MessageSquare },
+  { key: "community", transKey: "community", href: "/community", icon: Users },
+  { key: "settings", transKey: "settings", href: "/settings", icon: Settings },
+];
+
 export const MENU_ITEMS: NavMenuItem[] = [
   { key: "dashboard", transKey: "dashboard", href: "/dashboard", icon: LayoutDashboard },
   { key: "crops", transKey: "addCrop", href: "/crops", icon: Sprout },
+  { key: "marketplace", transKey: "cloudMarketTitle", href: "/marketplace", icon: ShoppingBag },
+  { key: "chat", transKey: "chatHub", href: "/chat", icon: MessageSquare },
   { key: "irrigation-solar", transKey: "irrigationSolar", href: "/irrigation-solar", icon: Sun },
   { key: "weather", transKey: "weatherForecast", href: "/weather", icon: CloudSun },
   { key: "chatbot", transKey: "aiChatbot", href: "/chatbot", icon: Bot },
   { key: "diagnosis", transKey: "plantDiagnosis", href: "/diagnosis", icon: Stethoscope },
-  { key: "marketplace", transKey: "marketplace", href: "/marketplace", icon: ShoppingBag },
   { key: "community", transKey: "community", href: "/community", icon: Users },
   { key: "settings", transKey: "settings", href: "/settings", icon: Settings },
 ];
@@ -51,9 +62,10 @@ export const ADMIN_MENU_ITEMS: NavMenuItem[] = [
   { key: "admin-overview", transKey: "Overview & Stats", href: "/admin?tab=overview", icon: BarChart3 },
   { key: "admin-users", transKey: "User Management", href: "/admin?tab=users", icon: Users },
   { key: "admin-crops", transKey: "Crop Guides", href: "/admin?tab=crops", icon: Sprout },
+  { key: "marketplace", transKey: "Marketplace Hub", href: "/marketplace", icon: ShoppingBag },
+  { key: "chat", transKey: "Direct Chat", href: "/chat", icon: MessageSquare },
   { key: "admin-reports", transKey: "Farmer Reports", href: "/admin?tab=reports", icon: Stethoscope },
   { key: "admin-notifications", transKey: "System Alerts", href: "/admin?tab=notifications", icon: Bell },
-  { key: "admin-feedback", transKey: "Feedback & FAQs", href: "/admin?tab=feedback", icon: HelpCircle },
   { key: "admin-logs", transKey: "Audit Activity", href: "/admin?tab=logs", icon: History },
   { key: "admin-settings", transKey: "System Settings", href: "/admin?tab=settings", icon: Settings },
 ];
@@ -214,7 +226,8 @@ export function SidebarDrawer({ isOpen, onClose, user, onLogout, activeKey }: Si
 
           {(() => {
             const isAdminUser = user?.role === "admin" || user?.role === "super_admin";
-            const itemsToRender = isAdminUser ? ADMIN_MENU_ITEMS : MENU_ITEMS;
+            const isConsumer = user?.role === "consumer";
+            const itemsToRender = isAdminUser ? ADMIN_MENU_ITEMS : (isConsumer ? CONSUMER_MENU_ITEMS : MENU_ITEMS);
             return itemsToRender.map((item) => {
               const Icon = item.icon;
               const isActive = activeKey === item.key || pathname === item.href;

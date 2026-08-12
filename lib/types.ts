@@ -5,7 +5,7 @@ export interface ValamUser {
   phone?: string;
   farm_location?: string;
   farm_size_acres?: number;
-  role?: "farmer" | "admin" | "super_admin" | string;
+  role?: "farmer" | "consumer" | "admin" | "super_admin" | string;
   status?: "active" | "banned" | string;
   ban_reason?: string;
   created_at?: string;
@@ -14,8 +14,9 @@ export interface ValamUser {
   farming_experience?: string;
   main_crops_grown?: string;
   preferred_language?: string;
+  delivery_address?: string;
   onboarding_completed?: boolean;
-  farming_category?: "Farmer" | "Home Gardener" | "Terrace Gardener" | "Beginner" | string;
+  farming_category?: "Farmer" | "Home Gardener" | "Terrace Gardener" | "Beginner" | "Consumer" | string;
   district?: string;
   ds_division?: string;
   gn_division?: string;
@@ -155,7 +156,9 @@ export interface RegisterInput {
   email: string;
   password: string;
   phone: string;
+  role?: "farmer" | "consumer" | string;
   preferred_language?: string;
+  delivery_address?: string;
   farming_category?: string;
   district?: string;
   ds_division?: string;
@@ -359,5 +362,113 @@ export interface ToolListing {
   contact_phone: string;
   is_available: boolean;
   image_url?: string;
+  created_at?: string;
+}
+
+export interface ProduceListing {
+  id: number;
+  farmer_id: number;
+  crop_id?: number;
+  crop_name: string;
+  variety: string;
+  total_quantity_kg: number;
+  available_quantity_kg: number;
+  asking_price_per_kg: number;
+  min_acceptable_price_per_kg?: number;
+  district: string;
+  location?: string;
+  harvest_date?: string;
+  is_organic: boolean;
+  is_negotiable: boolean;
+  description?: string;
+  image_url?: string;
+  status: "active" | "sold_out" | "closed" | string;
+  offers_count?: number;
+  created_at?: string;
+  updated_at?: string;
+  farmer?: {
+    id: number;
+    full_name: string;
+    phone?: string;
+    district?: string;
+    farming_category?: string;
+  };
+}
+
+export interface BargainOffer {
+  id: number;
+  listing_id: number;
+  buyer_id: number;
+  farmer_id: number;
+  quantity_kg: number;
+  offered_price_per_kg: number;
+  total_amount: number;
+  buyer_message?: string;
+  status: "pending" | "accepted" | "rejected" | "countered" | "completed" | "cancelled" | string;
+  counter_price_per_kg?: number;
+  counter_message?: string;
+  agreed_price_per_kg?: number;
+  agreed_total_amount?: number;
+  created_at?: string;
+  updated_at?: string;
+  listing?: ProduceListing;
+  buyer?: {
+    id: number;
+    full_name: string;
+    phone?: string;
+    district?: string;
+    role?: string;
+  };
+  farmer?: {
+    id: number;
+    full_name: string;
+    phone?: string;
+    district?: string;
+  };
+}
+
+export interface DirectMessage {
+  id: number;
+  sender_id: number;
+  receiver_id: number;
+  listing_id?: number;
+  message: string;
+  is_read: boolean;
+  listing_name?: string;
+  created_at?: string;
+  sender?: {
+    id: number;
+    full_name: string;
+    role?: string;
+  };
+  receiver?: {
+    id: number;
+    full_name: string;
+    role?: string;
+  };
+}
+
+export interface ChatConversation {
+  partner: {
+    id: number;
+    full_name: string;
+    role?: string;
+    district?: string;
+    phone?: string;
+  };
+  last_message: DirectMessage;
+  unread_count: number;
+}
+
+export interface MarketNotification {
+  id: number;
+  user_id: number;
+  sender_id?: number;
+  title: string;
+  message: string;
+  category: "marketplace" | "bargain" | "chat" | "alert" | string;
+  link_url?: string;
+  is_read: boolean;
+  sender_name?: string;
   created_at?: string;
 }
