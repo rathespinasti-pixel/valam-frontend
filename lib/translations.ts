@@ -351,6 +351,31 @@ export interface TranslationDictionary {
   organicOnly: string;
   listedBy: string;
 
+  // Community Forum Keys
+  communityHeroTitle: string;
+  communityHeroSub: string;
+  startDiscussion: string;
+  createDiscussionTitle: string;
+  discussionTitleLabel: string;
+  discussionTitlePlaceholder: string;
+  discussionCategoryLabel: string;
+  discussionContentLabel: string;
+  discussionContentPlaceholder: string;
+  discussionImageOptional: string;
+  publishDiscussion: string;
+  searchDiscussions: string;
+  allCategories: string;
+  pestControlCategory: string;
+  equipmentSolarCategory: string;
+  soilFertilizerCategory: string;
+  marketQACategory: string;
+  generalDiscussionCategory: string;
+  responsesCount: string;
+  writeResponse: string;
+  noDiscussionsFound: string;
+  closeDiscussion: string;
+  commentsAndAnswers: string;
+
   // Error Pages
   pageNotFoundTitle: string;
   pageNotFoundDesc: string;
@@ -697,6 +722,31 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
     organicOnly: "Organic Only",
     listedBy: "Listed by",
 
+    // Community Forum Keys
+    communityHeroTitle: "Valam Community Hub & Forum",
+    communityHeroSub: "Farmer & Consumer Agricultural Discussions",
+    startDiscussion: "Ask / Start Discussion",
+    createDiscussionTitle: "Create Community Discussion",
+    discussionTitleLabel: "Discussion Title",
+    discussionTitlePlaceholder: "e.g. Best organic remedy for chili thrips in Vavuniya?",
+    discussionCategoryLabel: "Category",
+    discussionContentLabel: "Question / Details",
+    discussionContentPlaceholder: "Describe your field issue or question in detail...",
+    discussionImageOptional: "Image URL (Optional)",
+    publishDiscussion: "Publish Discussion",
+    searchDiscussions: "Search forum discussions...",
+    allCategories: "All Categories",
+    pestControlCategory: "Pest & Disease Control",
+    equipmentSolarCategory: "Equipment & Solar Farming",
+    soilFertilizerCategory: "Soil & Fertilizer",
+    marketQACategory: "Market & Pricing Q&A",
+    generalDiscussionCategory: "General Farming Discussion",
+    responsesCount: "Response",
+    writeResponse: "Write a helpful reply...",
+    noDiscussionsFound: "No discussion posts found. Be the first to start a conversation!",
+    closeDiscussion: "Close",
+    commentsAndAnswers: "Discussion Replies & Answers",
+
     pageNotFoundTitle: "404 - Page Not Found",
     pageNotFoundDesc: "The page you are looking for does not exist or has been moved.",
   },
@@ -1041,6 +1091,31 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
     organicOnly: "இயற்கை விளைச்சல் மட்டும்",
     listedBy: "விற்பனையாளர்:",
 
+    // Community Forum Keys
+    communityHeroTitle: "வளம் விவசாய சமூகம் & கலந்துரையாடல்",
+    communityHeroSub: "விவசாயிகள் மற்றும் நுகர்வோரின் விவசாய கலந்துரையாடல்கள்",
+    startDiscussion: "கேள்வி கேள் / விவாதத்தை தொடங்கு",
+    createDiscussionTitle: "சமூக கலந்துரையாடலை உருவாக்கவும்",
+    discussionTitleLabel: "விவாதத் தலைப்பு",
+    discussionTitlePlaceholder: "எ.கா. வவுனியாவில் மிளகாய் இலைப்பேனுக்கு சிறந்த இயற்கை தீர்வு?",
+    discussionCategoryLabel: "பிரிவு",
+    discussionContentLabel: "கேள்வி / விபரங்கள்",
+    discussionContentPlaceholder: "உங்கள் வயல் பிரச்சனை அல்லது கேள்வியை விரிவாக விளக்குங்கள்...",
+    discussionImageOptional: "பட இணைப்பு (விருப்பத்தேர்வு)",
+    publishDiscussion: "விவாதத்தை பதிவிடவும்",
+    searchDiscussions: "சமூக விவாதங்களைத் தேடுங்கள்...",
+    allCategories: "அனைத்துப் பிரிவுகளும்",
+    pestControlCategory: "பூச்சி மற்றும் நோய் கட்டுப்பாடு",
+    equipmentSolarCategory: "உபகரணங்கள் மற்றும் சூரிய சக்தி",
+    soilFertilizerCategory: "மண் மற்றும் உரம்",
+    marketQACategory: "சந்தை மற்றும் விலை வினா-விடை",
+    generalDiscussionCategory: "பொது விவசாயக் கலந்துரையாடல்",
+    responsesCount: "பதில்",
+    writeResponse: "உங்கள் பதிலை எழுதுங்கள்...",
+    noDiscussionsFound: "கலந்துரையாடல் பதிவுகள் எதுவும் இல்லை. முதல் விவாதத்தை தொடங்குங்கள்!",
+    closeDiscussion: "மூடு",
+    commentsAndAnswers: "பதில்கள் மற்றும் ஆலோசனைகள்",
+
     pageNotFoundTitle: "404 - பக்கம் காணப்படவில்லை",
     pageNotFoundDesc: "நீங்கள் தேடும் பக்கம் இல்லை அல்லது நகர்த்தப்பட்டுவிட்டது.",
   },
@@ -1384,6 +1459,31 @@ export const TRANSLATIONS: Record<Language, TranslationDictionary> = {
     maxPriceRs: "උපරිම මිල (රු./කිලෝ)",
     organicOnly: "කාබනික පමණි",
     listedBy: "විකුණුම්කරු:",
+
+    // Community Forum Keys
+    communityHeroTitle: "වළම් ගොවි සහ පාරිභෝගික ප්‍රජා සංසදය",
+    communityHeroSub: "ගොවීන් සහ පාරිභෝගිකයින් සඳහා වන කෘෂිකාර්මික සංවාද",
+    startDiscussion: "ප්‍රශ්නයක් අසන්න / සංවාදයක් අරඹන්න",
+    createDiscussionTitle: "නව ප්‍රජා සංවාදයක් සාදන්න",
+    discussionTitleLabel: "සංවාද මාතෘකාව",
+    discussionTitlePlaceholder: "උදා. වවුනියාවේ මිරිස් කොළ කොඩවීමට හොඳම කාබනික ප්‍රතිකාරය කුමක්ද?",
+    discussionCategoryLabel: "කාණ්ඩය",
+    discussionContentLabel: "ප්‍රශ්නය / විස්තරය",
+    discussionContentPlaceholder: "ඔබේ ගැටලුව හෝ ප්‍රශ්නය විස්තරාත්මකව සඳහන් කරන්න...",
+    discussionImageOptional: "පින්තූර සබැඳිය (විකල්ප)",
+    publishDiscussion: "සංවාදය පළ කරන්න",
+    searchDiscussions: "සංවාද සොයන්න...",
+    allCategories: "සියලුම කාණ්ඩ",
+    pestControlCategory: "පළිබෝධ සහ රෝග පාලනය",
+    equipmentSolarCategory: "උපකරණ සහ සූර්ය බලශක්තිය",
+    soilFertilizerCategory: "පස සහ පොහොර",
+    marketQACategory: "වෙළඳපොළ සහ මිල ගණන්",
+    generalDiscussionCategory: "සාමාන්‍ය ගොවිතැන් සංවාද",
+    responsesCount: "ප්‍රතිචාරය",
+    writeResponse: "ඔබගේ පිළිතුර මෙහි ලියන්න...",
+    noDiscussionsFound: "කිසිදු සංවාදයක් හමු නොවීය. පළමු සංවාදය ඔබ ආරම්භ කරන්න!",
+    closeDiscussion: "වසන්න",
+    commentsAndAnswers: "ප්‍රතිචාර සහ උපදෙස්",
 
     pageNotFoundTitle: "404 - පිටුව හමු නොවීය",
     pageNotFoundDesc: "ඔබ සොයන පිටුව පවතින්නේ නැත නැතහොත් වෙනත් ස්ථානයකට ගෙන ගොස් ඇත.",

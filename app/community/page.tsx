@@ -4,17 +4,38 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { AuthGuard } from "@/components/auth/AuthGuard";
 import { ValamAPI } from "@/lib/api";
-import type { CommunityPost } from "@/lib/types";
+import type { CommunityPost, ValamUser } from "@/lib/types";
+import { useLanguage } from "@/context/LanguageContext";
+import { getLocalizedDistrict } from "@/lib/lifecycle";
 import { useNotification } from "@/context/NotificationContext";
-import { MessageSquare, Plus, Search, User, MapPin, Send, MessageCircle } from "lucide-react";
+import {
+  MessageSquare,
+  Plus,
+  Search,
+  User,
+  MapPin,
+  Send,
+  MessageCircle,
+  X,
+  Sparkles,
+  Tag,
+  RefreshCcw,
+  CheckCircle2,
+} from "lucide-react";
 
 export default function CommunityPage() {
   const router = useRouter();
+  const { t, language } = useLanguage();
+  const { showSuccess, showError } = useNotification();
+
+  const [currentUser, setCurrentUser] = useState<ValamUser | null>(null);
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [category, setCategory] = useState("");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   // New post modal
   const [showNewPostModal, setShowNewPostModal] = useState(false);
@@ -29,47 +50,58 @@ export default function CommunityPage() {
   const [commentText, setCommentText] = useState("");
   const [commenting, setCommenting] = useState(false);
 
+  useEffect(() => {
+    ValamAPI.me()
+      .then((u) => setCurrentUser(u))
+      .catch(() => {});
+  }, []);
+
   async function fetchPosts() {
     try {
       setLoading(true);
-      const res = await ValamAPI.getCommunityPosts({ category, search });
-      setPosts(res.items);
+      const res = await ValamAPI.getCommunityPosts({
+        category: category || undefined,
+        search: search.trim() || undefined,
+      });
+      setPosts(res.items || []);
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching community posts:", err);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }
 
   useEffect(() => {
     fetchPosts();
-  }, [category, search]);
+  }, [category]);
 
-  const { showSuccess, showError } = useNotification();
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchPosts();
+  };
 
   async function handleCreatePost(e: React.FormEvent) {
     e.preventDefault();
-    if (!ValamAPI.isLoggedIn()) {
-      router.push("/login");
-      return;
-    }
+    if (!title.trim() || !content.trim()) return;
 
     setSubmitting(true);
     try {
       await ValamAPI.createCommunityPost({
-        title,
-        content,
+        title: title.trim(),
+        content: content.trim(),
         category: postCategory,
-        image_url: imageUrl || undefined,
+        image_url: imageUrl.trim() || undefined,
       });
+
       setShowNewPostModal(false);
       setTitle("");
       setContent("");
       setImageUrl("");
       fetchPosts();
-      showSuccess("Community Discussion Posted!", "Your post has been published for local farmers to read and discuss.");
-    } catch (err: any) {
-      showError("Post Creation Failed", err.message || "Could not publish your post. Please check fields.");
+      showSuccess("Discussion Published!", "Your discussion has been posted to the Valam community.");
+    } catch (err) {
+      showError("Post Creation Failed", err instanceof Error ? err.message : "Could not publish your post.");
     } finally {
       setSubmitting(false);
     }
@@ -86,217 +118,452 @@ export default function CommunityPage() {
 
   async function handleAddComment(e: React.FormEvent) {
     e.preventDefault();
-    if (!selectedPost) return;
-    if (!ValamAPI.isLoggedIn()) {
-      router.push("/login");
-      return;
-    }
-    if (!commentText.trim()) return;
+    if (!selectedPost || !commentText.trim() || commenting) return;
 
+    const text = commentText.trim();
     setCommenting(true);
     try {
-      await ValamAPI.addCommunityComment(selectedPost.id, commentText.trim());
+      await ValamAPI.addCommunityComment(selectedPost.id, text);
       setCommentText("");
       handleOpenPost(selectedPost.id);
-      showSuccess("Reply Posted", "Your comment has been added to the discussion.");
-    } catch (err: any) {
-      showError("Reply Failed", err.message || "Could not post your comment.");
+      showSuccess("Reply Posted", "Your response has been added to the discussion.");
+    } catch (err) {
+      showError("Reply Failed", err instanceof Error ? err.message : "Could not post your comment.");
     } finally {
       setCommenting(false);
     }
   }
 
+  const isConsumer = currentUser?.role === "consumer";
+  const heroGradient = isConsumer
+    ? "linear-gradient(135deg, #0F766E 0%, #115E59 100%)"
+    : "linear-gradient(135deg, #11382B 0%, #165B43 100%)";
+  const accentColor = isConsumer ? "#0F766E" : "#10B981";
+
+  const categories = [
+    { value: "", label: t("allCategories") },
+    { value: "Pest Control", label: t("pestControlCategory") },
+    { value: "Equipment & Solar", label: t("equipmentSolarCategory") },
+    { value: "Soil & Fertilizer", label: t("soilFertilizerCategory") },
+    { value: "Market & Pricing", label: t("marketQACategory") },
+    { value: "General", label: t("generalDiscussionCategory") },
+  ];
+
   return (
-    <>
-      <Navbar active="community" />
-      <section className="page-hero">
-        <div className="container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
-          <div>
-            <div className="crumb">Farmer Network / Community Forum</div>
-            <h1>Vavuniya Farmers Community</h1>
-            <p style={{ marginTop: 8, color: "#CFE3D5", maxWidth: 600 }}>
-              Share field experiences, ask farming questions, and exchange agricultural solutions with local growers.
-            </p>
+    <AuthGuard>
+      <Navbar active="community" pageTitle={t("communityHeroTitle")} />
+
+      {/* Page Hero Header */}
+      <section className="page-hero" style={{ padding: "32px 0", background: heroGradient }}>
+        <div className="container">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
+            <div>
+              <div className="crumb" style={{ fontSize: "clamp(0.75rem, 1.8vw, 0.85rem)", color: isConsumer ? "#99F6E4" : "#A7F3D0" }}>
+                {t("communityHeroSub")}
+              </div>
+              <h1 style={{ fontSize: "clamp(1.5rem, 3.5vw, 2.2rem)", lineHeight: 1.2, marginTop: 4, color: "#FFFFFF" }}>
+                {t("communityHeroTitle")}
+              </h1>
+              <p style={{ marginTop: 8, color: isConsumer ? "#CCFBF1" : "#CFE3D5", fontSize: "clamp(0.88rem, 2vw, 1rem)", maxWidth: 650, lineHeight: 1.4 }}>
+                Exchange farming insights, ask agricultural and market questions, and discuss produce directly with growers and buyers.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowNewPostModal(true)}
+              style={{
+                background: isConsumer ? "#10B981" : "#10B981",
+                color: "#FFFFFF",
+                border: "none",
+                padding: "12px 22px",
+                borderRadius: 14,
+                fontWeight: 800,
+                fontSize: 14,
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                boxShadow: "0 4px 14px rgba(16,185,129,0.3)",
+              }}
+            >
+              <Plus size={18} /> {t("startDiscussion")}
+            </button>
           </div>
-          <button onClick={() => setShowNewPostModal(true)} className="btn btn-sun" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Plus size={20} /> Ask / Start Discussion
-          </button>
         </div>
       </section>
 
-      <section className="section" style={{ background: "#F7F9F7" }}>
+      <section className="section" style={{ background: "#F8FAFC", paddingTop: 24, minHeight: "75vh" }}>
         <div className="container">
 
-          {/* New Post Modal */}
-          {showNewPostModal && (
-            <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
-              <div style={{ background: "#FFF", borderRadius: 16, padding: 28, maxWidth: 540, width: "100%" }}>
-                <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 16, color: "#1B4D3E" }}>Create Community Discussion Post</h2>
-                <form onSubmit={handleCreatePost}>
-                  <div style={{ marginBottom: 14 }}>
-                    <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>Discussion Title *</label>
-                    <input type="text" required className="input" placeholder="e.g. Best organic remedy for chili thrips in Vavuniya?" style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={title} onChange={(e) => setTitle(e.target.value)} />
-                  </div>
+          {/* Search Bar & Category Pills */}
+          <div
+            style={{
+              background: "#FFFFFF",
+              borderRadius: 18,
+              padding: 16,
+              marginBottom: 24,
+              border: "1px solid #E2E8F0",
+              boxShadow: "0 2px 10px rgba(0,0,0,0.02)",
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+            }}
+          >
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
+              <form onSubmit={handleSearchSubmit} style={{ display: "flex", gap: 8, flex: 1, minWidth: 260 }}>
+                <div style={{ position: "relative", flex: 1 }}>
+                  <Search size={18} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#94A3B8" }} />
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder={t("searchDiscussions")}
+                    style={{
+                      width: "100%",
+                      padding: "10px 14px 10px 42px",
+                      borderRadius: 10,
+                      border: "1px solid #CBD5E1",
+                      fontSize: 14,
+                    }}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  style={{
+                    background: accentColor,
+                    color: "#FFF",
+                    border: "none",
+                    padding: "10px 18px",
+                    borderRadius: 10,
+                    fontWeight: 700,
+                    fontSize: 13,
+                    cursor: "pointer",
+                  }}
+                >
+                  {t("search")}
+                </button>
+              </form>
 
-                  <div style={{ marginBottom: 14 }}>
-                    <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>Category</label>
-                    <select className="input" style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={postCategory} onChange={(e) => setPostCategory(e.target.value)}>
-                      <option value="Pest Control">Pest & Disease Control</option>
-                      <option value="Equipment & Solar">Equipment & Solar Farming</option>
-                      <option value="Soil & Fertilizer">Soil & Fertilizer</option>
-                      <option value="General">General Discussion</option>
-                    </select>
-                  </div>
-
-                  <div style={{ marginBottom: 14 }}>
-                    <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>Question / Description *</label>
-                    <textarea rows={4} required className="input" placeholder="Describe your field problem or question in detail..." style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={content} onChange={(e) => setContent(e.target.value)} />
-                  </div>
-
-                  <div style={{ marginBottom: 20 }}>
-                    <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>Image URL (Optional)</label>
-                    <input type="url" className="input" placeholder="https://example.com/photo.jpg" style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
-                  </div>
-
-                  <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
-                    <button type="button" onClick={() => setShowNewPostModal(false)} className="btn btn-outline" style={{ padding: "10px 18px" }}>Cancel</button>
-                    <button type="submit" disabled={submitting} className="btn btn-sun" style={{ padding: "10px 24px" }}>
-                      {submitting ? "Publishing..." : "Publish Post"}
-                    </button>
-                  </div>
-                </form>
-              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setRefreshing(true);
+                  fetchPosts();
+                }}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "9px 14px",
+                  borderRadius: 10,
+                  border: "1px solid #CBD5E1",
+                  background: "#FFFFFF",
+                  color: "#475569",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                <RefreshCcw size={14} className={refreshing ? "animate-spin" : ""} />
+                Refresh
+              </button>
             </div>
-          )}
 
-          {/* Search & Category Filter */}
-          <div style={{ background: "#FFFFFF", borderRadius: 12, padding: 16, marginBottom: 24, display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center", border: "1px solid #E2E8F0" }}>
-            <div style={{ flex: 1, minWidth: 200, display: "flex", alignItems: "center", gap: 10, background: "#F8FAFC", padding: "8px 14px", borderRadius: 8, border: "1px solid #CBD5E1" }}>
-              <Search size={18} color="#64748B" />
-              <input
-                type="text"
-                placeholder="Search forum questions..."
-                style={{ border: "none", background: "transparent", outline: "none", width: "100%", fontSize: 14 }}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+            {/* Category Filter Pills */}
+            <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }}>
+              {categories.map((cat) => {
+                const isActive = category === cat.value;
+                return (
+                  <button
+                    key={cat.value}
+                    type="button"
+                    onClick={() => setCategory(cat.value)}
+                    style={{
+                      padding: "6px 14px",
+                      borderRadius: 20,
+                      border: isActive ? `1.5px solid ${accentColor}` : "1px solid #E2E8F0",
+                      background: isActive ? (isConsumer ? "#F0FDFA" : "#ECFDF5") : "#F8FAFC",
+                      color: isActive ? accentColor : "#64748B",
+                      fontSize: 12,
+                      fontWeight: isActive ? 800 : 600,
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    {cat.label}
+                  </button>
+                );
+              })}
             </div>
-            
-            <select
-              style={{ padding: "10px 14px", borderRadius: 8, border: "1px solid #CBD5E1", fontSize: 14, background: "#FFF" }}
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            >
-              <option value="">All Categories</option>
-              <option value="Pest Control">Pest Control</option>
-              <option value="Equipment & Solar">Equipment & Solar</option>
-              <option value="Soil & Fertilizer">Soil & Fertilizer</option>
-              <option value="General">General</option>
-            </select>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: selectedPost ? "1fr 1fr" : "1fr", gap: 24 }}>
-            
+          {/* Main Content Grid: Feed on left, active thread on right (or full-width) */}
+          <div style={{ display: "grid", gridTemplateColumns: selectedPost ? "1.1fr 1fr" : "1fr", gap: 20 }}>
+
             {/* Post Feed */}
             <div>
               {loading ? (
-                <div style={{ padding: 40, textAlign: "center", color: "#666" }}>Loading discussion posts...</div>
+                <div style={{ textAlign: "center", padding: "60px 0", color: accentColor, fontWeight: 700 }}>
+                  Loading community discussions...
+                </div>
               ) : posts.length === 0 ? (
-                <div style={{ padding: 40, background: "#FFF", borderRadius: 16, textAlign: "center", color: "#64748B" }}>
-                  No discussion posts found. Be the first to start a conversation!
+                <div
+                  style={{
+                    background: "#FFFFFF",
+                    borderRadius: 18,
+                    padding: 40,
+                    textAlign: "center",
+                    border: "1px solid #E2E8F0",
+                    color: "#64748B",
+                  }}
+                >
+                  <MessageSquare size={48} style={{ margin: "0 auto 12px", opacity: 0.4, color: accentColor }} />
+                  <h3 style={{ fontSize: 18, color: "#1E293B", marginBottom: 6 }}>{t("noDiscussionsFound")}</h3>
+                  <p style={{ margin: 0, fontSize: 14 }}>Click "Ask / Start Discussion" to share questions or field updates.</p>
                 </div>
               ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                  {posts.map((post) => (
-                    <div
-                      key={post.id}
-                      onClick={() => handleOpenPost(post.id)}
-                      style={{
-                        background: "#FFFFFF",
-                        borderRadius: 16,
-                        padding: 20,
-                        border: selectedPost?.id === post.id ? "2px solid #16A34A" : "1px solid #E2E8F0",
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#64748B" }}>
-                          <User size={14} /> <strong>{post.author_name}</strong> · <MapPin size={12} /> {post.author_location || "Vavuniya"}
+                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                  {posts.map((post) => {
+                    const isSelected = selectedPost?.id === post.id;
+
+                    return (
+                      <div
+                        key={post.id}
+                        onClick={() => handleOpenPost(post.id)}
+                        style={{
+                          background: "#FFFFFF",
+                          borderRadius: 18,
+                          padding: 20,
+                          border: isSelected ? `2px solid ${accentColor}` : "1px solid #E2E8F0",
+                          boxShadow: isSelected ? "0 6px 20px rgba(0,0,0,0.06)" : "0 2px 8px rgba(0,0,0,0.02)",
+                          cursor: "pointer",
+                          transition: "all 0.15s ease",
+                        }}
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, flexWrap: "wrap", gap: 6 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#64748B" }}>
+                            <div
+                              style={{
+                                width: 28,
+                                height: 28,
+                                borderRadius: "50%",
+                                background: "#DCFCE7",
+                                color: "#166534",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontWeight: 800,
+                                fontSize: 12,
+                              }}
+                            >
+                              {post.author_name ? post.author_name.charAt(0).toUpperCase() : "U"}
+                            </div>
+                            <span style={{ fontWeight: 700, color: "#1E293B" }}>{post.author_name}</span>
+                            <span>·</span>
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
+                              <MapPin size={12} /> {getLocalizedDistrict(post.author_location, language) || "Vavuniya"}
+                            </span>
+                          </div>
+
+                          <span
+                            style={{
+                              background: "#F1F5F9",
+                              color: "#475569",
+                              padding: "3px 10px",
+                              borderRadius: 20,
+                              fontSize: 11,
+                              fontWeight: 700,
+                            }}
+                          >
+                            {post.category}
+                          </span>
                         </div>
-                        <span style={{ background: "#DCFCE7", color: "#166534", padding: "2px 10px", borderRadius: 20, fontSize: 12, fontWeight: 700 }}>
-                          {post.category}
-                        </span>
-                      </div>
 
-                      <h3 style={{ fontSize: 18, fontWeight: 700, color: "#1E293B", marginBottom: 6 }}>{post.title}</h3>
-                      <p style={{ fontSize: 14, color: "#475569", lineHeight: 1.5, marginBottom: 12, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                        {post.content}
-                      </p>
+                        <h3 style={{ fontSize: 17, fontWeight: 800, color: "#1E293B", margin: "0 0 6px" }}>
+                          {post.title}
+                        </h3>
 
-                      <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#16A34A", fontWeight: 600 }}>
-                        <MessageCircle size={16} /> {post.comment_count} Response{post.comment_count !== 1 ? "s" : ""}
+                        <p
+                          style={{
+                            fontSize: 13,
+                            color: "#475569",
+                            lineHeight: 1.5,
+                            margin: "0 0 12px",
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                          }}
+                        >
+                          {post.content}
+                        </p>
+
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 8, borderTop: "1px solid #F1F5F9" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: accentColor, fontWeight: 700 }}>
+                            <MessageCircle size={16} />
+                            {post.comment_count || 0} {t("responsesCount")}{(post.comment_count || 0) !== 1 ? "s" : ""}
+                          </div>
+
+                          <span style={{ fontSize: 12, color: "#94A3B8" }}>
+                            {post.created_at ? new Date(post.created_at).toLocaleDateString() : ""}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
 
-            {/* Selected Post Detail & Comments Pane */}
+            {/* Selected Post Detail & Response Pane */}
             {selectedPost && (
-              <div style={{ background: "#FFFFFF", borderRadius: 16, padding: 24, border: "1px solid #E2E8F0", height: "fit-content" }}>
+              <div
+                style={{
+                  background: "#FFFFFF",
+                  borderRadius: 20,
+                  padding: 24,
+                  border: "1px solid #E2E8F0",
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.04)",
+                  height: "fit-content",
+                  position: "sticky",
+                  top: 20,
+                }}
+              >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-                  <span style={{ background: "#DCFCE7", color: "#166534", padding: "4px 12px", borderRadius: 20, fontSize: 12, fontWeight: 700 }}>
+                  <span
+                    style={{
+                      background: "#DCFCE7",
+                      color: "#166534",
+                      padding: "4px 12px",
+                      borderRadius: 20,
+                      fontSize: 12,
+                      fontWeight: 800,
+                    }}
+                  >
                     {selectedPost.category}
                   </span>
-                  <button onClick={() => setSelectedPost(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748B", fontWeight: 600 }}>
-                    ✕ Close
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPost(null)}
+                    style={{
+                      background: "#F1F5F9",
+                      border: "none",
+                      borderRadius: "50%",
+                      width: 28,
+                      height: 28,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <X size={16} color="#64748B" />
                   </button>
                 </div>
 
-                <h2 style={{ fontSize: 20, fontWeight: 800, color: "#1B4D3E", marginBottom: 8 }}>{selectedPost.title}</h2>
-                <div style={{ fontSize: 13, color: "#64748B", marginBottom: 16 }}>
-                  Posted by <strong>{selectedPost.author_name}</strong> ({selectedPost.author_location})
+                <h2 style={{ fontSize: 19, fontWeight: 800, color: "#1E293B", marginBottom: 6, lineHeight: 1.3 }}>
+                  {selectedPost.title}
+                </h2>
+                <div style={{ fontSize: 12, color: "#64748B", marginBottom: 14 }}>
+                  Posted by <b>{selectedPost.author_name}</b> ({getLocalizedDistrict(selectedPost.author_location, language) || "Vavuniya"})
                 </div>
 
-                <div style={{ fontSize: 14, color: "#334155", lineHeight: 1.6, marginBottom: 20, background: "#F8FAFC", padding: 16, borderRadius: 10 }}>
+                <div
+                  style={{
+                    fontSize: 14,
+                    color: "#334155",
+                    lineHeight: 1.6,
+                    marginBottom: 16,
+                    background: "#F8FAFC",
+                    padding: 14,
+                    borderRadius: 12,
+                    border: "1px solid #F1F5F9",
+                  }}
+                >
                   {selectedPost.content}
                 </div>
 
                 {selectedPost.image_url && (
-                  <img src={selectedPost.image_url} alt="Post attachment" style={{ width: "100%", maxHeight: 240, objectFit: "cover", borderRadius: 10, marginBottom: 20 }} />
+                  <img
+                    src={selectedPost.image_url}
+                    alt="Attachment"
+                    style={{
+                      width: "100%",
+                      maxHeight: 220,
+                      objectFit: "cover",
+                      borderRadius: 12,
+                      marginBottom: 16,
+                      border: "1px solid #E2E8F0",
+                    }}
+                  />
                 )}
 
-                {/* Comments List */}
-                <h3 style={{ fontSize: 16, fontWeight: 700, color: "#1E293B", marginBottom: 12 }}>
-                  Comments & Answers ({selectedPost.comments?.length || 0})
+                {/* Responses List */}
+                <h3 style={{ fontSize: 15, fontWeight: 800, color: "#1E293B", marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
+                  <MessageCircle size={16} color={accentColor} />
+                  {t("commentsAndAnswers")} ({selectedPost.comments?.length || 0})
                 </h3>
 
-                <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20, maxHeight: 260, overflowY: "auto" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16, maxHeight: 260, overflowY: "auto", paddingRight: 4 }}>
                   {(!selectedPost.comments || selectedPost.comments.length === 0) ? (
-                    <div style={{ fontSize: 13, color: "#94A3B8" }}>No comments yet. Write a response below!</div>
+                    <div style={{ fontSize: 13, color: "#94A3B8", textAlign: "center", padding: "16px 0" }}>
+                      No replies yet. Write the first response below!
+                    </div>
                   ) : (
                     selectedPost.comments.map((c) => (
-                      <div key={c.id} style={{ padding: 12, borderRadius: 8, background: "#F1F5F9" }}>
-                        <div style={{ fontWeight: 700, fontSize: 13, color: "#1E293B", marginBottom: 2 }}>{c.author_name}</div>
-                        <div style={{ fontSize: 13, color: "#475569" }}>{c.content}</div>
+                      <div
+                        key={c.id}
+                        style={{
+                          padding: "10px 14px",
+                          borderRadius: 12,
+                          background: "#F8FAFC",
+                          border: "1px solid #E2E8F0",
+                        }}
+                      >
+                        <div style={{ fontWeight: 700, fontSize: 12, color: "#1E293B", marginBottom: 2 }}>
+                          {c.author_name}
+                        </div>
+                        <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.4 }}>{c.content}</div>
                       </div>
                     ))
                   )}
                 </div>
 
-                {/* Add Comment Form */}
+                {/* Reply Form */}
                 <form onSubmit={handleAddComment} style={{ display: "flex", gap: 8 }}>
                   <input
                     type="text"
                     required
-                    placeholder="Write a response..."
-                    style={{ flex: 1, padding: "10px 14px", borderRadius: 8, border: "1px solid #CBD5E1", fontSize: 14 }}
+                    placeholder={t("writeResponse")}
+                    style={{
+                      flex: 1,
+                      padding: "10px 14px",
+                      borderRadius: 10,
+                      border: "1px solid #CBD5E1",
+                      fontSize: 13,
+                    }}
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
                   />
-                  <button type="submit" disabled={commenting} className="btn btn-sun" style={{ padding: "10px 16px" }}>
+                  <button
+                    type="submit"
+                    disabled={commenting}
+                    style={{
+                      background: accentColor,
+                      color: "#FFFFFF",
+                      border: "none",
+                      padding: "10px 16px",
+                      borderRadius: 10,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
                     <Send size={16} />
                   </button>
                 </form>
@@ -307,7 +574,181 @@ export default function CommunityPage() {
           </div>
         </div>
       </section>
+
+      {/* CREATE POST MODAL */}
+      {showNewPostModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            backdropFilter: "blur(4px)",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16,
+          }}
+        >
+          <div
+            style={{
+              background: "#FFFFFF",
+              borderRadius: 20,
+              padding: 24,
+              maxWidth: 520,
+              width: "100%",
+              boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
+              border: "1px solid #E2E8F0",
+              position: "relative",
+              maxHeight: "90vh",
+              overflowY: "auto",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setShowNewPostModal(false)}
+              style={{
+                position: "absolute",
+                top: 16,
+                right: 16,
+                background: "#F1F5F9",
+                border: "none",
+                borderRadius: "50%",
+                width: 32,
+                height: 32,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+              }}
+            >
+              <X size={18} color="#64748B" />
+            </button>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+              <div
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 10,
+                  background: isConsumer ? "#CCFBF1" : "#DCFCE7",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: accentColor,
+                }}
+              >
+                <MessageSquare size={22} />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "#1E293B" }}>
+                  {t("createDiscussionTitle")}
+                </h3>
+                <div style={{ fontSize: 12, color: "#64748B" }}>
+                  Share with local farmers and buyers in the Valam community
+                </div>
+              </div>
+            </div>
+
+            <form onSubmit={handleCreatePost}>
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: "block", fontWeight: 700, fontSize: 13, color: "#334155", marginBottom: 6 }}>
+                  {t("discussionTitleLabel")} *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder={t("discussionTitlePlaceholder")}
+                  style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 14 }}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+              </div>
+
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: "block", fontWeight: 700, fontSize: 13, color: "#334155", marginBottom: 6 }}>
+                  {t("discussionCategoryLabel")}
+                </label>
+                <select
+                  style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 14, background: "#FFF" }}
+                  value={postCategory}
+                  onChange={(e) => setPostCategory(e.target.value)}
+                >
+                  <option value="Pest Control">{t("pestControlCategory")}</option>
+                  <option value="Equipment & Solar">{t("equipmentSolarCategory")}</option>
+                  <option value="Soil & Fertilizer">{t("soilFertilizerCategory")}</option>
+                  <option value="Market & Pricing">{t("marketQACategory")}</option>
+                  <option value="General">{t("generalDiscussionCategory")}</option>
+                </select>
+              </div>
+
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: "block", fontWeight: 700, fontSize: 13, color: "#334155", marginBottom: 6 }}>
+                  {t("discussionContentLabel")} *
+                </label>
+                <textarea
+                  rows={4}
+                  required
+                  placeholder={t("discussionContentPlaceholder")}
+                  style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 14, fontFamily: "inherit" }}
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                />
+              </div>
+
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: "block", fontWeight: 700, fontSize: 13, color: "#334155", marginBottom: 6 }}>
+                  {t("discussionImageOptional")}
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://example.com/photo.jpg"
+                  style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 13 }}
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                />
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+                <button
+                  type="button"
+                  onClick={() => setShowNewPostModal(false)}
+                  style={{
+                    padding: "10px 18px",
+                    borderRadius: 10,
+                    border: "1px solid #CBD5E1",
+                    background: "#FFF",
+                    color: "#475569",
+                    fontWeight: 700,
+                    fontSize: 13,
+                    cursor: "pointer",
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  style={{
+                    background: accentColor,
+                    color: "#FFFFFF",
+                    border: "none",
+                    padding: "10px 22px",
+                    borderRadius: 10,
+                    fontWeight: 800,
+                    fontSize: 13,
+                    cursor: "pointer",
+                  }}
+                >
+                  {submitting ? "Publishing..." : t("publishDiscussion")}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <Footer />
-    </>
+    </AuthGuard>
   );
 }

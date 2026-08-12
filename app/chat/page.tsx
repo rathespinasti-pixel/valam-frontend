@@ -473,14 +473,42 @@ function ChatContent() {
 }
 
 export default function ChatPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const [currentUser, setCurrentUser] = useState<ValamUser | null>(null);
+
+  useEffect(() => {
+    ValamAPI.me()
+      .then((u) => setCurrentUser(u))
+      .catch(() => {});
+  }, []);
+
+  const isConsumer = currentUser?.role === "consumer";
+  const heroGradient = isConsumer
+    ? "linear-gradient(135deg, #0F766E 0%, #115E59 100%)"
+    : "linear-gradient(135deg, #11382B 0%, #165B43 100%)";
 
   return (
     <AuthGuard>
       <Navbar active="chat" pageTitle={t("chatHub")} />
-      <section className="section" style={{ background: "#F1F5F9", padding: "20px 0", minHeight: "85vh" }}>
+
+      {/* Page Hero Header */}
+      <section className="page-hero" style={{ padding: "32px 0", background: heroGradient }}>
         <div className="container">
-          <Suspense fallback={<div style={{ textAlign: "center", padding: "40px" }}>Loading chat...</div>}>
+          <div className="crumb" style={{ fontSize: "clamp(0.75rem, 1.8vw, 0.85rem)", color: isConsumer ? "#99F6E4" : "#A7F3D0" }}>
+            {t("chatHub")} · 1-on-1 Messages
+          </div>
+          <h1 style={{ fontSize: "clamp(1.5rem, 3.5vw, 2.2rem)", lineHeight: 1.2, marginTop: 4, color: "#FFFFFF" }}>
+            {t("chatHub")}
+          </h1>
+          <p style={{ marginTop: 8, color: isConsumer ? "#CCFBF1" : "#CFE3D5", fontSize: "clamp(0.88rem, 2vw, 1rem)", maxWidth: 650, lineHeight: 1.4 }}>
+            Direct real-time conversations between local farmers, vegetable growers, and consumers.
+          </p>
+        </div>
+      </section>
+
+      <section className="section" style={{ background: "#F8FAFC", padding: "24px 0", minHeight: "80vh" }}>
+        <div className="container">
+          <Suspense fallback={<div style={{ textAlign: "center", padding: "40px", color: isConsumer ? "#0F766E" : "#10B981", fontWeight: 700 }}>Loading chat hub...</div>}>
             <ChatContent />
           </Suspense>
         </div>
