@@ -25,6 +25,8 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
+import { communityPostSchema, communityCommentSchema, getFieldErrors } from "@/lib/validations";
+
 export default function CommunityPage() {
   const router = useRouter();
   const { t, language } = useLanguage();
@@ -37,18 +39,20 @@ export default function CommunityPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // New post modal
+  // New post modal — ZERO default values
   const [showNewPostModal, setShowNewPostModal] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [postCategory, setPostCategory] = useState("Pest Control");
+  const [postCategory, setPostCategory] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [postErrors, setPostErrors] = useState<Record<string, string>>({});
 
   // Selected post view & comments
   const [selectedPost, setSelectedPost] = useState<CommunityPost | null>(null);
   const [commentText, setCommentText] = useState("");
   const [commenting, setCommenting] = useState(false);
+  const [commentError, setCommentError] = useState("");
 
   useEffect(() => {
     ValamAPI.me()
@@ -83,7 +87,20 @@ export default function CommunityPage() {
 
   async function handleCreatePost(e: React.FormEvent) {
     e.preventDefault();
-    if (!title.trim() || !content.trim()) return;
+    setPostErrors({});
+
+    const validationResult = communityPostSchema.safeParse({
+      title,
+      category: postCategory,
+      content,
+      image_url: imageUrl || undefined,
+    });
+
+    if (!validationResult.success) {
+      const errors = getFieldErrors(validationResult);
+      setPostErrors(errors);
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -97,13 +114,49 @@ export default function CommunityPage() {
       setShowNewPostModal(false);
       setTitle("");
       setContent("");
+      setPostCategory("");
       setImageUrl("");
+      setPostErrors({});
+      showSuccess("Discussion created successfully!");
       fetchPosts();
-      showSuccess("Discussion Published!", "Your discussion has been posted to the Valam community.");
     } catch (err) {
-      showError("Post Creation Failed", err instanceof Error ? err.message : "Could not publish your post.");
+      showError(err instanceof Error ? err.message : "Failed to create post.");
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handleAddComment(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selectedPost) return;
+
+    setCommentError("");
+    const validationResult = communityCommentSchema.safeParse({ content: commentText });
+    if (!validationResult.success) {
+      setCommentError(validationResult.error.issues[0]?.message || "Reply cannot be empty");
+      return;
+    }
+
+    setCommenting(true);
+    try {
+      const newComment = await ValamAPI.addCommunityComment(selectedPost.id, commentText.trim());
+
+      setSelectedPost((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          comments: [...(prev.comments || []), newComment],
+          comment_count: (prev.comment_count || 0) + 1,
+        };
+      });
+
+      setCommentText("");
+      setCommentError("");
+      showSuccess("Comment added!");
+    } catch (err) {
+      showError(err instanceof Error ? err.message : "Failed to add comment.");
+    } finally {
+      setCommenting(false);
     }
   }
 
@@ -113,24 +166,6 @@ export default function CommunityPage() {
       setSelectedPost(fullPost);
     } catch (err) {
       console.error(err);
-    }
-  }
-
-  async function handleAddComment(e: React.FormEvent) {
-    e.preventDefault();
-    if (!selectedPost || !commentText.trim() || commenting) return;
-
-    const text = commentText.trim();
-    setCommenting(true);
-    try {
-      await ValamAPI.addCommunityComment(selectedPost.id, text);
-      setCommentText("");
-      handleOpenPost(selectedPost.id);
-      showSuccess("Reply Posted", "Your response has been added to the discussion.");
-    } catch (err) {
-      showError("Reply Failed", err instanceof Error ? err.message : "Could not post your comment.");
-    } finally {
-      setCommenting(false);
     }
   }
 
@@ -533,39 +568,45 @@ export default function CommunityPage() {
                 </div>
 
                 {/* Reply Form */}
-                <form onSubmit={handleAddComment} style={{ display: "flex", gap: 8 }}>
-                  <input
-                    type="text"
-                    required
-                    placeholder={t("writeResponse")}
-                    style={{
-                      flex: 1,
-                      padding: "10px 14px",
-                      borderRadius: 10,
-                      border: "1px solid #CBD5E1",
-                      fontSize: 13,
-                    }}
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                  />
-                  <button
-                    type="submit"
-                    disabled={commenting}
-                    style={{
-                      background: accentColor,
-                      color: "#FFFFFF",
-                      border: "none",
-                      padding: "10px 16px",
-                      borderRadius: 10,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Send size={16} />
-                  </button>
+                <form onSubmit={handleAddComment} noValidate style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <input
+                      type="text"
+                      placeholder={t("writeResponse")}
+                      style={{
+                        flex: 1,
+                        padding: "10px 14px",
+                        borderRadius: 10,
+                        border: commentError ? "1px solid #EF4444" : "1px solid #CBD5E1",
+                        background: commentError ? "#FEF2F2" : "#FFFFFF",
+                        fontSize: 13,
+                      }}
+                      value={commentText}
+                      onChange={(e) => {
+                        setCommentText(e.target.value);
+                        if (commentError) setCommentError("");
+                      }}
+                    />
+                    <button
+                      type="submit"
+                      disabled={commenting}
+                      style={{
+                        background: accentColor,
+                        color: "#FFFFFF",
+                        border: "none",
+                        padding: "10px 16px",
+                        borderRadius: 10,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Send size={16} />
+                    </button>
+                  </div>
+                  {commentError && <span className="field-error-text">{commentError}</span>}
                 </form>
 
               </div>
@@ -581,16 +622,18 @@ export default function CommunityPage() {
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.6)",
+            background: "rgba(0,0,0,0.5)",
             backdropFilter: "blur(4px)",
-            zIndex: 9999,
+            zIndex: 1000,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             padding: 16,
           }}
+          onClick={() => setShowNewPostModal(false)}
         >
           <div
+            className="modal-dialog-box"
             style={{
               background: "#FFFFFF",
               borderRadius: 20,
@@ -598,11 +641,11 @@ export default function CommunityPage() {
               maxWidth: 520,
               width: "100%",
               boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
-              border: "1px solid #E2E8F0",
               position: "relative",
               maxHeight: "90vh",
               overflowY: "auto",
             }}
+            onClick={(e) => e.stopPropagation()}
           >
             <button
               type="button"
@@ -650,36 +693,58 @@ export default function CommunityPage() {
               </div>
             </div>
 
-            <form onSubmit={handleCreatePost}>
+            <form onSubmit={handleCreatePost} noValidate>
               <div style={{ marginBottom: 14 }}>
                 <label style={{ display: "block", fontWeight: 700, fontSize: 13, color: "#334155", marginBottom: 6 }}>
                   {t("discussionTitleLabel")} *
                 </label>
                 <input
                   type="text"
-                  required
                   placeholder={t("discussionTitlePlaceholder")}
-                  style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 14 }}
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    borderRadius: 10,
+                    border: postErrors.title ? "1px solid #EF4444" : "1px solid #CBD5E1",
+                    background: postErrors.title ? "#FEF2F2" : "#FFFFFF",
+                    fontSize: 14,
+                  }}
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  onChange={(e) => {
+                    setTitle(e.target.value);
+                    if (postErrors.title) setPostErrors((prev) => ({ ...prev, title: "" }));
+                  }}
                 />
+                {postErrors.title && <span className="field-error-text">{postErrors.title}</span>}
               </div>
 
               <div style={{ marginBottom: 14 }}>
                 <label style={{ display: "block", fontWeight: 700, fontSize: 13, color: "#334155", marginBottom: 6 }}>
-                  {t("discussionCategoryLabel")}
+                  {t("discussionCategoryLabel")} *
                 </label>
                 <select
-                  style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 14, background: "#FFF" }}
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    borderRadius: 10,
+                    border: postErrors.category ? "1px solid #EF4444" : "1px solid #CBD5E1",
+                    background: postErrors.category ? "#FEF2F2" : "#FFFFFF",
+                    fontSize: 14,
+                  }}
                   value={postCategory}
-                  onChange={(e) => setPostCategory(e.target.value)}
+                  onChange={(e) => {
+                    setPostCategory(e.target.value);
+                    if (postErrors.category) setPostErrors((prev) => ({ ...prev, category: "" }));
+                  }}
                 >
+                  <option value="">-- Select Category --</option>
                   <option value="Pest Control">{t("pestControlCategory")}</option>
                   <option value="Equipment & Solar">{t("equipmentSolarCategory")}</option>
                   <option value="Soil & Fertilizer">{t("soilFertilizerCategory")}</option>
                   <option value="Market & Pricing">{t("marketQACategory")}</option>
                   <option value="General">{t("generalDiscussionCategory")}</option>
                 </select>
+                {postErrors.category && <span className="field-error-text">{postErrors.category}</span>}
               </div>
 
               <div style={{ marginBottom: 14 }}>
@@ -688,12 +753,23 @@ export default function CommunityPage() {
                 </label>
                 <textarea
                   rows={4}
-                  required
                   placeholder={t("discussionContentPlaceholder")}
-                  style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 14, fontFamily: "inherit" }}
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    borderRadius: 10,
+                    border: postErrors.content ? "1px solid #EF4444" : "1px solid #CBD5E1",
+                    background: postErrors.content ? "#FEF2F2" : "#FFFFFF",
+                    fontSize: 14,
+                    fontFamily: "inherit",
+                  }}
                   value={content}
-                  onChange={(e) => setContent(e.target.value)}
+                  onChange={(e) => {
+                    setContent(e.target.value);
+                    if (postErrors.content) setPostErrors((prev) => ({ ...prev, content: "" }));
+                  }}
                 />
+                {postErrors.content && <span className="field-error-text">{postErrors.content}</span>}
               </div>
 
               <div style={{ marginBottom: 20 }}>

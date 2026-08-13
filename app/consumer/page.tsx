@@ -27,6 +27,8 @@ import {
   RefreshCcw,
 } from "lucide-react";
 
+import { bargainOfferSchema, getFieldErrors } from "@/lib/validations";
+
 function ConsumerPortalContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -44,12 +46,13 @@ function ConsumerPortalContent() {
   const [selectedDistrict, setSelectedDistrict] = useState("All");
   const [organicOnly, setOrganicOnly] = useState(false);
 
-  // Bargain Modal States
+  // Bargain Modal States — ZERO default values
   const [selectedListing, setSelectedListing] = useState<ProduceListing | null>(null);
-  const [bargainQty, setBargainQty] = useState<number | "">(10);
-  const [bargainPrice, setBargainPrice] = useState<number | "">(150);
+  const [bargainQty, setBargainQty] = useState<number | "">("");
+  const [bargainPrice, setBargainPrice] = useState<number | "">("");
   const [bargainNote, setBargainNote] = useState("");
   const [submittingOffer, setSubmittingOffer] = useState(false);
+  const [bargainErrors, setBargainErrors] = useState<Record<string, string>>({});
   const [bargainStatus, setBargainStatus] = useState<{ type: "ok" | "error"; text: string } | null>(null);
 
   useEffect(() => {
@@ -99,18 +102,40 @@ function ConsumerPortalContent() {
 
   const openBargainModal = (listing: ProduceListing) => {
     setSelectedListing(listing);
-    setBargainQty(Math.min(10, listing.available_quantity_kg));
-    setBargainPrice(listing.asking_price_per_kg * 0.9);
+    setBargainQty("");
+    setBargainPrice("");
     setBargainNote("");
+    setBargainErrors({});
     setBargainStatus(null);
   };
 
   const submitBargainOffer = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedListing || !bargainQty || !bargainPrice) return;
+    if (!selectedListing) return;
+
+    setBargainErrors({});
+    setBargainStatus(null);
+
+    const validationResult = bargainOfferSchema.safeParse({
+      quantity_kg: bargainQty,
+      offered_price_per_kg: bargainPrice,
+      buyer_message: bargainNote || undefined,
+    });
+
+    if (!validationResult.success) {
+      const errors = getFieldErrors(validationResult);
+      setBargainErrors(errors);
+      return;
+    }
+
+    if (typeof bargainQty === "number" && bargainQty > selectedListing.available_quantity_kg) {
+      setBargainErrors({
+        quantity_kg: `Requested quantity cannot exceed available stock (${selectedListing.available_quantity_kg} kg)`,
+      });
+      return;
+    }
 
     setSubmittingOffer(true);
-    setBargainStatus(null);
 
     try {
       await ValamAPI.createBargainOffer(selectedListing.id, {
@@ -839,29 +864,33 @@ function ConsumerPortalContent() {
               </div>
             </div>
 
-            <form onSubmit={submitBargainOffer}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
+            <form onSubmit={submitBargainOffer} noValidate>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, marginBottom: 14 }}>
                 <div>
                   <label style={{ fontSize: 12, fontWeight: 700, color: "#334155", display: "block", marginBottom: 6 }}>
                     {t("desiredQuantityKg")} *
                   </label>
                   <input
                     type="number"
-                    min="1"
-                    max={selectedListing.available_quantity_kg}
-                    step="0.5"
                     value={bargainQty}
-                    onChange={(e) => setBargainQty(e.target.value ? parseFloat(e.target.value) : "")}
+                    onChange={(e) => {
+                      setBargainQty(e.target.value ? parseFloat(e.target.value) : "");
+                      if (bargainErrors.quantity_kg) setBargainErrors((prev) => ({ ...prev, quantity_kg: "" }));
+                    }}
+                    placeholder={`Max ${selectedListing.available_quantity_kg} kg`}
                     style={{
                       width: "100%",
                       padding: "10px 12px",
                       borderRadius: 10,
-                      border: "1px solid #CBD5E1",
+                      border: bargainErrors.quantity_kg ? "1px solid #EF4444" : "1px solid #CBD5E1",
+                      background: bargainErrors.quantity_kg ? "#FEF2F2" : "#FFFFFF",
                       fontSize: 15,
                       fontWeight: 700,
                     }}
-                    required
                   />
+                  {bargainErrors.quantity_kg && (
+                    <span className="field-error-text">{bargainErrors.quantity_kg}</span>
+                  )}
                 </div>
 
                 <div>
@@ -870,21 +899,26 @@ function ConsumerPortalContent() {
                   </label>
                   <input
                     type="number"
-                    min="10"
-                    step="5"
                     value={bargainPrice}
-                    onChange={(e) => setBargainPrice(e.target.value ? parseFloat(e.target.value) : "")}
+                    onChange={(e) => {
+                      setBargainPrice(e.target.value ? parseFloat(e.target.value) : "");
+                      if (bargainErrors.offered_price_per_kg) setBargainErrors((prev) => ({ ...prev, offered_price_per_kg: "" }));
+                    }}
+                    placeholder={`e.g. ${Math.round(selectedListing.asking_price_per_kg * 0.9)}`}
                     style={{
                       width: "100%",
                       padding: "10px 12px",
                       borderRadius: 10,
-                      border: "1px solid #CBD5E1",
+                      border: bargainErrors.offered_price_per_kg ? "1px solid #EF4444" : "1px solid #CBD5E1",
+                      background: bargainErrors.offered_price_per_kg ? "#FEF2F2" : "#FFFFFF",
                       fontSize: 15,
                       fontWeight: 700,
                       color: "#0F766E",
                     }}
-                    required
                   />
+                  {bargainErrors.offered_price_per_kg && (
+                    <span className="field-error-text">{bargainErrors.offered_price_per_kg}</span>
+                  )}
                 </div>
               </div>
 

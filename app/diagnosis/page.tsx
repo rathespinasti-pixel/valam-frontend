@@ -10,19 +10,23 @@ import type { DiseaseDiagnosis } from "@/lib/types";
 import { useLanguage } from "@/context/LanguageContext";
 import { Stethoscope, Upload, ShieldAlert, Sparkles, History, Image as ImageIcon, AlertCircle } from "lucide-react";
 
+import { diagnosisSchema, getFieldErrors } from "@/lib/validations";
+
 export default function DiagnosisPage() {
   const router = useRouter();
   const { t, language } = useLanguage();
 
-  const [cropName, setCropName] = useState("Tomato");
-  const [partAffected, setPartAffected] = useState("Leaf");
+  const [cropName, setCropName] = useState("");
+  const [partAffected, setPartAffected] = useState("");
   const [symptoms, setSymptoms] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [filePreview, setFilePreview] = useState<string | null>(null);
+
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [currentDiagnosis, setCurrentDiagnosis] = useState<DiseaseDiagnosis | null>(null);
   const [history, setHistory] = useState<DiseaseDiagnosis[]>([]);
-  const [error, setError] = useState("");
 
   async function loadHistory() {
     try {
@@ -55,21 +59,36 @@ export default function DiagnosisPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setFormErrors({});
+    setError("");
+
     if (!ValamAPI.isLoggedIn()) {
       router.push("/login");
       return;
     }
 
+    const validationResult = diagnosisSchema.safeParse({
+      crop_name: cropName,
+      plant_part: partAffected,
+      symptoms: symptoms,
+      image_url: imageUrl || filePreview || undefined,
+    });
+
+    if (!validationResult.success) {
+      const errors = getFieldErrors(validationResult);
+      setFormErrors(errors);
+      return;
+    }
+
     if (!imageUrl.trim() && !filePreview) {
-      setError(t("selectImageFirstError"));
+      setError(t("selectImageFirstError") || "Please upload or provide a crop photo for diagnosis");
       return;
     }
 
     setLoading(true);
-    setError("");
 
     try {
-      const localizedPart = partAffected === "Leaf" ? t("leafPart") : partAffected === "Stem" ? t("stemPart") : t("fruitPart");
+      const localizedPart = partAffected === "Leaf" ? t("leafPart") : partAffected === "Stem" ? t("stemPart") : t("fruitPart") || partAffected;
       const result = await ValamAPI.analyzeDisease({
         crop_name: `${cropName} (${localizedPart})`,
         symptoms: symptoms.trim() || `Observed abnormality on ${localizedPart}`,
@@ -78,8 +97,8 @@ export default function DiagnosisPage() {
       });
       setCurrentDiagnosis(result);
       loadHistory();
-    } catch (err: any) {
-      setError(err.message || "Failed to process diagnosis request.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to process diagnosis request.");
     } finally {
       setLoading(false);
     }
@@ -109,21 +128,30 @@ export default function DiagnosisPage() {
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1.1fr", gap: 28 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 28 }}>
             
             {/* Left Column: Form Input */}
-            <div style={{ background: "#FFFFFF", borderRadius: 20, padding: 28, border: "1px solid #E2E8F0", boxShadow: "0 2px 10px rgba(0,0,0,0.03)" }}>
-              <h2 style={{ fontSize: 20, fontWeight: 700, color: "#1B4D3E", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ background: "#FFFFFF", borderRadius: 20, padding: 24, border: "1px solid #E2E8F0", boxShadow: "0 2px 10px rgba(0,0,0,0.03)" }}>
+              <h2 style={{ fontSize: 18, fontWeight: 700, color: "#1B4D3E", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
                 <Stethoscope size={22} /> {t("uploadImageHeader")}
               </h2>
 
               {error && <div style={{ padding: 12, borderRadius: 8, background: "#FFEBEE", color: "#C62828", marginBottom: 16, fontSize: 14, fontWeight: 600 }}>{error}</div>}
 
-              <form onSubmit={handleSubmit}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+              <form onSubmit={handleSubmit} noValidate>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 14, marginBottom: 14 }}>
                   <div>
-                    <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 6 }}>{t("targetCropLabel")}</label>
-                    <select className="input" style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={cropName} onChange={(e) => setCropName(e.target.value)}>
+                    <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6 }}>{t("targetCropLabel")} *</label>
+                    <select
+                      className={`input ${formErrors.crop_name ? "input-invalid" : ""}`}
+                      style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }}
+                      value={cropName}
+                      onChange={(e) => {
+                        setCropName(e.target.value);
+                        if (formErrors.crop_name) setFormErrors((prev) => ({ ...prev, crop_name: "" }));
+                      }}
+                    >
+                      <option value="">-- Select Crop --</option>
                       <option value="Tomato">Tomato ({language === "ta" ? "தக்காளி" : language === "si" ? "තක්කාලි" : "Tomato"})</option>
                       <option value="Chilli">Chilli ({language === "ta" ? "மிளகாய்" : language === "si" ? "මිරිස්" : "Chilli"})</option>
                       <option value="Red Onion">Red Onion ({language === "ta" ? "வெங்காயம்" : language === "si" ? "රතු ළූණු" : "Red Onion"})</option>
@@ -135,32 +163,43 @@ export default function DiagnosisPage() {
                       <option value="Maize">Maize ({language === "ta" ? "சோளம்" : language === "si" ? "බඩඉරිඟු" : "Maize"})</option>
                       <option value="Green Gram">Green Gram ({language === "ta" ? "பயறு" : language === "si" ? "මුං ඇට" : "Green Gram"})</option>
                     </select>
+                    {formErrors.crop_name && <span className="field-error-text">{formErrors.crop_name}</span>}
                   </div>
 
                   <div>
-                    <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 6 }}>{t("affectedPartLabel")}</label>
-                    <select className="input" style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={partAffected} onChange={(e) => setPartAffected(e.target.value)}>
+                    <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6 }}>{t("affectedPartLabel")} *</label>
+                    <select
+                      className={`input ${formErrors.plant_part ? "input-invalid" : ""}`}
+                      style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }}
+                      value={partAffected}
+                      onChange={(e) => {
+                        setPartAffected(e.target.value);
+                        if (formErrors.plant_part) setFormErrors((prev) => ({ ...prev, plant_part: "" }));
+                      }}
+                    >
+                      <option value="">-- Select Part --</option>
                       <option value="Leaf">{t("leafPart")}</option>
                       <option value="Stem">{t("stemPart")}</option>
                       <option value="Fruit">{t("fruitPart")}</option>
                     </select>
+                    {formErrors.plant_part && <span className="field-error-text">{formErrors.plant_part}</span>}
                   </div>
                 </div>
 
                 {/* MANDATORY: Image Upload Box */}
-                <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: "block", fontWeight: 700, fontSize: 14, marginBottom: 6, color: "#1B4D3E" }}>
-                    {t("uploadImageRequired")}
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: "block", fontWeight: 700, fontSize: 13, marginBottom: 6, color: "#1B4D3E" }}>
+                    {t("uploadImageRequired")} *
                   </label>
                   <div
                     style={{
                       border: "2px dashed #10B981",
                       borderRadius: 14,
-                      padding: 20,
+                      padding: 16,
                       textAlign: "center",
                       background: "#F0FDF4",
                       cursor: "pointer",
-                      marginBottom: 10,
+                      marginBottom: 8,
                     }}
                   >
                     <input
@@ -175,15 +214,15 @@ export default function DiagnosisPage() {
                         <img
                           src={filePreview}
                           alt="Uploaded crop preview"
-                          style={{ maxHeight: 180, margin: "0 auto", borderRadius: 10, objectFit: "cover" }}
+                          style={{ maxHeight: 160, margin: "0 auto", borderRadius: 10, objectFit: "cover" }}
                         />
                       ) : (
                         <div>
-                          <Upload size={36} color="#059669" style={{ marginBottom: 8 }} />
-                          <div style={{ fontWeight: 700, fontSize: 14, color: "#065F46" }}>
+                          <Upload size={32} color="#059669" style={{ marginBottom: 6 }} />
+                          <div style={{ fontWeight: 700, fontSize: 13, color: "#065F46" }}>
                             {t("clickToSelectPhoto")}
                           </div>
-                          <div style={{ fontSize: 12, color: "#059669", marginTop: 4 }}>
+                          <div style={{ fontSize: 11, color: "#059669", marginTop: 2 }}>
                             {t("supportedFormats")}
                           </div>
                         </div>
@@ -197,7 +236,7 @@ export default function DiagnosisPage() {
                       type="url"
                       className="input"
                       placeholder={t("pasteImageUrlPlaceholder")}
-                      style={{ flex: 1, padding: 8, borderRadius: 6, border: "1px solid #CCC", fontSize: 13 }}
+                      style={{ flex: 1, padding: 8, borderRadius: 6, border: "1px solid #CCC", fontSize: 12 }}
                       value={imageUrl}
                       onChange={(e) => {
                         setImageUrl(e.target.value);
@@ -208,27 +247,31 @@ export default function DiagnosisPage() {
                 </div>
 
                 {/* Description */}
-                <div style={{ marginBottom: 24 }}>
-                  <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 6, color: "#64748B" }}>
-                    {t("descriptionOptional")}
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6, color: "#334155" }}>
+                    Symptoms &amp; Observed Damage *
                   </label>
                   <textarea
                     rows={3}
-                    className="input"
+                    className={`input ${formErrors.symptoms ? "input-invalid" : ""}`}
                     placeholder={t("symptomsPlaceholder")}
-                    style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }}
+                    style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC", fontSize: 13, fontFamily: "inherit" }}
                     value={symptoms}
-                    onChange={(e) => setSymptoms(e.target.value)}
+                    onChange={(e) => {
+                      setSymptoms(e.target.value);
+                      if (formErrors.symptoms) setFormErrors((prev) => ({ ...prev, symptoms: "" }));
+                    }}
                   />
+                  {formErrors.symptoms && <span className="field-error-text">{formErrors.symptoms}</span>}
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
                   className="btn btn-sun"
-                  style={{ width: "100%", padding: 14, fontSize: 16, fontWeight: 700, borderRadius: 10, display: "flex", justifyContent: "center", alignItems: "center", gap: 8 }}
+                  style={{ width: "100%", padding: 12, fontSize: 15, fontWeight: 700, borderRadius: 10, display: "flex", justifyContent: "center", alignItems: "center", gap: 8 }}
                 >
-                  <Sparkles size={20} />
+                  <Sparkles size={18} />
                   {loading ? t("analyzingPhoto") : t("submitDiagnosis")}
                 </button>
               </form>

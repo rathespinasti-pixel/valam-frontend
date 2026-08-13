@@ -11,24 +11,28 @@ import { ValamAPI } from "@/lib/api";
 import type { ValamUser } from "@/lib/types";
 import { useLanguage } from "@/context/LanguageContext";
 
+import { onboardingSchema, getFieldErrors } from "@/lib/validations";
+
 export default function OnboardingPage() {
   const router = useRouter();
   const { t, setLanguage } = useLanguage();
   const [user, setUser] = useState<ValamUser | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
+  // Controlled form state — ZERO default values
   const [fullName, setFullName] = useState("");
-  const [prefLang, setPrefLang] = useState("en");
-  const [farmingCategory, setFarmingCategory] = useState("Farmer");
-  const [district, setDistrict] = useState("Vavuniya");
-  const [dsDivision, setDsDivision] = useState("Vavuniya Town");
+  const [prefLang, setPrefLang] = useState<"en" | "ta" | "si">("en");
+  const [farmingCategory, setFarmingCategory] = useState("");
+  const [district, setDistrict] = useState("");
+  const [dsDivision, setDsDivision] = useState("");
   const [gnDivision, setGnDivision] = useState("");
   const [farmLocation, setFarmLocation] = useState("");
-  const [landSize, setLandSize] = useState<number | "">(1.0);
-  const [landUnit, setLandUnit] = useState("Acres");
-  const [irrigationPref, setIrrigationPref] = useState("Drip Irrigation");
-  const [fertilizerPref, setFertilizerPref] = useState("Organic");
+  const [landSize, setLandSize] = useState<number | "">("");
+  const [landUnit, setLandUnit] = useState("");
+  const [irrigationPref, setIrrigationPref] = useState("");
+  const [fertilizerPref, setFertilizerPref] = useState("");
 
   useEffect(() => {
     if (!ValamAPI.isLoggedIn()) {
@@ -39,7 +43,7 @@ export default function OnboardingPage() {
     if (stored) {
       setUser(stored);
       setFullName(stored.full_name || "");
-      if (stored.preferred_language) setPrefLang(stored.preferred_language);
+      if (stored.preferred_language) setPrefLang(stored.preferred_language as any);
       if (stored.farming_category) setFarmingCategory(stored.farming_category);
       if (stored.farm_location) setFarmLocation(stored.farm_location);
       if (stored.district) setDistrict(stored.district);
@@ -54,22 +58,44 @@ export default function OnboardingPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
+    setFormErrors({});
     setError("");
+
+    const validationResult = onboardingSchema.safeParse({
+      full_name: fullName,
+      preferred_language: prefLang,
+      district,
+      ds_division: dsDivision,
+      gn_division: gnDivision || undefined,
+      farming_category: farmingCategory,
+      farm_location: farmLocation || undefined,
+      land_size: landSize,
+      land_size_unit: landUnit,
+      irrigation_preference: irrigationPref,
+      fertilizer_preference: fertilizerPref,
+    });
+
+    if (!validationResult.success) {
+      const errors = getFieldErrors(validationResult);
+      setFormErrors(errors);
+      return;
+    }
+
+    setLoading(true);
 
     try {
       setLanguage(prefLang as any);
       await ValamAPI.saveOnboarding({
-        full_name: fullName,
+        full_name: fullName.trim(),
         preferred_language: prefLang,
         farming_category: farmingCategory,
         district: district,
         ds_division: dsDivision,
-        gn_division: gnDivision,
+        gn_division: gnDivision || undefined,
         land_size: typeof landSize === "number" ? landSize : 1.0,
-        land_size_unit: landUnit,
-        irrigation_preference: irrigationPref,
-        fertilizer_preference: fertilizerPref,
+        land_size_unit: landUnit || "Acres",
+        irrigation_preference: irrigationPref || "Manual Watering",
+        fertilizer_preference: fertilizerPref || "Organic",
         farm_location: farmLocation.trim() || `${dsDivision}, ${district}`,
         farm_size_acres: typeof landSize === "number" && landUnit === "Acres" ? landSize : 1.0,
       });
@@ -109,29 +135,32 @@ export default function OnboardingPage() {
                 {error}
               </div>
             )}
-
-            <form onSubmit={handleSubmit}>
-              <div style={{ marginBottom: 20 }}>
-                <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>{t("fullName")}</label>
+            <form onSubmit={handleSubmit} noValidate>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6 }}>{t("fullName")} *</label>
                 <input
                   type="text"
-                  required
-                  className="input"
+                  className={`input ${formErrors.full_name ? "input-invalid" : ""}`}
                   style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #CCC" }}
                   value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  onChange={(e) => {
+                    setFullName(e.target.value);
+                    if (formErrors.full_name) setFormErrors((prev) => ({ ...prev, full_name: "" }));
+                  }}
+                  placeholder="e.g. Siva Kumar"
                 />
+                {formErrors.full_name && <span className="field-error-text">{formErrors.full_name}</span>}
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14, marginBottom: 16 }}>
                 <div>
-                  <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>{t("preferredLanguage")}</label>
+                  <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6 }}>{t("preferredLanguage")}</label>
                   <select
                     className="input"
                     style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #CCC" }}
                     value={prefLang}
                     onChange={(e) => {
-                      setPrefLang(e.target.value);
+                      setPrefLang(e.target.value as any);
                       setLanguage(e.target.value as any);
                     }}
                   >
@@ -142,78 +171,102 @@ export default function OnboardingPage() {
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>{t("farmingCategory")}</label>
+                  <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6 }}>{t("farmingCategory")} *</label>
                   <select
-                    className="input"
+                    className={`input ${formErrors.farming_category ? "input-invalid" : ""}`}
                     style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #CCC" }}
                     value={farmingCategory}
-                    onChange={(e) => setFarmingCategory(e.target.value)}
+                    onChange={(e) => {
+                      setFarmingCategory(e.target.value);
+                      if (formErrors.farming_category) setFormErrors((prev) => ({ ...prev, farming_category: "" }));
+                    }}
                   >
+                    <option value="">-- Select Category --</option>
                     <option value="Farmer">{t("farmerRole")}</option>
                     <option value="Home Gardener">{t("homeGardenerRole")}</option>
                     <option value="Terrace Gardener">{t("terraceGardenerRole")}</option>
                     <option value="Beginner">{t("beginnerRole")}</option>
                   </select>
+                  {formErrors.farming_category && <span className="field-error-text">{formErrors.farming_category}</span>}
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14, marginBottom: 16 }}>
                 <div>
-                  <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>{t("district")}</label>
+                  <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6 }}>{t("district")} *</label>
                   <select
-                    className="input"
+                    className={`input ${formErrors.district ? "input-invalid" : ""}`}
                     style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #CCC" }}
                     value={district}
-                    onChange={(e) => setDistrict(e.target.value)}
+                    onChange={(e) => {
+                      setDistrict(e.target.value);
+                      if (formErrors.district) setFormErrors((prev) => ({ ...prev, district: "" }));
+                    }}
                   >
+                    <option value="">-- Select District --</option>
                     <option value="Vavuniya">Vavuniya</option>
                     <option value="Jaffna">Jaffna</option>
                     <option value="Kilinochchi">Kilinochchi</option>
                     <option value="Mannar">Mannar</option>
                     <option value="Mullaitivu">Mullaitivu</option>
+                    <option value="Anuradhapura">Anuradhapura</option>
+                    <option value="Colombo">Colombo</option>
                   </select>
+                  {formErrors.district && <span className="field-error-text">{formErrors.district}</span>}
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>{t("dsDivision")}</label>
+                  <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6 }}>{t("dsDivision")} *</label>
                   <input
                     type="text"
-                    required
-                    className="input"
+                    className={`input ${formErrors.ds_division ? "input-invalid" : ""}`}
                     placeholder="e.g. Vavuniya Town, Nallur"
                     style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #CCC" }}
                     value={dsDivision}
-                    onChange={(e) => setDsDivision(e.target.value)}
+                    onChange={(e) => {
+                      setDsDivision(e.target.value);
+                      if (formErrors.ds_division) setFormErrors((prev) => ({ ...prev, ds_division: "" }));
+                    }}
                   />
+                  {formErrors.ds_division && <span className="field-error-text">{formErrors.ds_division}</span>}
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14, marginBottom: 16 }}>
                 <div>
-                  <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>{t("landSize")}</label>
+                  <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6 }}>{t("landSize")} *</label>
                   <input
                     type="number"
                     step="0.1"
-                    className="input"
+                    placeholder="e.g. 1.0"
+                    className={`input ${formErrors.land_size ? "input-invalid" : ""}`}
                     style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #CCC" }}
                     value={landSize}
-                    onChange={(e) => setLandSize(e.target.value ? parseFloat(e.target.value) : "")}
+                    onChange={(e) => {
+                      setLandSize(e.target.value ? parseFloat(e.target.value) : "");
+                      if (formErrors.land_size) setFormErrors((prev) => ({ ...prev, land_size: "" }));
+                    }}
                   />
+                  {formErrors.land_size && <span className="field-error-text">{formErrors.land_size}</span>}
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>{t("landUnit")}</label>
+                  <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6 }}>{t("landUnit")} *</label>
                   <select
-                    className="input"
+                    className={`input ${formErrors.land_size_unit ? "input-invalid" : ""}`}
                     style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #CCC" }}
                     value={landUnit}
-                    onChange={(e) => setLandUnit(e.target.value)}
+                    onChange={(e) => {
+                      setLandUnit(e.target.value);
+                      if (formErrors.land_size_unit) setFormErrors((prev) => ({ ...prev, land_size_unit: "" }));
+                    }}
                   >
+                    <option value="">-- Select Unit --</option>
                     <option value="Acres">{t("acres")}</option>
                     <option value="Perches">{t("perches")}</option>
                     <option value="Hectares">{t("hectares")}</option>
-                    <option value="Square Feet">{t("squareFeet")}</option>
                   </select>
+                  {formErrors.land_size_unit && <span className="field-error-text">{formErrors.land_size_unit}</span>}
                 </div>
               </div>
 
@@ -242,42 +295,52 @@ export default function OnboardingPage() {
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14, marginBottom: 24 }}>
                 <div>
-                  <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>{t("irrigationPreference")}</label>
+                  <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6 }}>{t("irrigationPreference")} *</label>
                   <select
-                    className="input"
+                    className={`input ${formErrors.irrigation_preference ? "input-invalid" : ""}`}
                     style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #CCC" }}
                     value={irrigationPref}
-                    onChange={(e) => setIrrigationPref(e.target.value)}
+                    onChange={(e) => {
+                      setIrrigationPref(e.target.value);
+                      if (formErrors.irrigation_preference) setFormErrors((prev) => ({ ...prev, irrigation_preference: "" }));
+                    }}
                   >
+                    <option value="">-- Select Irrigation --</option>
                     <option value="Drip Irrigation">{t("dripIrrigation")}</option>
                     <option value="Sprinkler Irrigation">{t("sprinklerIrrigation")}</option>
                     <option value="Manual Watering">{t("manualWatering")}</option>
                   </select>
+                  {formErrors.irrigation_preference && <span className="field-error-text">{formErrors.irrigation_preference}</span>}
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>{t("fertilizerPreference")}</label>
+                  <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6 }}>{t("fertilizerPreference")} *</label>
                   <select
-                    className="input"
+                    className={`input ${formErrors.fertilizer_preference ? "input-invalid" : ""}`}
                     style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #CCC" }}
                     value={fertilizerPref}
-                    onChange={(e) => setFertilizerPref(e.target.value)}
+                    onChange={(e) => {
+                      setFertilizerPref(e.target.value);
+                      if (formErrors.fertilizer_preference) setFormErrors((prev) => ({ ...prev, fertilizer_preference: "" }));
+                    }}
                   >
+                    <option value="">-- Select Fertilizer --</option>
                     <option value="Organic">{t("organicFertilizer")}</option>
                     <option value="Chemical">{t("chemicalFertilizer")}</option>
                   </select>
+                  {formErrors.fertilizer_preference && <span className="field-error-text">{formErrors.fertilizer_preference}</span>}
                 </div>
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="btn btn-sun"
-                style={{ width: "100%", padding: 14, fontSize: 16, fontWeight: 700, borderRadius: 8 }}
+                className="btn btn-primary"
+                style={{ width: "100%", padding: 14, fontSize: 16, fontWeight: 700, borderRadius: 10 }}
               >
-                {loading ? "Saving Profile..." : "Complete Setup & Launch Dashboard"}
+                {loading ? "Saving Profile..." : "Complete Setup & Go to Dashboard"}
               </button>
             </form>
           </div>

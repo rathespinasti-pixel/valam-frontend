@@ -23,6 +23,7 @@ import {
   Layers,
   Sparkles,
   Zap,
+  X,
 } from "lucide-react";
 
 // Reference images mapped to crop stages for growth visualization MVP
@@ -88,6 +89,8 @@ const DEFAULT_CROP_OPTIONS = [
   { name: "Watermelon", label: "Watermelon (தர்பூசணி / පැණි කොමඩු)" },
 ];
 
+import { addCropSchema, getFieldErrors } from "@/lib/validations";
+
 export default function CropsPage() {
   const router = useRouter();
   const { t } = useLanguage();
@@ -100,17 +103,18 @@ export default function CropsPage() {
   const [activeStageTab, setActiveStageTab] = useState<1 | 2 | 3>(1);
   const [cropOptions, setCropOptions] = useState<{ name: string; label: string }[]>(DEFAULT_CROP_OPTIONS);
 
-  // Form state
-  const [cropName, setCropName] = useState("Tomato");
-  const [variety, setVariety] = useState("Thilina (KC1)");
-  const [plantingMethod, setPlantingMethod] = useState("Transplanting");
-  const [plantingDate, setPlantingDate] = useState(() => new Date().toISOString().split("T")[0]);
-  const [landSize, setLandSize] = useState<number | "">(0.5);
-  const [landUnit, setLandUnit] = useState("Acres");
-  const [irrigationType, setIrrigationType] = useState("Drip Irrigation");
-  const [fertilizerPref, setFertilizerPref] = useState("Organic");
+  // Form state — ZERO default values
+  const [cropName, setCropName] = useState("");
+  const [variety, setVariety] = useState("");
+  const [plantingMethod, setPlantingMethod] = useState("");
+  const [plantingDate, setPlantingDate] = useState("");
+  const [landSize, setLandSize] = useState<number | "">("");
+  const [landUnit, setLandUnit] = useState("");
+  const [irrigationType, setIrrigationType] = useState("");
+  const [fertilizerPref, setFertilizerPref] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
 
   async function fetchCrops() {
@@ -281,8 +285,8 @@ export default function CropsPage() {
 
   const mainPipeMeters = Math.round(rowLengthMeters);
   const lateralPipeMeters = Math.round(numRows * rowLengthMeters);
-  const emittersCount = Math.round(estimatedPlantsCount * 1.05); // 5% spare
-  const sprinklersCount = Math.max(2, Math.round(areaSqMeters / 250)); // 250 sqm per sprinkler
+  const emittersCount = Math.round(estimatedPlantsCount * 1.05);
+  const sprinklersCount = Math.max(2, Math.round(areaSqMeters / 250));
 
   const stageImgObj = STAGE_IMAGES[cropKey] || STAGE_IMAGES["Default"];
   const currentStageImg =
@@ -290,9 +294,8 @@ export default function CropsPage() {
 
   return (
     <AuthGuard>
-      <Navbar active="crops" pageTitle={t("cropGuide")} />
+      <Navbar active="crops" />
 
-      {/* Hero Section */}
       <section className="page-hero">
         <div className="container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
           <div>
@@ -313,89 +316,216 @@ export default function CropsPage() {
 
           {/* Add Crop Modal */}
           {showAddModal && (
-            <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, backdropFilter: "blur(4px)" }}>
-              <div style={{ background: "#FFF", borderRadius: 20, padding: 32, maxWidth: 600, width: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 10px 30px rgba(0,0,0,0.2)" }}>
-                <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16, color: "#1B4D3E" }}>
+            <div
+              style={{
+                position: "fixed",
+                inset: 0,
+                background: "rgba(0,0,0,0.5)",
+                zIndex: 1000,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: 16,
+                backdropFilter: "blur(4px)",
+              }}
+              onClick={() => setShowAddModal(false)}
+            >
+              <div
+                className="modal-dialog-box"
+                style={{
+                  background: "#FFF",
+                  borderRadius: 20,
+                  padding: 24,
+                  maxWidth: 600,
+                  width: "100%",
+                  maxHeight: "90vh",
+                  overflowY: "auto",
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+                  position: "relative",
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  style={{
+                    position: "absolute",
+                    top: 16,
+                    right: 16,
+                    background: "#F1F5F9",
+                    border: "none",
+                    borderRadius: "50%",
+                    width: 32,
+                    height: 32,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                  }}
+                >
+                  <X size={18} color="#64748B" />
+                </button>
+
+                <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 16, color: "#1B4D3E" }}>
                   Add Short-Duration Cultivation
                 </h2>
                 
                 {error && <div style={{ padding: 12, borderRadius: 8, background: "#FFEBEE", color: "#C62828", marginBottom: 16, fontSize: 14 }}>{error}</div>}
 
-                <form onSubmit={handleAddCrop}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+                <form onSubmit={handleAddCrop} noValidate>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14, marginBottom: 14 }}>
                     <div>
-                      <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{t("cropName")} *</label>
-                      <select className="input" style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={cropName} onChange={(e) => setCropName(e.target.value)}>
+                      <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{t("cropName")} *</label>
+                      <select
+                        className={`input ${formErrors.crop_name ? "input-invalid" : ""}`}
+                        style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }}
+                        value={cropName}
+                        onChange={(e) => {
+                          setCropName(e.target.value);
+                          if (formErrors.crop_name) setFormErrors((prev) => ({ ...prev, crop_name: "" }));
+                        }}
+                      >
+                        <option value="">-- Select Crop --</option>
                         {cropOptions.map((opt) => (
                           <option key={opt.name} value={opt.name}>
                             {opt.label}
                           </option>
                         ))}
                       </select>
+                      {formErrors.crop_name && <span className="field-error-text">{formErrors.crop_name}</span>}
                     </div>
 
                     <div>
-                      <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{t("variety")}</label>
-                      <input type="text" className="input" placeholder="e.g. MICO-1, Thilina, Local" style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={variety} onChange={(e) => setVariety(e.target.value)} />
+                      <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{t("variety")}</label>
+                      <input
+                        type="text"
+                        className="input"
+                        placeholder="e.g. MICO-1, Thilina, Local"
+                        style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }}
+                        value={variety}
+                        onChange={(e) => setVariety(e.target.value)}
+                      />
                     </div>
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14, marginBottom: 14 }}>
                     <div>
-                      <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{t("plantingMethod")} *</label>
-                      <select className="input" style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={plantingMethod} onChange={(e) => setPlantingMethod(e.target.value)}>
+                      <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{t("plantingMethod")} *</label>
+                      <select
+                        className={`input ${formErrors.planting_method ? "input-invalid" : ""}`}
+                        style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }}
+                        value={plantingMethod}
+                        onChange={(e) => {
+                          setPlantingMethod(e.target.value);
+                          if (formErrors.planting_method) setFormErrors((prev) => ({ ...prev, planting_method: "" }));
+                        }}
+                      >
+                        <option value="">-- Select Method --</option>
                         <option value="Transplanting">Transplanting (நாற்று நடுதல் / පැළ සිටුවීම)</option>
                         <option value="Direct Seeding">Direct Seeding (நேரடி விதைப்பு / සෘජු බීජ වැපිරීම)</option>
                         <option value="Nursery Seeding">Nursery Seeding (நாற்றங்கால் / තවාන්)</option>
                       </select>
+                      {formErrors.planting_method && <span className="field-error-text">{formErrors.planting_method}</span>}
                     </div>
 
                     <div>
-                      <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{t("plantingDate")} *</label>
-                      <input type="date" required className="input" style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={plantingDate} onChange={(e) => setPlantingDate(e.target.value)} />
+                      <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{t("plantingDate")} *</label>
+                      <input
+                        type="date"
+                        className={`input ${formErrors.planting_date ? "input-invalid" : ""}`}
+                        style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }}
+                        value={plantingDate}
+                        onChange={(e) => {
+                          setPlantingDate(e.target.value);
+                          if (formErrors.planting_date) setFormErrors((prev) => ({ ...prev, planting_date: "" }));
+                        }}
+                      />
+                      {formErrors.planting_date && <span className="field-error-text">{formErrors.planting_date}</span>}
                     </div>
                   </div>
 
                   {/* Land details */}
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14, marginBottom: 14 }}>
                     <div>
-                      <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{t("landSize")} *</label>
-                      <input type="number" step="0.1" min="0" required className="input" style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={landSize} onChange={(e) => setLandSize(e.target.value ? parseFloat(e.target.value) : "")} />
+                      <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{t("landSize")} *</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        placeholder="e.g. 1.5"
+                        className={`input ${formErrors.land_size ? "input-invalid" : ""}`}
+                        style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }}
+                        value={landSize}
+                        onChange={(e) => {
+                          setLandSize(e.target.value ? parseFloat(e.target.value) : "");
+                          if (formErrors.land_size) setFormErrors((prev) => ({ ...prev, land_size: "" }));
+                        }}
+                      />
+                      {formErrors.land_size && <span className="field-error-text">{formErrors.land_size}</span>}
                     </div>
 
                     <div>
-                      <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{t("landUnit")} *</label>
-                      <select className="input" style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={landUnit} onChange={(e) => setLandUnit(e.target.value)}>
+                      <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{t("landUnit")} *</label>
+                      <select
+                        className={`input ${formErrors.land_size_unit ? "input-invalid" : ""}`}
+                        style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }}
+                        value={landUnit}
+                        onChange={(e) => {
+                          setLandUnit(e.target.value);
+                          if (formErrors.land_size_unit) setFormErrors((prev) => ({ ...prev, land_size_unit: "" }));
+                        }}
+                      >
+                        <option value="">-- Select Unit --</option>
                         <option value="Acres">{t("acres")}</option>
                         <option value="Perches">{t("perches")}</option>
                         <option value="Hectares">{t("hectares")}</option>
                         <option value="Square Feet">{t("squareFeet")}</option>
                       </select>
+                      {formErrors.land_size_unit && <span className="field-error-text">{formErrors.land_size_unit}</span>}
                     </div>
                   </div>
 
                   {/* Irrigation & Fertilizer */}
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14, marginBottom: 14 }}>
                     <div>
-                      <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{t("irrigationPreference")} *</label>
-                      <select className="input" style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={irrigationType} onChange={(e) => setIrrigationType(e.target.value)}>
+                      <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{t("irrigationPreference")} *</label>
+                      <select
+                        className={`input ${formErrors.irrigation_type ? "input-invalid" : ""}`}
+                        style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }}
+                        value={irrigationType}
+                        onChange={(e) => {
+                          setIrrigationType(e.target.value);
+                          if (formErrors.irrigation_type) setFormErrors((prev) => ({ ...prev, irrigation_type: "" }));
+                        }}
+                      >
+                        <option value="">-- Select Irrigation --</option>
                         <option value="Drip Irrigation">{t("dripIrrigation")}</option>
                         <option value="Sprinkler Irrigation">{t("sprinklerIrrigation")}</option>
                         <option value="Manual Watering">{t("manualWatering")}</option>
                       </select>
+                      {formErrors.irrigation_type && <span className="field-error-text">{formErrors.irrigation_type}</span>}
                     </div>
 
                     <div>
-                      <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{t("fertilizerPreference")} *</label>
-                      <select className="input" style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={fertilizerPref} onChange={(e) => setFertilizerPref(e.target.value)}>
+                      <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{t("fertilizerPreference")} *</label>
+                      <select
+                        className={`input ${formErrors.fertilizer_preference ? "input-invalid" : ""}`}
+                        style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }}
+                        value={fertilizerPref}
+                        onChange={(e) => {
+                          setFertilizerPref(e.target.value);
+                          if (formErrors.fertilizer_preference) setFormErrors((prev) => ({ ...prev, fertilizer_preference: "" }));
+                        }}
+                      >
+                        <option value="">-- Select Fertilizer --</option>
                         <option value="Organic">{t("organicFertilizer")}</option>
                         <option value="Chemical">{t("chemicalFertilizer")}</option>
                       </select>
+                      {formErrors.fertilizer_preference && <span className="field-error-text">{formErrors.fertilizer_preference}</span>}
                     </div>
                   </div>
 
-                  <div style={{ marginBottom: 24 }}>
-                    <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 4 }}>Notes / Location Details</label>
+                  <div style={{ marginBottom: 20 }}>
+                    <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 4 }}>Notes / Location Details</label>
                     <textarea className="input" rows={2} placeholder="Field location notes..." style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }} value={notes} onChange={(e) => setNotes(e.target.value)} />
                   </div>
 

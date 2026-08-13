@@ -33,6 +33,7 @@ function ChatContent() {
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchFilter, setSearchFilter] = useState("");
+  const [mobileView, setMobileView] = useState<"list" | "chat">("list");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -54,6 +55,7 @@ function ChatContent() {
           const pid = parseInt(partnerParam, 10);
           if (!isNaN(pid)) {
             setActivePartnerId(pid);
+            setMobileView("chat");
           }
         } else if (convs.length > 0) {
           setActivePartnerId(convs[0].partner.id);
@@ -119,6 +121,7 @@ function ChatContent() {
 
   return (
     <div
+      className="chat-container-layout"
       style={{
         background: "#FFFFFF",
         borderRadius: 20,
@@ -126,13 +129,14 @@ function ChatContent() {
         boxShadow: "0 4px 20px rgba(0,0,0,0.04)",
         overflow: "hidden",
         display: "grid",
-        gridTemplateColumns: "320px 1fr",
+        gridTemplateColumns: "minmax(280px, 320px) 1fr",
         height: "calc(80vh - 40px)",
         minHeight: 520,
       }}
     >
       {/* LEFT SIDEBAR: CONVERSATION THREADS */}
       <div
+        className={`chat-thread-list-pane ${mobileView === "chat" ? "chat-hide-on-mobile" : ""}`}
         style={{
           borderRight: "1px solid #E2E8F0",
           display: "flex",
@@ -181,7 +185,10 @@ function ChatContent() {
               return (
                 <div
                   key={c.partner.id}
-                  onClick={() => setActivePartnerId(c.partner.id)}
+                  onClick={() => {
+                    setActivePartnerId(c.partner.id);
+                    setMobileView("chat");
+                  }}
                   style={{
                     padding: "10px 12px",
                     borderRadius: 12,
@@ -258,13 +265,16 @@ function ChatContent() {
       </div>
 
       {/* RIGHT PANE: ACTIVE CONVERSATION */}
-      <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+      <div
+        className={`chat-active-message-pane ${mobileView === "list" ? "chat-hide-on-mobile" : ""}`}
+        style={{ display: "flex", flexDirection: "column", height: "100%" }}
+      >
         {activePartnerId ? (
           <>
             {/* Chat Partner Header */}
             <div
               style={{
-                padding: "14px 20px",
+                padding: "12px 16px",
                 borderBottom: "1px solid #E2E8F0",
                 background: "#FFFFFF",
                 display: "flex",
@@ -273,10 +283,30 @@ function ChatContent() {
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                {/* Mobile Back Button */}
+                <button
+                  type="button"
+                  className="chat-mobile-back-btn"
+                  onClick={() => setMobileView("list")}
+                  style={{
+                    background: "#F1F5F9",
+                    border: "none",
+                    borderRadius: 8,
+                    padding: "6px 10px",
+                    fontWeight: 700,
+                    fontSize: 13,
+                    color: "#334155",
+                    cursor: "pointer",
+                    display: "none",
+                  }}
+                >
+                  ← {language === "ta" ? "பின்செல்" : language === "si" ? "ආපසු" : "Back"}
+                </button>
+
                 <div
                   style={{
-                    width: 38,
-                    height: 38,
+                    width: 36,
+                    height: 36,
                     borderRadius: "50%",
                     background: activePartner?.role === "farmer" ? "linear-gradient(135deg, #10B981, #059669)" : "linear-gradient(135deg, #0284C7, #0369A1)",
                     color: "#FFFFFF",
@@ -284,13 +314,14 @@ function ChatContent() {
                     alignItems: "center",
                     justifyContent: "center",
                     fontWeight: 800,
-                    fontSize: 15,
+                    fontSize: 14,
+                    flexShrink: 0,
                   }}
                 >
                   {activePartner?.full_name ? activePartner.full_name.charAt(0).toUpperCase() : "U"}
                 </div>
                 <div>
-                  <h4 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: "#1E293B" }}>
+                  <h4 style={{ margin: 0, fontSize: 14, fontWeight: 800, color: "#1E293B" }}>
                     {activePartner?.full_name || "User"}
                   </h4>
                   <span style={{ fontSize: 11, color: "#64748B", fontWeight: 600 }}>

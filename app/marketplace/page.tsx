@@ -25,6 +25,7 @@ import {
   Clock,
   Send,
 } from "lucide-react";
+import { produceListingSchema, counterOfferSchema, getFieldErrors } from "@/lib/validations";
 
 function MarketplaceContent() {
   const router = useRouter();
@@ -39,26 +40,28 @@ function MarketplaceContent() {
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<"incoming" | "listings" | "deals">("incoming");
 
-  // Post Produce Form Modal
+  // Post Produce Form Modal — ZERO default values
   const [showPostModal, setShowPostModal] = useState(false);
-  const [cropName, setCropName] = useState("Brinjal (Eggplant)");
-  const [variety, setVariety] = useState("Padagoda");
-  const [totalKg, setTotalKg] = useState<number | "">(50);
-  const [askingPrice, setAskingPrice] = useState<number | "">(220);
-  const [minPrice, setMinPrice] = useState<number | "">(190);
-  const [harvestDate, setHarvestDate] = useState("Fresh Harvest (Today)");
-  const [isOrganic, setIsOrganic] = useState(true);
+  const [cropName, setCropName] = useState("");
+  const [variety, setVariety] = useState("");
+  const [totalKg, setTotalKg] = useState<number | "">("");
+  const [askingPrice, setAskingPrice] = useState<number | "">("");
+  const [minPrice, setMinPrice] = useState<number | "">("");
+  const [harvestDate, setHarvestDate] = useState("");
+  const [isOrganic, setIsOrganic] = useState(false);
   const [isNegotiable, setIsNegotiable] = useState(true);
-  const [description, setDescription] = useState("Naturally grown brinjal harvested fresh from field this morning.");
-  const [imageUrl, setImageUrl] = useState("https://images.unsplash.com/photo-1592841200221-a6898f307baa?auto=format&fit=crop&w=600&q=80");
+  const [description, setDescription] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const [submittingPost, setSubmittingPost] = useState(false);
+  const [postErrors, setPostErrors] = useState<Record<string, string>>({});
   const [postStatus, setPostStatus] = useState<{ type: "ok" | "error"; text: string } | null>(null);
 
-  // Counter Offer Modal
+  // Counter Offer Modal — ZERO default values
   const [counteringOffer, setCounteringOffer] = useState<BargainOffer | null>(null);
-  const [counterPrice, setCounterPrice] = useState<number | "">(200);
+  const [counterPrice, setCounterPrice] = useState<number | "">("");
   const [counterMessage, setCounterMessage] = useState("");
   const [submittingCounter, setSubmittingCounter] = useState(false);
+  const [counterErrors, setCounterErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const tabParam = searchParams?.get("tab");
@@ -91,11 +94,6 @@ function MarketplaceContent() {
       }
       if (cropsRes.status === "fulfilled") {
         setCrops(cropsRes.value.items || []);
-        if (cropsRes.value.items.length > 0) {
-          const first = cropsRes.value.items[0];
-          setCropName(first.crop_name);
-          setVariety(first.variety || "Local");
-        }
       }
     } catch (err) {
       console.error("Error loading marketplace data:", err);
@@ -109,20 +107,56 @@ function MarketplaceContent() {
     loadData();
   }, []);
 
+  const resetPostForm = () => {
+    setCropName("");
+    setVariety("");
+    setTotalKg("");
+    setAskingPrice("");
+    setMinPrice("");
+    setHarvestDate("");
+    setIsOrganic(false);
+    setIsNegotiable(true);
+    setDescription("");
+    setImageUrl("");
+    setPostErrors({});
+    setPostStatus(null);
+  };
+
   const handleCreateListing = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!cropName || !totalKg || !askingPrice) return;
+    setPostErrors({});
+    setPostStatus(null);
+
+    const validationResult = produceListingSchema.safeParse({
+      crop_name: cropName,
+      variety: variety || undefined,
+      total_quantity_kg: totalKg,
+      asking_price_per_kg: askingPrice,
+      min_acceptable_price_per_kg: minPrice === "" ? undefined : minPrice,
+      district: user?.district || "Vavuniya",
+      location: user?.ds_division || "Vavuniya Town",
+      harvest_date: harvestDate || undefined,
+      is_organic: isOrganic,
+      is_negotiable: isNegotiable,
+      description: description || undefined,
+      image_url: imageUrl || undefined,
+    });
+
+    if (!validationResult.success) {
+      const errors = getFieldErrors(validationResult);
+      setPostErrors(errors);
+      return;
+    }
 
     setSubmittingPost(true);
-    setPostStatus(null);
 
     try {
       await ValamAPI.createProduceListing({
         crop_name: cropName.trim(),
-        variety: variety.trim(),
+        variety: variety.trim() || undefined,
         total_quantity_kg: Number(totalKg),
         asking_price_per_kg: Number(askingPrice),
-        min_acceptable_price_per_kg: typeof minPrice === "number" ? minPrice : undefined,
+        min_acceptable_price_per_kg: minPrice ? Number(minPrice) : undefined,
         district: user?.district || "Vavuniya",
         location: user?.farm_location || user?.ds_division,
         harvest_date: harvestDate.trim() || undefined,
@@ -159,7 +193,20 @@ function MarketplaceContent() {
 
   const handleSendCounter = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!counteringOffer || !counterPrice) return;
+    if (!counteringOffer) return;
+
+    setCounterErrors({});
+
+    const validationResult = counterOfferSchema.safeParse({
+      counter_price_per_kg: counterPrice,
+      counter_message: counterMessage || undefined,
+    });
+
+    if (!validationResult.success) {
+      const errors = getFieldErrors(validationResult);
+      setCounterErrors(errors);
+      return;
+    }
 
     setSubmittingCounter(true);
     try {
@@ -169,6 +216,9 @@ function MarketplaceContent() {
         counter_message: counterMessage.trim() || undefined,
       });
       setCounteringOffer(null);
+      setCounterPrice("");
+      setCounterMessage("");
+      setCounterErrors({});
       loadData();
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to send counter offer.");
@@ -779,47 +829,70 @@ function MarketplaceContent() {
               </div>
             </div>
 
-            <form onSubmit={handleCreateListing}>
+            <form onSubmit={handleCreateListing} noValidate>
               {/* Crop selection or input */}
               <div style={{ marginBottom: 12 }}>
                 <label style={{ fontSize: 12, fontWeight: 700, color: "#334155", display: "block", marginBottom: 6 }}>
                   {t("produceName")} *
                 </label>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                  <input
-                    type="text"
-                    value={cropName}
-                    onChange={(e) => setCropName(e.target.value)}
-                    placeholder="e.g. Brinjal (Eggplant), Tomato"
-                    style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 14 }}
-                    required
-                  />
-                  <input
-                    type="text"
-                    value={variety}
-                    onChange={(e) => setVariety(e.target.value)}
-                    placeholder="Variety (e.g. Padagoda)"
-                    style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 14 }}
-                  />
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 10 }}>
+                  <div>
+                    <input
+                      type="text"
+                      value={cropName}
+                      onChange={(e) => {
+                        setCropName(e.target.value);
+                        if (postErrors.crop_name) setPostErrors((prev) => ({ ...prev, crop_name: "" }));
+                      }}
+                      placeholder="e.g. Brinjal, Tomato"
+                      style={{
+                        width: "100%",
+                        padding: "10px 12px",
+                        borderRadius: 10,
+                        border: postErrors.crop_name ? "1px solid #EF4444" : "1px solid #CBD5E1",
+                        background: postErrors.crop_name ? "#FEF2F2" : "#FFFFFF",
+                        fontSize: 14,
+                      }}
+                    />
+                    {postErrors.crop_name && <span className="field-error-text">{postErrors.crop_name}</span>}
+                  </div>
+                  <div>
+                    <input
+                      type="text"
+                      value={variety}
+                      onChange={(e) => setVariety(e.target.value)}
+                      placeholder="Variety (e.g. Padagoda)"
+                      style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 14 }}
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Quantity & Asking Price */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, marginBottom: 12 }}>
                 <div>
                   <label style={{ fontSize: 12, fontWeight: 700, color: "#334155", display: "block", marginBottom: 6 }}>
                     {t("totalKg")} (kg) *
                   </label>
                   <input
                     type="number"
-                    min="1"
-                    step="1"
                     value={totalKg}
-                    onChange={(e) => setTotalKg(e.target.value ? parseFloat(e.target.value) : "")}
+                    onChange={(e) => {
+                      setTotalKg(e.target.value ? parseFloat(e.target.value) : "");
+                      if (postErrors.total_quantity_kg) setPostErrors((prev) => ({ ...prev, total_quantity_kg: "" }));
+                    }}
                     placeholder="e.g. 50"
-                    style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 14, fontWeight: 700 }}
-                    required
+                    style={{
+                      width: "100%",
+                      padding: "10px 12px",
+                      borderRadius: 10,
+                      border: postErrors.total_quantity_kg ? "1px solid #EF4444" : "1px solid #CBD5E1",
+                      background: postErrors.total_quantity_kg ? "#FEF2F2" : "#FFFFFF",
+                      fontSize: 14,
+                      fontWeight: 700,
+                    }}
                   />
+                  {postErrors.total_quantity_kg && <span className="field-error-text">{postErrors.total_quantity_kg}</span>}
                 </div>
 
                 <div>
@@ -828,26 +901,34 @@ function MarketplaceContent() {
                   </label>
                   <input
                     type="number"
-                    min="1"
-                    step="5"
                     value={askingPrice}
-                    onChange={(e) => setAskingPrice(e.target.value ? parseFloat(e.target.value) : "")}
+                    onChange={(e) => {
+                      setAskingPrice(e.target.value ? parseFloat(e.target.value) : "");
+                      if (postErrors.asking_price_per_kg) setPostErrors((prev) => ({ ...prev, asking_price_per_kg: "" }));
+                    }}
                     placeholder="e.g. 220"
-                    style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 14, fontWeight: 700, color: "#10B981" }}
-                    required
+                    style={{
+                      width: "100%",
+                      padding: "10px 12px",
+                      borderRadius: 10,
+                      border: postErrors.asking_price_per_kg ? "1px solid #EF4444" : "1px solid #CBD5E1",
+                      background: postErrors.asking_price_per_kg ? "#FEF2F2" : "#FFFFFF",
+                      fontSize: 14,
+                      fontWeight: 700,
+                      color: "#10B981",
+                    }}
                   />
+                  {postErrors.asking_price_per_kg && <span className="field-error-text">{postErrors.asking_price_per_kg}</span>}
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, marginBottom: 12 }}>
                 <div>
                   <label style={{ fontSize: 12, fontWeight: 700, color: "#334155", display: "block", marginBottom: 6 }}>
                     {t("minFairPrice")} (Rs./kg)
                   </label>
                   <input
                     type="number"
-                    min="1"
-                    step="5"
                     value={minPrice}
                     onChange={(e) => setMinPrice(e.target.value ? parseFloat(e.target.value) : "")}
                     placeholder="e.g. 190"
@@ -914,16 +995,16 @@ function MarketplaceContent() {
                 }}
               >
                 <Plus size={18} />
-                {t("postProduce")}
+                Publish Produce to Market
               </button>
 
               {postStatus && (
                 <div
                   style={{
-                    marginTop: 10,
+                    marginTop: 12,
                     padding: 8,
                     borderRadius: 8,
-                    fontSize: 12,
+                    fontSize: 13,
                     textAlign: "center",
                     fontWeight: 600,
                     background: postStatus.type === "ok" ? "#DCFCE7" : "#FEE2E2",
@@ -945,16 +1026,18 @@ function MarketplaceContent() {
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.6)",
+            background: "rgba(0,0,0,0.5)",
             backdropFilter: "blur(4px)",
+            zIndex: 1000,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            zIndex: 9999,
             padding: 16,
           }}
+          onClick={() => setCounteringOffer(null)}
         >
           <div
+            className="modal-dialog-box"
             style={{
               background: "#FFFFFF",
               borderRadius: 20,
@@ -962,9 +1045,9 @@ function MarketplaceContent() {
               maxWidth: 440,
               width: "100%",
               boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
-              border: "1px solid #E2E8F0",
               position: "relative",
             }}
+            onClick={(e) => e.stopPropagation()}
           >
             <button
               type="button"
@@ -994,20 +1077,33 @@ function MarketplaceContent() {
               Buyer offered Rs. {counteringOffer.offered_price_per_kg}/kg for {counteringOffer.quantity_kg} kg of {counteringOffer.listing?.crop_name}.
             </p>
 
-            <form onSubmit={handleSendCounter}>
+            <form onSubmit={handleSendCounter} noValidate>
               <div style={{ marginBottom: 14 }}>
                 <label style={{ fontSize: 12, fontWeight: 700, color: "#334155", display: "block", marginBottom: 6 }}>
                   {t("counterPricePerKg")} *
                 </label>
                 <input
                   type="number"
-                  min="1"
-                  step="5"
                   value={counterPrice}
-                  onChange={(e) => setCounterPrice(e.target.value ? parseFloat(e.target.value) : "")}
-                  style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 16, fontWeight: 800, color: "#0284C7" }}
-                  required
+                  onChange={(e) => {
+                    setCounterPrice(e.target.value ? parseFloat(e.target.value) : "");
+                    if (counterErrors.counter_price_per_kg) setCounterErrors((prev) => ({ ...prev, counter_price_per_kg: "" }));
+                  }}
+                  placeholder="e.g. 200"
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    borderRadius: 10,
+                    border: counterErrors.counter_price_per_kg ? "1px solid #EF4444" : "1px solid #CBD5E1",
+                    background: counterErrors.counter_price_per_kg ? "#FEF2F2" : "#FFFFFF",
+                    fontSize: 16,
+                    fontWeight: 800,
+                    color: "#0284C7",
+                  }}
                 />
+                {counterErrors.counter_price_per_kg && (
+                  <span className="field-error-text">{counterErrors.counter_price_per_kg}</span>
+                )}
               </div>
 
               <div style={{ marginBottom: 16 }}>

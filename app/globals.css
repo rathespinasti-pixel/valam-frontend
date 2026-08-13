@@ -1540,21 +1540,162 @@ button{ font-family:inherit; cursor:pointer; }
 .maint-card p{ font-size:.82rem; color:var(--ink-soft); line-height:1.5; }
 .maint-card .due{ display:inline-block; margin-top:10px; font-size:.74rem; font-weight:700; color:var(--leaf); background:rgba(62,155,92,.12); padding:3px 10px; border-radius:999px; }
 
-@media (max-width:900px){
-  .solar-form-grid{ grid-template-columns:1fr; }
-  .solar-result-grid{ grid-template-columns:1fr; }
-  .alert-row{ grid-template-columns:1fr; }
-  .maint-grid{ grid-template-columns:repeat(2,1fr); }
+/* =========================================================
+   UNIVERSAL MOBILE RESPONSIVE DESIGN SYSTEM
+   ========================================================= */
+
+/* Form Error Validation Tokens */
+.field-error-text {
+  color: #DC2626;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-top: 4px;
+  display: block;
+  line-height: 1.3;
 }
-@media (max-width:560px){
-  .maint-grid{ grid-template-columns:1fr; }
+
+.input-invalid,
+.input.input-invalid,
+input.input-invalid,
+select.input-invalid,
+textarea.input-invalid {
+  border-color: #EF4444 !important;
+  background-color: #FEF2F2 !important;
+  outline-color: #EF4444 !important;
 }
-@media (max-width: 800px) {
+
+.table-responsive-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Tablet & Mobile Breakpoint (max-width: 1023px) */
+@media (max-width: 1023px) {
+  body.has-sidebar-layout .page-hero,
+  body.has-sidebar-layout .section,
+  body.has-sidebar-layout .site-footer {
+    margin-left: 0 !important;
+  }
+
+  .sidebar-view-aside {
+    display: none !important;
+  }
+
+  .sidebar-main-topbar {
+    margin-left: 0 !important;
+    padding: 10px 14px !important;
+  }
+
   .admin-control-layout {
     grid-template-columns: 1fr !important;
   }
 
   .admin-control-layout > aside {
     position: static !important;
+  }
+}
+
+/* Standard Mobile Breakpoint (max-width: 768px) */
+@media (max-width: 768px) {
+  .container {
+    padding-inline: 16px !important;
+  }
+
+  .section {
+    padding: 44px 0 !important;
+  }
+
+  .page-hero {
+    padding: 24px 0 !important;
+  }
+
+  .page-hero h1 {
+    font-size: 1.6rem !important;
+  }
+
+  /* Form Grids collapse to single column */
+  .form-row,
+  .form-grid-2,
+  .grid-2-col {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* Topbar scaling */
+  .sidebar-search-box {
+    max-width: 180px !important;
+  }
+
+  .sidebar-search-input {
+    font-size: 12px !important;
+    padding: 7px 10px 7px 32px !important;
+  }
+
+  .sidebar-topbar-actions {
+    gap: 6px !important;
+  }
+
+  .solar-form-grid,
+  .solar-result-grid,
+  .alert-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .maint-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Modals sizing */
+  .modal-dialog-box {
+    max-width: 94vw !important;
+    padding: 18px !important;
+    margin: 10px auto !important;
+  }
+
+  /* Chat 2-pane to 1-pane Mobile Transformation */
+  .chat-container-layout {
+    grid-template-columns: 1fr !important;
+    height: calc(88vh - 40px) !important;
+  }
+
+  .chat-hide-on-mobile {
+    display: none !important;
+  }
+
+  .chat-mobile-back-btn {
+    display: inline-flex !important;
+  }
+
+  .nav-links {
+    display: none !important;
+  }
+}
+
+/* Small Mobile Phones (max-width: 480px) */
+@media (max-width: 480px) {
+  .container {
+    padding-inline: 12px !important;
+  }
+
+  .section {
+    padding: 32px 0 !important;
+  }
+
+  .maint-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .sidebar-search-box {
+    display: none !important;
+  }
+
+  .dash-card {
+    padding: 14px !important;
+  }
+
+  .btn {
+    padding: 11px 18px !important;
+    font-size: 0.88rem !important;
   }
 }

@@ -37,55 +37,78 @@ const CROP_SPACING_DB: Record<string, { plant: number; row: number }> = {
   "Green Gram": { plant: 10, row: 30 },
 };
 
+import { solarCalcSchema, getFieldErrors } from "@/lib/validations";
+
 export default function SmartIrrigationPage() {
   const { t, language } = useLanguage();
 
-  // Form State
-  const [cropName, setCropName] = useState("Tomato");
+  // Form State — ZERO default values
+  const [cropName, setCropName] = useState("");
   const [cropVariety, setCropVariety] = useState("");
-  const [growthStage, setGrowthStage] = useState("Vegetative");
-  const [irrigationMethod, setIrrigationMethod] = useState("Drip Irrigation");
+  const [growthStage, setGrowthStage] = useState("");
+  const [irrigationMethod, setIrrigationMethod] = useState("");
 
   const [inputMode, setInputMode] = useState<"size" | "dimensions">("size");
-  const [landSize, setLandSize] = useState<number>(1.0);
-  const [landUnit, setLandUnit] = useState<string>("Acres");
-  const [lengthMeters, setLengthMeters] = useState<number>(63.6);
-  const [widthMeters, setWidthMeters] = useState<number>(63.6);
+  const [landSize, setLandSize] = useState<number | "">("");
+  const [landUnit, setLandUnit] = useState<string>("");
+  const [lengthMeters, setLengthMeters] = useState<number | "">("");
+  const [widthMeters, setWidthMeters] = useState<number | "">("");
 
   const [plantSpacingCm, setPlantSpacingCm] = useState<number>(50);
   const [rowSpacingCm, setRowSpacingCm] = useState<number>(75);
 
-  const [waterSource, setWaterSource] = useState("Well");
-  const [pumpHp, setPumpHp] = useState<string>("1.5");
-  const [flowRateLh, setFlowRateLh] = useState<string>("2500");
+  const [waterSource, setWaterSource] = useState("");
+  const [pumpHp, setPumpHp] = useState<string>("");
+  const [flowRateLh, setFlowRateLh] = useState<string>("");
 
-  const [soilType, setSoilType] = useState("Loamy");
-  const [terrain, setTerrain] = useState("Flat");
+  const [soilType, setSoilType] = useState("");
+  const [terrain, setTerrain] = useState("");
 
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [reportGenerated, setReportGenerated] = useState(false);
-
-  // Prefill from stored profile
-  useEffect(() => {
-    const user = ValamAPI.getStoredUser();
-    if (user) {
-      if (user.land_size) setLandSize(user.land_size);
-      if (user.land_size_unit) setLandUnit(user.land_size_unit);
-      if (user.irrigation_preference) setIrrigationMethod(user.irrigation_preference);
-    }
-  }, []);
 
   // Sync crop spacing when crop changes
   useEffect(() => {
-    const defaultSpacing = CROP_SPACING_DB[cropName] || { plant: 45, row: 60 };
-    setPlantSpacingCm(defaultSpacing.plant);
-    setRowSpacingCm(defaultSpacing.row);
+    if (cropName) {
+      const defaultSpacing = CROP_SPACING_DB[cropName] || { plant: 45, row: 60 };
+      setPlantSpacingCm(defaultSpacing.plant);
+      setRowSpacingCm(defaultSpacing.row);
+    }
   }, [cropName]);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setFormErrors({});
+
+    const validationResult = solarCalcSchema.safeParse({
+      crop_name: cropName,
+      growth_stage: growthStage,
+      irrigation_method: irrigationMethod,
+      land_size: landSize,
+      land_size_unit: landUnit,
+      water_source: waterSource,
+    });
+
+    if (!validationResult.success) {
+      const errors = getFieldErrors(validationResult);
+      setFormErrors(errors);
+      return;
+    }
+
+    setReportGenerated(true);
+    setTimeout(() => {
+      document.getElementById("irrigation-report-section")?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+  }
 
   // Convert land size to square meters ($m^2$)
   function calculateAreaSqM(): { areaSqM: number; lengthM: number; widthM: number } {
-    if (inputMode === "dimensions" && lengthMeters > 0 && widthMeters > 0) {
-      const area = lengthMeters * widthMeters;
-      return { areaSqM: area, lengthM: lengthMeters, widthM: widthMeters };
+    const lNum = typeof lengthMeters === "number" && lengthMeters > 0 ? lengthMeters : 50;
+    const wNum = typeof widthMeters === "number" && widthMeters > 0 ? widthMeters : 40;
+
+    if (inputMode === "dimensions") {
+      const area = lNum * wNum;
+      return { areaSqM: area, lengthM: lNum, widthM: wNum };
     }
 
     let areaSqM = 4046.86; // Default 1 Acre
@@ -175,14 +198,6 @@ export default function SmartIrrigationPage() {
     { item: `Punch Tool & Rubber Grommets`, qty: `1 Set` },
   ];
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setReportGenerated(true);
-    setTimeout(() => {
-      document.getElementById("irrigation-report-section")?.scrollIntoView({ behavior: "smooth" });
-    }, 100);
-  }
-
   return (
     <AuthGuard>
       <Navbar active="irrigation-solar" pageTitle={t("smartIrrigationPlanner")} />
@@ -218,19 +233,23 @@ export default function SmartIrrigationPage() {
               </h2>
             </div>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} noValidate>
               {/* Crop & Growth Details */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 16, marginBottom: 20 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginBottom: 20 }}>
                 <div>
-                  <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 6 }}>
+                  <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6 }}>
                     {t("cropName")} *
                   </label>
                   <select
-                    className="input"
+                    className={`input ${formErrors.crop_name ? "input-invalid" : ""}`}
                     style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }}
                     value={cropName}
-                    onChange={(e) => setCropName(e.target.value)}
+                    onChange={(e) => {
+                      setCropName(e.target.value);
+                      if (formErrors.crop_name) setFormErrors((prev) => ({ ...prev, crop_name: "" }));
+                    }}
                   >
+                    <option value="">-- Select Crop --</option>
                     <option value="Tomato">Tomato ({language === "ta" ? "தக்காளி" : language === "si" ? "තක්කාලි" : "Tomato"})</option>
                     <option value="Chilli">Chilli ({language === "ta" ? "மிளகாய்" : language === "si" ? "මිරිස්" : "Chilli"})</option>
                     <option value="Red Onion">Red Onion ({language === "ta" ? "வெங்காயம்" : language === "si" ? "රතු ළූණු" : "Red Onion"})</option>
@@ -242,10 +261,11 @@ export default function SmartIrrigationPage() {
                     <option value="Maize">Maize ({language === "ta" ? "சோளம்" : language === "si" ? "බඩඉරිඟු" : "Maize"})</option>
                     <option value="Green Gram">Green Gram ({language === "ta" ? "பயறு" : language === "si" ? "මුං ඇට" : "Green Gram"})</option>
                   </select>
+                  {formErrors.crop_name && <span className="field-error-text">{formErrors.crop_name}</span>}
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 6 }}>
+                  <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6 }}>
                     {t("cropVarietyOptional")}
                   </label>
                   <input
@@ -259,45 +279,55 @@ export default function SmartIrrigationPage() {
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 6 }}>
+                  <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6 }}>
                     {t("growthStage")} *
                   </label>
                   <select
-                    className="input"
+                    className={`input ${formErrors.growth_stage ? "input-invalid" : ""}`}
                     style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }}
                     value={growthStage}
-                    onChange={(e) => setGrowthStage(e.target.value)}
+                    onChange={(e) => {
+                      setGrowthStage(e.target.value);
+                      if (formErrors.growth_stage) setFormErrors((prev) => ({ ...prev, growth_stage: "" }));
+                    }}
                   >
+                    <option value="">-- Select Stage --</option>
                     <option value="Seedling">{t("seedlingStage")}</option>
                     <option value="Vegetative">{t("vegetativeStage")}</option>
                     <option value="Flowering">{t("floweringStage")}</option>
                     <option value="Fruiting">{t("fruitingStage")}</option>
                   </select>
+                  {formErrors.growth_stage && <span className="field-error-text">{formErrors.growth_stage}</span>}
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 6 }}>
+                  <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6 }}>
                     {t("irrigationPreference")} *
                   </label>
                   <select
-                    className="input"
+                    className={`input ${formErrors.irrigation_method ? "input-invalid" : ""}`}
                     style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }}
                     value={irrigationMethod}
-                    onChange={(e) => setIrrigationMethod(e.target.value)}
+                    onChange={(e) => {
+                      setIrrigationMethod(e.target.value);
+                      if (formErrors.irrigation_method) setFormErrors((prev) => ({ ...prev, irrigation_method: "" }));
+                    }}
                   >
+                    <option value="">-- Select Irrigation --</option>
                     <option value="Drip Irrigation">{t("dripIrrigation")}</option>
                     <option value="Sprinkler Irrigation">{t("sprinklerIrrigation")}</option>
                     <option value="Manual Watering">{t("manualWatering")}</option>
                   </select>
+                  {formErrors.irrigation_method && <span className="field-error-text">{formErrors.irrigation_method}</span>}
                 </div>
               </div>
 
               {/* Land Information */}
               <div style={{ background: "#F8FAFC", padding: 20, borderRadius: 14, marginBottom: 20, border: "1px solid #E2E8F0" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
                   <label style={{ fontWeight: 700, fontSize: 15, color: "#1E293B" }}>
                     <Ruler size={18} style={{ verticalAlign: "middle", marginRight: 6 }} />
-                    {t("landDetails")}
+                    {t("landDetails")} *
                   </label>
                   <div style={{ display: "flex", gap: 12, fontSize: 13 }}>
                     <label style={{ cursor: "pointer" }}>
@@ -324,49 +354,56 @@ export default function SmartIrrigationPage() {
                 </div>
 
                 {inputMode === "size" ? (
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14 }}>
                     <div>
-                      <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{t("landSize")}</label>
+                      <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{t("landSize")} *</label>
                       <input
                         type="number"
                         step="0.1"
-                        min="0.1"
-                        required
-                        className="input"
+                        placeholder="e.g. 1.0"
+                        className={`input ${formErrors.land_size ? "input-invalid" : ""}`}
                         style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }}
                         value={landSize}
-                        onChange={(e) => setLandSize(parseFloat(e.target.value) || 1)}
+                        onChange={(e) => {
+                          setLandSize(e.target.value ? parseFloat(e.target.value) : "");
+                          if (formErrors.land_size) setFormErrors((prev) => ({ ...prev, land_size: "" }));
+                        }}
                       />
+                      {formErrors.land_size && <span className="field-error-text">{formErrors.land_size}</span>}
                     </div>
                     <div>
-                      <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{t("landUnit")}</label>
+                      <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{t("landUnit")} *</label>
                       <select
-                        className="input"
+                        className={`input ${formErrors.land_size_unit ? "input-invalid" : ""}`}
                         style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }}
                         value={landUnit}
-                        onChange={(e) => setLandUnit(e.target.value)}
+                        onChange={(e) => {
+                          setLandUnit(e.target.value);
+                          if (formErrors.land_size_unit) setFormErrors((prev) => ({ ...prev, land_size_unit: "" }));
+                        }}
                       >
+                        <option value="">-- Select Unit --</option>
                         <option value="Acres">{t("acres")}</option>
                         <option value="Perches">{t("perches")}</option>
                         <option value="Hectares">{t("hectares")}</option>
                         <option value="Square Feet">{t("squareFeet")}</option>
                         <option value="Square Metres">Square Metres ($m^2$)</option>
                       </select>
+                      {formErrors.land_size_unit && <span className="field-error-text">{formErrors.land_size_unit}</span>}
                     </div>
                   </div>
                 ) : (
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14 }}>
                     <div>
                       <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 4 }}>Land Length (metres)</label>
                       <input
                         type="number"
                         step="1"
-                        min="5"
-                        required
+                        placeholder="e.g. 50"
                         className="input"
                         style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }}
                         value={lengthMeters}
-                        onChange={(e) => setLengthMeters(parseFloat(e.target.value) || 50)}
+                        onChange={(e) => setLengthMeters(e.target.value ? parseFloat(e.target.value) : "")}
                       />
                     </div>
                     <div>
@@ -374,12 +411,11 @@ export default function SmartIrrigationPage() {
                       <input
                         type="number"
                         step="1"
-                        min="5"
-                        required
+                        placeholder="e.g. 40"
                         className="input"
                         style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }}
                         value={widthMeters}
-                        onChange={(e) => setWidthMeters(parseFloat(e.target.value) || 50)}
+                        onChange={(e) => setWidthMeters(e.target.value ? parseFloat(e.target.value) : "")}
                       />
                     </div>
                   </div>
@@ -387,9 +423,9 @@ export default function SmartIrrigationPage() {
               </div>
 
               {/* Crop Spacing & Water Source */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 16, marginBottom: 20 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14, marginBottom: 20 }}>
                 <div>
-                  <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 6 }}>
+                  <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6 }}>
                     {t("plantSpacing")} (cm)
                   </label>
                   <input
@@ -403,7 +439,7 @@ export default function SmartIrrigationPage() {
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 6 }}>
+                  <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6 }}>
                     {t("rowSpacing")} (cm)
                   </label>
                   <input
@@ -417,15 +453,19 @@ export default function SmartIrrigationPage() {
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 6 }}>
+                  <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6 }}>
                     {t("waterSource")} *
                   </label>
                   <select
-                    className="input"
+                    className={`input ${formErrors.water_source ? "input-invalid" : ""}`}
                     style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #CCC" }}
                     value={waterSource}
-                    onChange={(e) => setWaterSource(e.target.value)}
+                    onChange={(e) => {
+                      setWaterSource(e.target.value);
+                      if (formErrors.water_source) setFormErrors((prev) => ({ ...prev, water_source: "" }));
+                    }}
                   >
+                    <option value="">-- Select Source --</option>
                     <option value="Well">{t("well")}</option>
                     <option value="Borewell">{t("borewell")}</option>
                     <option value="Water Tank">{t("waterTank")}</option>
@@ -434,10 +474,11 @@ export default function SmartIrrigationPage() {
                     <option value="Municipal Water">{t("municipalWater")}</option>
                     <option value="Other">{t("otherSource")}</option>
                   </select>
+                  {formErrors.water_source && <span className="field-error-text">{formErrors.water_source}</span>}
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 6 }}>
+                  <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6 }}>
                     {t("soilType")}
                   </label>
                   <select
@@ -446,6 +487,7 @@ export default function SmartIrrigationPage() {
                     value={soilType}
                     onChange={(e) => setSoilType(e.target.value)}
                   >
+                    <option value="">-- Select Soil --</option>
                     <option value="Loamy">{t("loamySoil")}</option>
                     <option value="Sandy">{t("sandySoil")}</option>
                     <option value="Clay">{t("claySoil")}</option>
@@ -454,9 +496,9 @@ export default function SmartIrrigationPage() {
               </div>
 
               {/* Pump & Terrain (Optional) */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 24 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14, marginBottom: 24 }}>
                 <div>
-                  <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 6 }}>
+                  <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6 }}>
                     {t("pumpCapacityHp")}
                   </label>
                   <input
@@ -470,7 +512,7 @@ export default function SmartIrrigationPage() {
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 6 }}>
+                  <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6 }}>
                     {t("waterFlowRate")}
                   </label>
                   <input
@@ -484,7 +526,7 @@ export default function SmartIrrigationPage() {
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 6 }}>
+                  <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6 }}>
                     {t("terrain")}
                   </label>
                   <select
@@ -493,6 +535,7 @@ export default function SmartIrrigationPage() {
                     value={terrain}
                     onChange={(e) => setTerrain(e.target.value)}
                   >
+                    <option value="">-- Select Terrain --</option>
                     <option value="Flat">{t("flatTerrain")}</option>
                     <option value="Slight Slope">{t("slightSlope")}</option>
                     <option value="Steep">{t("steepTerrain")}</option>

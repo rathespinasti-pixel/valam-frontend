@@ -23,6 +23,8 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
+import { userSettingsSchema, getFieldErrors } from "@/lib/validations";
+
 export default function SettingsPage() {
   const router = useRouter();
   const { t, language, setLanguage } = useLanguage();
@@ -46,6 +48,7 @@ export default function SettingsPage() {
   const [fertilizerPref, setFertilizerPref] = useState("Organic");
 
   const [saving, setSaving] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [statusMsg, setStatusMsg] = useState<{ type: "ok" | "error"; text: string } | null>(null);
 
   // Account Deletion State
@@ -88,8 +91,26 @@ export default function SettingsPage() {
 
   async function handleSaveSettings(e: React.FormEvent) {
     e.preventDefault();
-    setSaving(true);
+    setFormErrors({});
     setStatusMsg(null);
+
+    const validationResult = userSettingsSchema.safeParse({
+      full_name: fullName,
+      phone,
+      district,
+      ds_division: dsDivision,
+      farm_location: farmLocation || undefined,
+      farming_category: farmingCategory || undefined,
+      preferred_language: preferredLang,
+    });
+
+    if (!validationResult.success) {
+      const errors = getFieldErrors(validationResult);
+      setFormErrors(errors);
+      return;
+    }
+
+    setSaving(true);
 
     try {
       const updated = await ValamAPI.updateProfile({
@@ -200,47 +221,69 @@ export default function SettingsPage() {
               {t("profileUpdate")}
             </h2>
 
-            <form onSubmit={handleSaveSettings}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
+            <form onSubmit={handleSaveSettings} noValidate>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16, marginBottom: 16 }}>
                 <div>
-                  <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 6, color: "#334155" }}>
+                  <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6, color: "#334155" }}>
                     <User size={15} style={{ verticalAlign: "middle", marginRight: 6 }} />
                     {t("fullName")} *
                   </label>
                   <input
                     type="text"
-                    required
-                    style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #CBD5E1" }}
+                    style={{
+                      width: "100%",
+                      padding: "10px 14px",
+                      borderRadius: 8,
+                      border: formErrors.full_name ? "1px solid #EF4444" : "1px solid #CBD5E1",
+                      background: formErrors.full_name ? "#FEF2F2" : "#FFFFFF",
+                    }}
                     value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
+                    onChange={(e) => {
+                      setFullName(e.target.value);
+                      if (formErrors.full_name) setFormErrors((prev) => ({ ...prev, full_name: "" }));
+                    }}
                   />
+                  {formErrors.full_name && <span className="field-error-text">{formErrors.full_name}</span>}
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 6, color: "#334155" }}>
+                  <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6, color: "#334155" }}>
                     <Phone size={15} style={{ verticalAlign: "middle", marginRight: 6 }} />
                     {t("phoneNumber")} *
                   </label>
                   <input
                     type="tel"
-                    required
-                    style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #CBD5E1" }}
+                    style={{
+                      width: "100%",
+                      padding: "10px 14px",
+                      borderRadius: 8,
+                      border: formErrors.phone ? "1px solid #EF4444" : "1px solid #CBD5E1",
+                      background: formErrors.phone ? "#FEF2F2" : "#FFFFFF",
+                    }}
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => {
+                      setPhone(e.target.value);
+                      if (formErrors.phone) setFormErrors((prev) => ({ ...prev, phone: "" }));
+                    }}
                   />
+                  {formErrors.phone && <span className="field-error-text">{formErrors.phone}</span>}
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16, marginBottom: 16 }}>
                 <div>
-                  <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 6, color: "#334155" }}>
+                  <label style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6, color: "#334155" }}>
                     <MapPin size={15} style={{ verticalAlign: "middle", marginRight: 6 }} />
                     {t("farmPlace")} *
                   </label>
                   <input
                     type="text"
-                    required
-                    style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #CBD5E1" }}
+                    style={{
+                      width: "100%",
+                      padding: "10px 14px",
+                      borderRadius: 8,
+                      border: formErrors.district ? "1px solid #EF4444" : "1px solid #CBD5E1",
+                    }}
                     value={farmLocation}
                     onChange={(e) => setFarmLocation(e.target.value)}
                   />

@@ -1687,14 +1687,13 @@ function AdminPageContent() {
               </div>
             </div>
 
-            <form onSubmit={handleConfirmBanUser}>
+            <form onSubmit={handleConfirmBanUser} noValidate>
               <div style={{ marginBottom: 16 }}>
                 <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>
                   Ban Reason Details (Required)
                 </label>
                 <textarea
                   rows={3}
-                  required
                   placeholder="Explain why this account is being suspended..."
                   value={banReasonText}
                   onChange={(e) => setBanReasonText(e.target.value)}
@@ -1743,15 +1742,15 @@ function AdminPageContent() {
               </button>
             </div>
 
-            <form onSubmit={handleSaveUser}>
+            <form onSubmit={handleSaveUser} noValidate>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
                 <div>
                   <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>Full Name *</label>
-                  <input type="text" required value={uName} onChange={(e) => setUName(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }} />
+                  <input type="text" value={uName} onChange={(e) => setUName(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }} />
                 </div>
                 <div>
                   <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>Email Address *</label>
-                  <input type="email" required value={uEmail} onChange={(e) => setUEmail(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }} />
+                  <input type="email" value={uEmail} onChange={(e) => setUEmail(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }} />
                 </div>
               </div>
 
@@ -1825,7 +1824,6 @@ function AdminPageContent() {
                   </label>
                   <input
                     type="password"
-                    required={!editingUserId}
                     placeholder={editingUserId ? "Leave empty to keep current" : "Min 6 characters"}
                     value={uPassword}
                     onChange={(e) => setUPassword(e.target.value)}
@@ -1870,11 +1868,9 @@ function AdminPageContent() {
             <p style={{ fontSize: 13, color: "#64748B", marginBottom: 16 }}>
               Enter new password for <strong>{userToResetPass.email}</strong>:
             </p>
-            <form onSubmit={handleResetUserPasswordSubmit}>
+            <form onSubmit={handleResetUserPasswordSubmit} noValidate>
               <input
                 type="password"
-                required
-                minLength={6}
                 placeholder="New password (min 6 chars)"
                 value={newResetPassword}
                 onChange={(e) => setNewResetPassword(e.target.value)}
@@ -1998,7 +1994,6 @@ function AdminPageContent() {
                       </label>
                       <input
                         type="text"
-                        required
                         placeholder="e.g. Tomato, Chilli, Maize, Paddy, Brinjal"
                         value={cropName}
                         onChange={(e) => setCropName(e.target.value)}
@@ -2244,12 +2239,11 @@ function AdminPageContent() {
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
           <div style={{ background: "#FFF", borderRadius: 20, padding: 28, maxWidth: 480, width: "100%" }}>
             <h3 style={{ fontSize: 18, fontWeight: 800, color: "#1B4D3E", margin: "0 0 16px" }}>Broadcast System Notification</h3>
-            <form onSubmit={handleCreateNotification}>
+            <form onSubmit={handleCreateNotification} noValidate>
               <div style={{ marginBottom: 12 }}>
                 <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>Title</label>
                 <input
                   type="text"
-                  required
                   placeholder="e.g. Monsoon Rain Warning"
                   value={noteTitle}
                   onChange={(e) => setNoteTitle(e.target.value)}
@@ -2260,7 +2254,6 @@ function AdminPageContent() {
                 <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>Message Content</label>
                 <textarea
                   rows={3}
-                  required
                   placeholder="Notification text..."
                   value={noteMsg}
                   onChange={(e) => setNoteMsg(e.target.value)}
