@@ -8,19 +8,20 @@ export function LanguageSwitcher() {
   const { language, setLanguage } = useLanguage();
 
   return (
-    <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-      <Globe size={16} color="#059669" />
+    <div style={{ display: "inline-flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+      <Globe size={15} color="#059669" className="mobile-hide-icon" />
       <select
         value={language}
         onChange={(e) => setLanguage(e.target.value as Language)}
+        className="lang-switcher-select"
         style={{
           background: "#FFFFFF",
           border: "1px solid #CBD5E1",
           color: "#1E293B",
-          fontSize: 13,
+          fontSize: 12,
           fontWeight: 700,
-          borderRadius: 16,
-          padding: "5px 10px",
+          borderRadius: 14,
+          padding: "4px 8px",
           cursor: "pointer",
           outline: "none",
           boxShadow: "0 1px 3px rgba(0,0,0,0.06)",

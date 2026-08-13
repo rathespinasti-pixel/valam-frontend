@@ -451,13 +451,13 @@ function CropLifecycleContent() {
               </div>
             </div>
 
-            {!isInspectCurrent && (
-              <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderLeft: "4px solid #3B82F6", borderRadius: 10, padding: "10px 16px", marginBottom: 20, fontSize: 13, color: "#475569" }}>
+            {activeStageTab !== null && activeStageTab !== currentStageIndex && inspectStage && (
+              <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderLeft: "4px solid #3B82F6", borderRadius: 10, padding: "10px 16px", marginBottom: 20, fontSize: 13, color: "#475569", marginTop: 16 }}>
                 💡 <strong>{language === "ta" ? "தேர்ந்தெடுக்கப்பட்ட நிலையைப் பார்க்கிறீர்கள்:" : language === "si" ? "තෝරාගත් අවධිය පරීක්ෂා කරමින් සිටී:" : "Viewing Selected Stage:"}</strong> {language === "ta" ? `நீங்கள் ${inspectStage.stage_name} நிலைக்கான தகவல்களையும் படங்களையும் பார்க்கிறீர்கள். உங்கள் பயிரின் உண்மையான வளர்ச்சி நிலை நட்ட தேதியின்படி (${activeCrop.planting_date}) ${currentStage.stage_name} (நாள் ${cropAge}) ஆகவே இருக்கும்.` : language === "si" ? `ඔබ ${inspectStage.stage_name} අවධිය පිළිබඳ තොරතුරු නරඹයි. ඔබගේ වගාවේ සැබෑ ජීව විද්‍යාත්මක අවධිය සිටුවූ දිනයට (${activeCrop.planting_date}) අනුව ${currentStage.stage_name} (දින ${cropAge}) ලෙස පවතී.` : `You are inspecting information and the visual for ${inspectStage.stage_name}. Your crop's actual biological stage remains ${currentStage.stage_name} (Day ${cropAge}) calculated automatically from planting date (${activeCrop.planting_date}).`}
               </div>
             )}
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr", gap: 24, alignItems: "start" }}>
+            <div className="grid-sidebar-responsive" style={{ alignItems: "start", marginTop: 16 }}>
 
               {/* Stage Image Display */}
               <div style={{ background: "#F8FAFC", borderRadius: 16, padding: 16, border: "1px solid #E2E8F0", position: "relative" }}>
@@ -491,7 +491,7 @@ function CropLifecycleContent() {
                   </p>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                <div className="grid-2col-responsive" style={{ gap: 14 }}>
                   <div style={{ background: "#E0F2FE", borderRadius: 14, padding: 16, border: "1px solid #BAE6FD" }}>
                     <div style={{ fontWeight: 700, fontSize: 13, color: "#0369A1", display: "flex", alignItems: "center", gap: 6 }}>
                       <Droplets size={18} /> {t("waterRequirements")}
@@ -532,7 +532,7 @@ function CropLifecycleContent() {
           </div>
 
           {/* 4. Daily Progress & Today's Recommendations */}
-          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 24, marginBottom: 32 }}>
+          <div className="grid-sidebar-responsive" style={{ marginBottom: 32 }}>
 
             {/* Left: Today's Tasks Checklist */}
             <div style={{ background: "#FFFFFF", borderRadius: 20, padding: 28, border: "1px solid #E2E8F0" }}>

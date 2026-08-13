@@ -70,6 +70,16 @@ export const ADMIN_MENU_ITEMS: NavMenuItem[] = [
   { key: "admin-settings", transKey: "System Settings", href: "/admin?tab=settings", icon: Settings },
 ];
 
+export const VISITOR_MENU_ITEMS: NavMenuItem[] = [
+  { key: "home", transKey: "home", href: "/", icon: LayoutDashboard },
+  { key: "diagnosis", transKey: "plantDiagnosis", href: "/diagnosis", icon: Stethoscope },
+  { key: "weather", transKey: "weatherForecast", href: "/weather", icon: CloudSun },
+  { key: "marketplace", transKey: "cloudMarketTitle", href: "/marketplace", icon: ShoppingBag },
+  { key: "chatbot", transKey: "aiChatbot", href: "/chatbot", icon: Bot },
+  { key: "about", transKey: "about", href: "/about", icon: HelpCircle },
+  { key: "contact", transKey: "contact", href: "/contact", icon: MessageSquare },
+];
+
 interface SidebarDrawerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -161,10 +171,10 @@ export function SidebarDrawer({ isOpen, onClose, user, onLogout, activeKey }: Si
             </div>
             <div>
               <div style={{ fontWeight: 700, fontSize: 15, color: "#FFFFFF", lineHeight: 1.2 }}>
-                {user?.full_name || "Valam Farmer"}
+                {user?.full_name || "Valam Digital"}
               </div>
               <div style={{ fontSize: 12, color: "#A7F3D0", marginTop: 2, display: "flex", alignItems: "center", gap: 4 }}>
-                <ShieldCheck size={12} /> {user?.farm_location || "Vavuniya, LK"}
+                <ShieldCheck size={12} /> {user?.farm_location || (user ? "Vavuniya, LK" : "Smart Farming")}
               </div>
             </div>
           </div>
@@ -227,7 +237,9 @@ export function SidebarDrawer({ isOpen, onClose, user, onLogout, activeKey }: Si
           {(() => {
             const isAdminUser = user?.role === "admin" || user?.role === "super_admin";
             const isConsumer = user?.role === "consumer";
-            const itemsToRender = isAdminUser ? ADMIN_MENU_ITEMS : (isConsumer ? CONSUMER_MENU_ITEMS : MENU_ITEMS);
+            const itemsToRender = user
+              ? (isAdminUser ? ADMIN_MENU_ITEMS : (isConsumer ? CONSUMER_MENU_ITEMS : MENU_ITEMS))
+              : VISITOR_MENU_ITEMS;
             return itemsToRender.map((item) => {
               const Icon = item.icon;
               const isActive = activeKey === item.key || pathname === item.href;
@@ -264,7 +276,7 @@ export function SidebarDrawer({ isOpen, onClose, user, onLogout, activeKey }: Si
           })()}
         </div>
 
-        {/* Fixed Footer with Logout Button */}
+        {/* Fixed Footer with Auth Buttons or Logout */}
         <div
           style={{
             padding: "16px 14px 20px",
@@ -272,29 +284,72 @@ export function SidebarDrawer({ isOpen, onClose, user, onLogout, activeKey }: Si
             background: "rgba(0, 0, 0, 0.2)",
           }}
         >
-          <button
-            type="button"
-            onClick={onLogout}
-            style={{
-              width: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 10,
-              padding: "12px 16px",
-              borderRadius: 10,
-              border: "1px solid rgba(239, 68, 68, 0.4)",
-              background: "rgba(239, 68, 68, 0.12)",
-              color: "#FCA5A5",
-              fontWeight: 700,
-              fontSize: 14,
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-            }}
-          >
-            <LogOut size={18} />
-            <span>{t("logout")}</span>
-          </button>
+          {user ? (
+            <button
+              type="button"
+              onClick={onLogout}
+              style={{
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 10,
+                padding: "12px 16px",
+                borderRadius: 10,
+                border: "1px solid rgba(239, 68, 68, 0.4)",
+                background: "rgba(239, 68, 68, 0.12)",
+                color: "#FCA5A5",
+                fontWeight: 700,
+                fontSize: 14,
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+              }}
+            >
+              <LogOut size={18} />
+              <span>{t("logout")}</span>
+            </button>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <Link
+                href="/login"
+                onClick={onClose}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "12px 16px",
+                  borderRadius: 10,
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                  color: "#FFFFFF",
+                  fontWeight: 600,
+                  fontSize: 14,
+                  textDecoration: "none",
+                  textAlign: "center",
+                }}
+              >
+                {t("login")}
+              </Link>
+              <Link
+                href="/register"
+                onClick={onClose}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "12px 16px",
+                  borderRadius: 10,
+                  background: "#F2994C",
+                  color: "#2C0707",
+                  fontWeight: 700,
+                  fontSize: 14,
+                  textDecoration: "none",
+                  textAlign: "center",
+                }}
+              >
+                {t("getStarted")}
+              </Link>
+            </div>
+          )}
         </div>
       </aside>
     </div>

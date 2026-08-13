@@ -638,7 +638,7 @@ export default function SmartIrrigationPage() {
               </div>
 
               {/* Detailed Technical Layout & Water Calculations */}
-              <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 24 }}>
+              <div className="grid-sidebar-responsive" style={{ gap: 24 }}>
                 
                 {/* Left Card: Method Calculation Details */}
                 <div style={{ background: "#FFFFFF", borderRadius: 18, padding: 24, border: "1px solid #E2E8F0" }}>

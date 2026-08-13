@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { CircleCheck, FileText, ListChecks, ListFilter } from "lucide-react";
-import { checkSubsidy, type SubsidyResult } from "@/lib/solarData";
+import { checkSubsidy, type SubsidyResult } from "@/lib/simulatorData";
 
 export function SubsidyForm() {
   const [location, setLocation] = useState("Vavuniya");

@@ -161,8 +161,8 @@ export default function ChatbotPage() {
         <div className="container">
           
           {/* Quick Category Prompts Bar */}
-          <div style={{ marginBottom: 20, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: "#64748B", display: "flex", alignItems: "center", gap: 4 }}>
+          <div style={{ marginBottom: 20, display: "flex", gap: 10, overflowX: "auto", flexWrap: "nowrap", alignItems: "center", paddingBottom: 4 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#64748B", display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
               <HelpCircle size={16} /> Quick Questions:
             </span>
             {QUICK_PROMPTS.map((p, idx) => (
@@ -178,6 +178,8 @@ export default function ChatbotPage() {
                   fontWeight: 600,
                   color: "#1B4D3E",
                   cursor: "pointer",
+                  whiteSpace: "nowrap",
+                  flexShrink: 0,
                   transition: "all 0.2s ease",
                 }}
               >
@@ -186,10 +188,11 @@ export default function ChatbotPage() {
             ))}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 24 }}>
+          <div className="grid-sidebar-responsive" style={{ gap: 24 }}>
             
             {/* Left: Chat Console */}
             <div
+              className="chatbot-console-box"
               style={{
                 background: "#FFFFFF",
                 borderRadius: 20,
@@ -197,7 +200,6 @@ export default function ChatbotPage() {
                 boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
                 display: "flex",
                 flexDirection: "column",
-                height: 600,
                 overflow: "hidden",
               }}
             >

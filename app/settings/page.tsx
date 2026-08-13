@@ -315,7 +315,7 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
+              <div className="grid-2col-responsive" style={{ gap: 20, marginBottom: 24 }}>
                 <div>
                   <label style={{ display: "block", fontWeight: 600, fontSize: 14, marginBottom: 6, color: "#334155" }}>
                     <Globe size={15} style={{ verticalAlign: "middle", marginRight: 6 }} />

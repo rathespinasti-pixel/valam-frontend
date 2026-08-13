@@ -343,7 +343,7 @@ export function Navbar({ active, pageTitle }: NavbarProps) {
                 >
                   {user.full_name ? user.full_name.charAt(0).toUpperCase() : "V"}
                 </div>
-                <span style={{ fontWeight: 700, fontSize: 13 }}>
+                <span className="mobile-hide-text" style={{ fontWeight: 700, fontSize: 13 }}>
                   {user.full_name ? user.full_name.split(" ")[0] : "Farmer"}
                 </span>
               </div>
@@ -373,7 +373,7 @@ export function Navbar({ active, pageTitle }: NavbarProps) {
       ) : (
         /* Public Visitor Top Header Navigation Bar */
         <header className="site-header">
-          <div className="container nav" style={{ gap: 16 }}>
+          <div className="container nav" style={{ gap: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             {/* Logo Brand */}
             <Link href="/" className="brand" style={{ flexShrink: 0 }}>
               <Image src={logo} alt="Valam logo" priority />
@@ -384,31 +384,48 @@ export function Navbar({ active, pageTitle }: NavbarProps) {
             </Link>
 
             {/* Right Action Controls: Language Switcher & Auth Buttons */}
-            <div className="nav-cta" style={{ flexShrink: 0 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <LanguageSwitcher />
-                <Link href="/login" className="btn btn-outline" style={{ padding: "8px 16px" }}>
-                  {t("login")}
-                </Link>
-                <Link href="/register" className="btn btn-sun" style={{ padding: "8px 18px" }}>
-                  {t("getStarted")}
-                </Link>
-              </div>
+            <div className="nav-cta" style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 8 }}>
+              <LanguageSwitcher />
+              <Link href="/login" className="btn btn-outline mobile-hide-btn" style={{ padding: "8px 16px" }}>
+                {t("login")}
+              </Link>
+              <Link href="/register" className="btn btn-sun mobile-hide-btn" style={{ padding: "8px 18px" }}>
+                {t("getStarted")}
+              </Link>
+
+              {/* Visitor Mobile Menu Toggle */}
+              <button
+                type="button"
+                className="mobile-nav-toggle btn-toggle"
+                style={{
+                  background: "rgba(27, 77, 62, 0.1)",
+                  border: "none",
+                  color: "#1B4D3E",
+                  padding: 8,
+                  borderRadius: 8,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                }}
+                aria-label="Open navigation menu"
+                onClick={() => setSidebarOpen(true)}
+              >
+                <Menu size={22} />
+              </button>
             </div>
           </div>
         </header>
       )}
 
-      {/* Responsive Mobile Sidebar Drawer */}
-      {isLoggedIn && (
-        <SidebarDrawer
-          isOpen={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-          user={user}
-          onLogout={triggerLogoutConfirm}
-          activeKey={active}
-        />
-      )}
+      {/* Responsive Mobile Sidebar Drawer (Logged in & Visitors) */}
+      <SidebarDrawer
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        user={user}
+        onLogout={triggerLogoutConfirm}
+        activeKey={active}
+      />
     </>
   );
 }

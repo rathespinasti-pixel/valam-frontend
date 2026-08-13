@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { WandSparkles, CircleCheck } from "lucide-react";
-import { pickSystem, pickIrrigation, type SolarSystem } from "@/lib/solarData";
+import { pickSystem, pickIrrigation, type SolarSystem } from "@/lib/simulatorData";
 
 export function RecommendationForm() {
   const [crop, setCrop] = useState("tomato");

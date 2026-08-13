@@ -912,7 +912,7 @@ function AdminPageContent() {
                     </div>
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+                  <div className="grid-2col-responsive">
                     <div style={{ background: "#FFF", borderRadius: 16, padding: 20, border: "1px solid #E2E8F0" }}>
                       <h3 style={{ fontSize: 16, fontWeight: 700, color: "#1B4D3E", marginBottom: 12 }}>User Category Breakdown</h3>
                       <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 14 }}>
@@ -1210,7 +1210,7 @@ function AdminPageContent() {
                     </button>
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 18 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 16 }}>
                     {guides.map((g) => (
                       <div
                         key={g.id}
@@ -1473,10 +1473,12 @@ function AdminPageContent() {
                           display: "flex",
                           justifyContent: "space-between",
                           alignItems: "flex-start",
+                          flexWrap: "wrap",
+                          gap: 12,
                         }}
                       >
                         <div>
-                          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                             <span style={{ fontWeight: 800, fontSize: 15, color: "#1B4D3E" }}>{n.title}</span>
                             <span style={{ background: "#E0F2FE", color: "#0369A1", padding: "2px 8px", borderRadius: 10, fontSize: 11, fontWeight: 700 }}>{n.category}</span>
                             <span style={{ background: "#DCFCE7", color: "#15803D", padding: "2px 8px", borderRadius: 10, fontSize: 11, fontWeight: 700 }}>
@@ -1743,7 +1745,7 @@ function AdminPageContent() {
             </div>
 
             <form onSubmit={handleSaveUser} noValidate>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+              <div className="grid-2col-responsive" style={{ gap: 12, marginBottom: 12 }}>
                 <div>
                   <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>Full Name *</label>
                   <input type="text" value={uName} onChange={(e) => setUName(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }} />
@@ -1754,7 +1756,7 @@ function AdminPageContent() {
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+              <div className="grid-2col-responsive" style={{ gap: 12, marginBottom: 12 }}>
                 <div>
                   <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>Phone Number</label>
                   <input type="text" value={uPhone} onChange={(e) => setUPhone(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }} />
@@ -1770,7 +1772,7 @@ function AdminPageContent() {
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+              <div className="grid-2col-responsive" style={{ gap: 12, marginBottom: 12 }}>
                 <div>
                   <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>District</label>
                   <input type="text" value={uDistrict} onChange={(e) => setUDistrict(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }} />
@@ -1781,7 +1783,7 @@ function AdminPageContent() {
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+              <div className="grid-2col-responsive" style={{ gap: 12, marginBottom: 12 }}>
                 <div>
                   <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>Land Size &amp; Unit</label>
                   <div style={{ display: "flex", gap: 6 }}>
@@ -1810,7 +1812,7 @@ function AdminPageContent() {
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+              <div className="grid-2col-responsive" style={{ gap: 12, marginBottom: 12 }}>
                 <div>
                   <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>Account Status</label>
                   <select value={uStatus} onChange={(e) => setUStatus(e.target.value)} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 13 }}>
@@ -2133,23 +2135,23 @@ function AdminPageContent() {
                         border: "1px solid #E2E8F0",
                       }}
                     >
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <span style={{ background: "#1B4D3E", color: "#FFF", width: 22, height: 22, borderRadius: "50%", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, flexWrap: "wrap", gap: 8 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", flex: 1, minWidth: 200 }}>
+                          <span style={{ background: "#1B4D3E", color: "#FFF", width: 22, height: 22, borderRadius: "50%", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
                             {index + 1}
                           </span>
                           <input
                             type="text"
                             value={sc.stage_name}
                             onChange={(e) => handleStageCompostChange(index, "stage_name", e.target.value)}
-                            style={{ fontWeight: 700, fontSize: 12, border: "1px solid #CBD5E1", borderRadius: 6, padding: "4px 8px", width: 240 }}
+                            style={{ fontWeight: 700, fontSize: 12, border: "1px solid #CBD5E1", borderRadius: 6, padding: "4px 8px", flex: 2, minWidth: 120 }}
                           />
                           <input
                             type="text"
                             placeholder="e.g. Days 0-15"
                             value={sc.days_range || ""}
                             onChange={(e) => handleStageCompostChange(index, "days_range", e.target.value)}
-                            style={{ fontSize: 12, border: "1px solid #CBD5E1", borderRadius: 6, padding: "4px 8px", width: 130 }}
+                            style={{ fontSize: 12, border: "1px solid #CBD5E1", borderRadius: 6, padding: "4px 8px", flex: 1, minWidth: 90 }}
                           />
                         </div>
                         {stageComposts.length > 1 && (

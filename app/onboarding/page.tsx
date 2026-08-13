@@ -272,7 +272,7 @@ export default function OnboardingPage() {
 
               <div style={{ marginBottom: 20 }}>
                 <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>{t("farmPlace")}</label>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "center" }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
                   <input
                     type="text"
                     className="input"

@@ -555,7 +555,7 @@ export default function CropsPage() {
               </button>
             </div>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 2.2fr", gap: 24 }}>
+            <div className="grid-sidebar-responsive" style={{ gap: 24 }}>
               
               {/* Left Column: Crop List Cards */}
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -676,7 +676,7 @@ export default function CropsPage() {
                     </div>
 
                     {/* 3-Stage Progress Tabs */}
-                    <div style={{ marginTop: 24, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+                    <div className="grid-3col-responsive" style={{ marginTop: 24, gap: 10 }}>
                       <button
                         onClick={() => {
                           setActiveStageTab(1);
@@ -751,7 +751,7 @@ export default function CropsPage() {
                       <Sparkles size={20} color="#10B981" /> {t("expectedAppearance")} — Stage {activeStageTab}
                     </h3>
 
-                    <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 20, alignItems: "center" }}>
+                    <div className="grid-sidebar-responsive" style={{ gap: 20, alignItems: "center" }}>
                       <img
                         src={currentStageImg}
                         alt={`${activeCrop.crop_name} stage ${activeStageTab}`}

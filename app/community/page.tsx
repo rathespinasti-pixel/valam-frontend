@@ -335,7 +335,7 @@ export default function CommunityPage() {
           </div>
 
           {/* Main Content Grid: Feed on left, active thread on right (or full-width) */}
-          <div style={{ display: "grid", gridTemplateColumns: selectedPost ? "1.1fr 1fr" : "1fr", gap: 20 }}>
+          <div className={selectedPost ? "grid-sidebar-responsive" : ""} style={{ display: "grid", gridTemplateColumns: selectedPost ? undefined : "1fr", gap: 20 }}>
 
             {/* Post Feed */}
             <div>

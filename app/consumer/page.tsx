@@ -522,7 +522,7 @@ function ConsumerPortalContent() {
                         )}
 
                         {/* Action Buttons */}
-                        <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 8, marginTop: "auto" }}>
+                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: "auto" }}>
                           <button
                             type="button"
                             onClick={() => openBargainModal(item)}

@@ -111,3 +111,77 @@ export function profitStatus(result: SimResult) {
   if (result.profitPerAcre < 400) return { icon: "🟡", text: "Marginal profit" };
   return { icon: "📈", text: "Recommended crop choice" };
 }
+
+export interface SolarSystem {
+  name: string;
+  panel: string;
+  pump: string;
+  cost: string;
+  kw: number;
+  pumpHp: number;
+  panelCount: number;
+  approxCostLkr: number;
+  subsidyEligible: boolean;
+}
+
+export interface SubsidyResult {
+  programs: string[];
+  documents: string[];
+  process: string[];
+}
+
+export function pickSystem(acres: number, crop: string): SolarSystem {
+  const baseKw = Math.max(1, Math.ceil(acres * 1.5));
+  const pumpHp = Math.max(1, Math.ceil(acres * 1.25));
+  const panelCount = baseKw * 3;
+  const approxCostLkr = baseKw * 350000;
+  
+  return {
+    name: `${baseKw}kW Off-Grid Solar Pumping System`,
+    panel: `${baseKw * 2}x 450W Mono PERC Solar Panels (${baseKw}kW)`,
+    pump: `${pumpHp} HP Submersible DC Solar Pump`,
+    cost: `LKR ${(approxCostLkr).toLocaleString()} (~$${Math.round(approxCostLkr / 300).toLocaleString()})`,
+    kw: baseKw,
+    pumpHp,
+    panelCount,
+    approxCostLkr,
+    subsidyEligible: true,
+  };
+}
+
+export function pickIrrigation(crop: string, waterSource: string): string {
+  if (waterSource === "drip" || crop.toLowerCase().includes("tomato")) {
+    return "Micro-Drip Line (1.6L/h emitters, 30cm spacing)";
+  }
+  if (waterSource === "canal") {
+    return "Low-Pressure Surface Sprinklers (360° coverage)";
+  }
+  return "Submersible Solar Pump Drip Feed System";
+}
+
+export function checkSubsidy(acres: number, farmerType: string): SubsidyResult {
+  const programs = [
+    "Department of Agriculture Solar Irrigation Grant (up to 50% capital cost)",
+    "Dry Zone Rural Water Infrastructure Development Support",
+  ];
+  if (farmerType === "cooperative") {
+    programs.push("Farmer Cooperative Solar Bulk Procurement Subsidy (additional 15%)");
+  }
+
+  const documents = [
+    "Land Ownership / Lease Agreement Certificate",
+    "National Identity Card (NIC) / Farmer Registration ID",
+    "Agrarian Services Center Recommendation Letter",
+    "Water Source Depth & Quality Verification",
+  ];
+
+  const process = [
+    "1. Submit application to local Agrarian Services Development Officer",
+    "2. Technical inspection & pump capacity sizing audit by Irrigation Engineer",
+    "3. Approval & issuance of Solar Equipment Procurement Voucher",
+    "4. Installation by certified solar vendor & final commissioning inspection",
+  ];
+
+  return { programs, documents, process };
+}
+

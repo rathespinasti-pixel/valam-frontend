@@ -312,8 +312,8 @@ export default function DashboardPage() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-              gap: 16,
+              gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+              gap: 14,
               marginBottom: 32,
             }}
           >
@@ -470,61 +470,63 @@ export default function DashboardPage() {
                 </Link>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 24, alignItems: "center" }}>
+              <div className="grid-sidebar-responsive" style={{ alignItems: "center" }}>
                 
                 {/* Visual 5-Stage Timeline */}
                 <div>
-                  <div style={{ display: "grid", gridTemplateColumns: `repeat(${lifecycleData.allStages.length}, 1fr)`, gap: 8, marginBottom: 16 }}>
-                    {lifecycleData.allStages.map((st, idx) => {
-                      const isCurrent = idx === lifecycleData.currentStageIndex;
-                      const isCompleted = (st.end_day || 0) < daysSincePlanting;
+                  <div style={{ overflowX: "auto", paddingBottom: 4, WebkitOverflowScrolling: "touch" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: `repeat(${lifecycleData.allStages.length}, minmax(100px, 1fr))`, gap: 8, marginBottom: 16 }}>
+                      {lifecycleData.allStages.map((st, idx) => {
+                        const isCurrent = idx === lifecycleData.currentStageIndex;
+                        const isCompleted = (st.end_day || 0) < daysSincePlanting;
 
-                      let bg = "#F8FAFC";
-                      let border = "1px solid #E2E8F0";
-                      let color = "#64748B";
+                        let bg = "#F8FAFC";
+                        let border = "1px solid #E2E8F0";
+                        let color = "#64748B";
 
-                      if (isCompleted) {
-                        bg = "#DCFCE7";
-                        border = "1px solid #A7F3D0";
-                        color = "#166534";
-                      }
-                      if (isCurrent) {
-                        bg = "#10B981";
-                        border = "2px solid #059669";
-                        color = "#FFFFFF";
-                      }
+                        if (isCompleted) {
+                          bg = "#DCFCE7";
+                          border = "1px solid #A7F3D0";
+                          color = "#166534";
+                        }
+                        if (isCurrent) {
+                          bg = "#10B981";
+                          border = "2px solid #059669";
+                          color = "#FFFFFF";
+                        }
 
-                      return (
-                        <Link
-                          key={idx}
-                          href={`/crops/lifecycle?crop_id=${activeCrop.id}`}
-                          style={{
-                            padding: "12px 6px",
-                            borderRadius: 12,
-                            background: bg,
-                            border: border,
-                            color: color,
-                            textAlign: "center",
-                            textDecoration: "none",
-                            transition: "all 0.2s ease",
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            gap: 4,
-                          }}
-                        >
-                          <span style={{ fontSize: 20 }}>{st.icon}</span>
-                          <span style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.2 }}>
-                            {getLocalizedStageName(st.stage_name, language)}
-                          </span>
-                          <span style={{ fontSize: 9, opacity: 0.9 }}>
-                            {t("day")} {st.start_day}–{st.end_day}
-                          </span>
-                          {isCompleted && <span style={{ fontSize: 10, fontWeight: 800 }}>✓</span>}
-                          {isCurrent && <span style={{ fontSize: 9, fontWeight: 800, background: "rgba(255,255,255,0.25)", padding: "1px 6px", borderRadius: 8 }}>{t("activeBadge")}</span>}
-                        </Link>
-                      );
-                    })}
+                        return (
+                          <Link
+                            key={idx}
+                            href={`/crops/lifecycle?crop_id=${activeCrop.id}`}
+                            style={{
+                              padding: "12px 6px",
+                              borderRadius: 12,
+                              background: bg,
+                              border: border,
+                              color: color,
+                              textAlign: "center",
+                              textDecoration: "none",
+                              transition: "all 0.2s ease",
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "center",
+                              gap: 4,
+                            }}
+                          >
+                            <span style={{ fontSize: 20 }}>{st.icon}</span>
+                            <span style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.2 }}>
+                              {getLocalizedStageName(st.stage_name, language)}
+                            </span>
+                            <span style={{ fontSize: 9, opacity: 0.9 }}>
+                              {t("day")} {st.start_day}–{st.end_day}
+                            </span>
+                            {isCompleted && <span style={{ fontSize: 10, fontWeight: 800 }}>✓</span>}
+                            {isCurrent && <span style={{ fontSize: 9, fontWeight: 800, background: "rgba(255,255,255,0.25)", padding: "1px 6px", borderRadius: 8 }}>{t("activeBadge")}</span>}
+                          </Link>
+                        );
+                      })}
+                    </div>
                   </div>
 
                   {/* Progress Line */}
@@ -576,7 +578,7 @@ export default function DashboardPage() {
           )}
 
           {/* Today's Tasks Checklist & Weather Advisory Grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 24, marginBottom: 32 }}>
+          <div className="grid-sidebar-responsive" style={{ marginBottom: 32 }}>
 
             {/* Left: Today's Tasks Checklist */}
             <div style={{ background: "#FFFFFF", borderRadius: 18, padding: 24, border: "1px solid #E2E8F0", boxShadow: "0 2px 10px rgba(0,0,0,0.03)" }}>
@@ -661,7 +663,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Notifications & Stage Reminders Panel */}
-          <div style={{ background: "#FFFFFF", borderRadius: 18, padding: 24, border: "1px solid #E2E8F0", marginBottom: 32 }}>
+          <div className="mobile-card-padding" style={{ background: "#FFFFFF", borderRadius: 18, padding: 24, border: "1px solid #E2E8F0", marginBottom: 32 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
               <BellRing size={22} color="#D97706" />
               <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "#1E293B" }}>
@@ -669,7 +671,7 @@ export default function DashboardPage() {
               </h2>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
               <div style={{ padding: 14, borderRadius: 12, background: "#F0FDF4", border: "1px solid #DCFCE7", display: "flex", gap: 12, alignItems: "center" }}>
                 <Zap size={24} color="#16A34A" />
                 <div>
